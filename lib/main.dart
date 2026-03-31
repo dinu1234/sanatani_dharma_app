@@ -1,13 +1,21 @@
+import 'package:dharma_app/language/translations.dart';
 import 'package:dharma_app/services/storage_service.dart';
 import 'package:dharma_app/splash_view.dart';
-import 'package:dharma_app/language/translations.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await StorageService.init(); // ✅ storage init
-  runApp(DharmaApp());
+  await StorageService.init();
+  SystemChrome.setSystemUIOverlayStyle(
+    const SystemUiOverlayStyle(
+      statusBarColor: Color(0xFFD6EAF8),
+      statusBarIconBrightness: Brightness.dark,
+      statusBarBrightness: Brightness.light,
+    ),
+  );
+  runApp(const DharmaApp());
 }
 
 class DharmaApp extends StatelessWidget {
@@ -18,26 +26,19 @@ class DharmaApp extends StatelessWidget {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
       title: "Dharma App",
-
-      /// 🌐 MULTI LANGUAGE SETUP
       translations: AppTranslations(),
-      locale: _getSavedLocale(),          // 👈 saved language
+      locale: _getSavedLocale(),
       fallbackLocale: const Locale('en'),
-
-      /// 🎨 OPTIONAL (theme add kar sakte ho)
       theme: ThemeData(
         primarySwatch: Colors.red,
-        scaffoldBackgroundColor: Colors.white,
+        scaffoldBackgroundColor: const Color(0xFFD6EAF8),
       ),
-
-      /// 🚀 START SCREEN
       home: SplashView(),
     );
   }
 
-  /// 📦 STORAGE SE LANGUAGE LOAD
   Locale _getSavedLocale() {
-    final langCode = StorageService.getLanguage(); // 👈 tumhe banana hoga
+    final langCode = StorageService.getLanguage();
     return Locale(langCode ?? 'en');
   }
 }

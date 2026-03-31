@@ -3,7 +3,6 @@ import 'package:dharma_app/language/language_view.dart';
 import 'package:get/get.dart';
 
 class SplashController extends GetxController {
-
   @override
   void onInit() {
     super.onInit();
@@ -11,7 +10,7 @@ class SplashController extends GetxController {
   }
 
   void navigateToLogin() async {
-    await Future.delayed(Duration(seconds: 3));
+    await Future.delayed(const Duration(seconds: 3));
     Get.off(() => LanguageView());
   }
 }

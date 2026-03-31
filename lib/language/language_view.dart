@@ -31,8 +31,7 @@ class LanguageView extends StatelessWidget {
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
 
-    return SafeArea(
-      child: Scaffold(
+    return Scaffold(
         body: Container(
           width: double.infinity,
           height: double.infinity,
@@ -217,7 +216,6 @@ class LanguageView extends StatelessWidget {
             ],
           ),
         ),
-      ),
     );
   }
 }

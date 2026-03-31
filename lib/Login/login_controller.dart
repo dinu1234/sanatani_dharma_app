@@ -1,17 +1,15 @@
+import 'package:dharma_app/Profile/profile_setup_view.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:get/get.dart';
 
 class LoginController extends GetxController {
-  TextEditingController phoneController = TextEditingController();
-  TextEditingController otpController = TextEditingController();
+  final TextEditingController phoneController = TextEditingController();
+  final TextEditingController otpController = TextEditingController();
 
-  var isOtpSent = false.obs;
+  final isOtpSent = false.obs;
+  final countryCode = "+91".obs;
 
-  /// 🌍 Country Code
-  var countryCode = "+91".obs;
-
-  /// 🔔 Common Toast Function
   void showToast(String msg, {Color bgColor = Colors.black}) {
     Fluttertoast.showToast(
       msg: msg,
@@ -23,41 +21,34 @@ class LoginController extends GetxController {
     );
   }
 
-  /// 📤 SEND OTP
   void sendOtp() {
-    String phone = phoneController.text.trim();
+    final phone = phoneController.text.trim();
 
-    if (phone.length != 10 || !GetUtils.isNumericOnly(phone)) {
-      showToast("Enter valid 10 digit number", bgColor: Colors.red);
+    if (phone.isEmpty || !GetUtils.isNumericOnly(phone)) {
+      showToast("Enter valid mobile number", bgColor: Colors.red);
       return;
     }
 
-    String fullNumber = "${countryCode.value}$phone";
-    print("Sending OTP to: $fullNumber");
+    final fullNumber = "${countryCode.value}$phone";
+    debugPrint("Sending OTP to: $fullNumber");
 
     isOtpSent.value = true;
-
     showToast("OTP Sent Successfully", bgColor: Colors.green);
   }
 
-  /// 🔐 VERIFY OTP
   void verifyOtp() {
-    String otp = otpController.text.trim();
+    final otp = otpController.text.trim();
 
     if (otp.length < 4 || !GetUtils.isNumericOnly(otp)) {
       showToast("Enter valid OTP", bgColor: Colors.red);
       return;
     }
-     
-    /// 🔥 Dummy verification
+
     if (otp == "1234") {
-      showToast("OTP Verified ✅", bgColor: Colors.green);
-
-      /// 👉 Navigate
-      // Get.offAll(() => HomeView());
-
+      showToast("OTP Verified", bgColor: Colors.green);
+      Get.to(() => const ProfileSetupView());
     } else {
-      showToast("Invalid OTP ❌", bgColor: Colors.red);
+      showToast("Invalid OTP", bgColor: Colors.red);
     }
   }
 
