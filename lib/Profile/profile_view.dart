@@ -23,37 +23,46 @@ class ProfileView extends StatelessWidget {
       ),
       child: Scaffold(
         backgroundColor: AppColors.homeBackground,
-        bottomNavigationBar: CommonBottomNav(
-          currentItem: AppNavItem.sanathanId,
-          scale: scale,
-          safeBottom: safeBottom,
-          centerNavSize: centerNavSize,
-          height: navHeight,
-        ),
-        body: SingleChildScrollView(
-          padding: EdgeInsets.only(bottom: navHeight + centerNavSize * 0.45),
-          child: Column(
-            children: [
-              _ProfileHeader(scale: scale),
-              Transform.translate(
-                offset: Offset(0, -28 * scale),
-                child: Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 16 * scale),
-                  child: Column(
-                    children: [
-                      _IdCard(scale: scale),
-                      SizedBox(height: 18 * scale),
-                      _BalanceCard(scale: scale),
-                      SizedBox(height: 18 * scale),
-                      _ActionRow(scale: scale),
-                      SizedBox(height: 18 * scale),
-                      _TransactionCard(scale: scale),
-                    ],
+        body: Stack(
+          children: [
+            SingleChildScrollView(
+              padding: EdgeInsets.only(bottom: navHeight + centerNavSize * 0.1),
+              child: Column(
+                children: [
+                  _ProfileHeader(scale: scale),
+                  Transform.translate(
+                    offset: Offset(0, -28 * scale),
+                    child: Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 16 * scale),
+                      child: Column(
+                        children: [
+                          _IdCard(scale: scale),
+                          SizedBox(height: 18 * scale),
+                          _BalanceCard(scale: scale),
+                          SizedBox(height: 18 * scale),
+                          _ActionRow(scale: scale),
+                          SizedBox(height: 18 * scale),
+                          _TransactionCard(scale: scale),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
-            ],
-          ),
+            ),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: CommonBottomNav(
+                currentItem: AppNavItem.sanathanId,
+                scale: scale,
+                safeBottom: safeBottom,
+                centerNavSize: centerNavSize,
+                height: navHeight,
+              ),
+            ),
+          ],
         ),
       ),
     );

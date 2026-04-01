@@ -29,16 +29,16 @@ class CommonBottomNav extends StatelessWidget {
   final double centerNavSize;
   final double height;
 
-  static double navHeight(double safeBottom) => 84.0 + safeBottom;
+  static double navHeight(double safeBottom) => 72.0 + safeBottom;
 
-  static double centerSize(double scale) => 88.0 * scale;
+  static double centerSize(double scale) => 72.0 * scale;
 
   @override
   Widget build(BuildContext context) {
-    final centerLift = centerNavSize * 0.22;
+    final notchSize = centerNavSize * 1.72;
 
     return SizedBox(
-      height: height + centerLift,
+      height: height,
       child: Stack(
         alignment: Alignment.bottomCenter,
         clipBehavior: Clip.none,
@@ -49,59 +49,75 @@ class CommonBottomNav extends StatelessWidget {
             bottom: 0,
             child: Container(
               height: height,
-              padding: EdgeInsets.fromLTRB(
-                12 * scale,
-                12 * scale,
-                12 * scale,
-                math.max(10, safeBottom),
-              ),
               decoration: const BoxDecoration(
-                color: AppColors.white,
-                borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(22),
-                  topRight: Radius.circular(22),
-                ),
+                color: Colors.transparent,
                 boxShadow: [
                   BoxShadow(
-                    color: Color(0x22000000),
-                    blurRadius: 16,
-                    offset: Offset(0, -4),
+                    color: Color(0x18000000),
+                    blurRadius: 10,
+                    offset: Offset(0, -2),
                   ),
                 ],
               ),
-              child: Row(
+              child: Stack(
+                alignment: Alignment.topCenter,
                 children: [
-                  Expanded(
-                    child: _NavItem(
-                      label: 'Home',
-                      icon: Icons.home_filled,
-                      selected: currentItem == AppNavItem.home,
-                      onTap: () => _handleTap(context, AppNavItem.home),
+                  Positioned.fill(
+                    child: ClipPath(
+                      clipper: _BottomNavClipper(
+                        notchRadius: notchSize / 2,
+                        topRadius: 0,
+                      ),
+                      child: Container(
+                        color: AppColors.white,
+                      ),
                     ),
                   ),
-                  Expanded(
-                    child: _NavItem(
-                      label: 'Panchang',
-                      icon: Icons.wb_twilight,
-                      selected: currentItem == AppNavItem.panchang,
-                      onTap: () => _handleTap(context, AppNavItem.panchang),
+                  Padding(
+                    padding: EdgeInsets.fromLTRB(
+                      14 * scale,
+                      8 * scale,
+                      14 * scale,
+                      math.max(14, safeBottom + 4),
                     ),
-                  ),
-                  SizedBox(width: centerNavSize * 0.95),
-                  Expanded(
-                    child: _NavItem(
-                      label: 'Chants',
-                      icon: Icons.auto_awesome,
-                      selected: currentItem == AppNavItem.chants,
-                      onTap: () => _handleTap(context, AppNavItem.chants),
-                    ),
-                  ),
-                  Expanded(
-                    child: _NavItem(
-                      label: 'Gana Match',
-                      icon: Icons.favorite,
-                      selected: currentItem == AppNavItem.ganaMatch,
-                      onTap: () => _handleTap(context, AppNavItem.ganaMatch),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: _NavItem(
+                            label: 'Home',
+                            icon: Icons.home_filled,
+                            selected: currentItem == AppNavItem.home,
+                            onTap: () => _handleTap(context, AppNavItem.home),
+                          ),
+                        ),
+                        Expanded(
+                          child: _NavItem(
+                            label: 'Panchang',
+                            icon: Icons.wb_twilight,
+                            selected: currentItem == AppNavItem.panchang,
+                            onTap: () =>
+                                _handleTap(context, AppNavItem.panchang),
+                          ),
+                        ),
+                        SizedBox(width: centerNavSize * 1.42),
+                        Expanded(
+                          child: _NavItem(
+                            label: 'Chants',
+                            icon: Icons.auto_awesome,
+                            selected: currentItem == AppNavItem.chants,
+                            onTap: () => _handleTap(context, AppNavItem.chants),
+                          ),
+                        ),
+                        Expanded(
+                          child: _NavItem(
+                            label: 'Gana Match',
+                            icon: Icons.favorite,
+                            selected: currentItem == AppNavItem.ganaMatch,
+                            onTap: () =>
+                                _handleTap(context, AppNavItem.ganaMatch),
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -109,7 +125,7 @@ class CommonBottomNav extends StatelessWidget {
             ),
           ),
           Positioned(
-            bottom: height - centerLift - centerNavSize * 0.68,
+            top: -centerNavSize * 0.18,
             child: _CenterNavItem(
               size: centerNavSize,
               selected: currentItem == AppNavItem.sanathanId,
@@ -186,18 +202,19 @@ class _NavItem extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
       child: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, size: 30 * scale, color: color),
-          SizedBox(height: 4 * scale),
+          Icon(icon, size: 24 * scale, color: color),
+          SizedBox(height: 3 * scale),
           Text(
             label,
             textAlign: TextAlign.center,
             maxLines: 2,
             style: TextStyle(
-              fontSize: label == 'Gana Match' ? 11 * scale : 12.5 * scale,
+              fontSize: label == 'Gana Match' ? 9.2 * scale : 10 * scale,
               color: color,
               fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+              height: 1.05,
             ),
           ),
         ],
@@ -223,62 +240,129 @@ class _CenterNavItem extends StatelessWidget {
 
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: const LinearGradient(
-            colors: [
-              AppColors.homeBannerGoldDark,
-              AppColors.homeBannerGoldLight,
-              AppColors.homeBannerGoldMid,
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: selected
-                  ? const Color(0x330B0A79)
-                  : const Color(0x22000000),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+      child: SizedBox(
+        width: size * 1.16,
+        height: size * 1.18,
+        child: Stack(
+          alignment: Alignment.topCenter,
+          clipBehavior: Clip.none,
           children: [
-            Container(
-              width: size * 0.38,
-              height: size * 0.38,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: selected
-                    ? AppColors.profileHeader
-                    : AppColors.homePrimary,
-              ),
-              child: Padding(
-                padding: EdgeInsets.all(size * 0.08),
-                child: Image.asset(
-                  'assets/images/dharma.png',
-                  fit: BoxFit.contain,
+            Positioned(
+              top: size * 0.2,
+              child: Container(
+                width: size * 1.02,
+                height: size * 0.76,
+               
+                child: Column(
+                  children: [
+                    Container(
+                      width: size * 0.42,
+                      height: 1.3,
+                      margin: EdgeInsets.only(top: size * 0.12),
+                      color: AppColors.homePrimary.withOpacity(0.14),
+                    ),
+                    SizedBox(height: size * 0.18),
+                    Text(
+                      'Sanathan ID',
+                      style: TextStyle(
+                        fontSize: 11 * scale,
+                        color: AppColors.homePrimary,
+                        fontWeight: FontWeight.w800,
+                        // height: 1.05,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
-            SizedBox(height: 6 * scale),
-            Text(
-              'Sanathan ID',
-              style: TextStyle(
-                fontSize: 11.5 * scale,
-                color: AppColors.homePrimary,
-                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+            Positioned(
+               top: size * -0.4,
+              child: Container(
+                width: size * 0.80,
+                height: size * 0.80,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color:
+                      selected ? AppColors.profileHeader : AppColors.homePrimary,
+                  border: Border.all(
+                    color: AppColors.white,
+                    width: 2.4 * scale,
+                  ),
+                 
+                ),
+                child: Padding(
+                  padding: EdgeInsets.all(size * 0.075),
+                  child: Image.asset(
+                    'assets/images/dharma.png',
+                    fit: BoxFit.contain,
+                  ),
+                ),
               ),
             ),
           ],
         ),
       ),
     );
+  }
+}
+
+class _BottomNavClipper extends CustomClipper<Path> {
+  _BottomNavClipper({
+    required this.notchRadius,
+    required this.topRadius,
+  });
+
+  final double notchRadius;
+  final double topRadius;
+
+  @override
+  Path getClip(Size size) {
+    final centerX = size.width / 2;
+    final notchHalfWidth = notchRadius * 1.12;
+    final notchDepth = notchRadius * 0.94;
+    final leftNotchStart = centerX - notchHalfWidth;
+    final rightNotchEnd = centerX + notchHalfWidth;
+
+    final path = Path()
+      ..moveTo(0, topRadius)
+      ..quadraticBezierTo(0, 0, topRadius, 0)
+      ..lineTo(leftNotchStart, 0)
+      ..cubicTo(
+        leftNotchStart + notchHalfWidth * 0.16,
+        0,
+        centerX - notchHalfWidth * 0.74,
+        notchDepth * 0.16,
+        centerX - notchHalfWidth * 0.50,
+        notchDepth * 0.78,
+      )
+      ..cubicTo(
+        centerX - notchHalfWidth * 0.16,
+        notchDepth * 0.98,
+        centerX + notchHalfWidth * 0.16,
+        notchDepth * 0.98,
+        centerX + notchHalfWidth * 0.50,
+        notchDepth * 0.78,
+      )
+      ..cubicTo(
+        centerX + notchHalfWidth * 0.74,
+        notchDepth * 0.16,
+        rightNotchEnd - notchHalfWidth * 0.16,
+        0,
+        rightNotchEnd,
+        0,
+      )
+      ..lineTo(size.width - topRadius, 0)
+      ..quadraticBezierTo(size.width, 0, size.width, topRadius)
+      ..lineTo(size.width, size.height)
+      ..lineTo(0, size.height)
+      ..close();
+
+    return path;
+  }
+
+  @override
+  bool shouldReclip(covariant _BottomNavClipper oldClipper) {
+    return oldClipper.notchRadius != notchRadius ||
+        oldClipper.topRadius != topRadius;
   }
 }

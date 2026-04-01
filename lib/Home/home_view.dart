@@ -26,47 +26,56 @@ class HomeView extends StatelessWidget {
       ),
       child: Scaffold(
         backgroundColor: AppColors.homeBackground,
-        bottomNavigationBar: CommonBottomNav(
-          currentItem: AppNavItem.home,
-          scale: scale,
-          safeBottom: safeBottom,
-          centerNavSize: centerNavSize,
-          height: navHeight,
-        ),
-        body: SafeArea(
-          child: SingleChildScrollView(
-            padding: EdgeInsets.fromLTRB(
-              16 * scale,
-              12 * scale,
-              16 * scale,
-              navHeight + centerNavSize * 0.45,
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _Header(scale: scale),
-                SizedBox(height: 20 * scale),
-                _MembershipCard(scale: scale),
-                SizedBox(height: 18 * scale),
-                GridView.count(
-                  crossAxisCount: 2,
-                  shrinkWrap: true,
-                  crossAxisSpacing: 14 * scale,
-                  mainAxisSpacing: 14 * scale,
-                  physics: const NeverScrollableScrollPhysics(),
-                  childAspectRatio: width < 360 ? 0.9 : 0.98,
-                  children: const [
-                    _FeatureCard(title: 'Panchang', icon: Icons.wb_twilight),
-                    _FeatureCard(title: 'Chants', icon: Icons.auto_awesome),
-                    _FeatureCard(title: 'Darshan', icon: Icons.temple_hindu),
-                    _FeatureCard(title: 'Gana Match', icon: Icons.favorite),
+        body: Stack(
+          children: [
+            SafeArea(
+              child: SingleChildScrollView(
+                padding: EdgeInsets.fromLTRB(
+                  16 * scale,
+                  12 * scale,
+                  16 * scale,
+                  navHeight + centerNavSize * 0.1,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _Header(scale: scale),
+                    SizedBox(height: 20 * scale),
+                    _MembershipCard(scale: scale),
+                    SizedBox(height: 18 * scale),
+                    GridView.count(
+                      crossAxisCount: 2,
+                      shrinkWrap: true,
+                      crossAxisSpacing: 14 * scale,
+                      mainAxisSpacing: 14 * scale,
+                      physics: const NeverScrollableScrollPhysics(),
+                      childAspectRatio: width < 360 ? 0.9 : 0.98,
+                      children: const [
+                        _FeatureCard(title: 'Panchang', icon: Icons.wb_twilight),
+                        _FeatureCard(title: 'Chants', icon: Icons.auto_awesome),
+                        _FeatureCard(title: 'Darshan', icon: Icons.temple_hindu),
+                        _FeatureCard(title: 'Gana Match', icon: Icons.favorite),
+                      ],
+                    ),
+                    SizedBox(height: 18 * scale),
+                    _SponsoredBanner(scale: scale),
                   ],
                 ),
-                SizedBox(height: 18 * scale),
-                _SponsoredBanner(scale: scale),
-              ],
+              ),
             ),
-          ),
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: 0,
+              child: CommonBottomNav(
+                currentItem: AppNavItem.home,
+                scale: scale,
+                safeBottom: safeBottom,
+                centerNavSize: centerNavSize,
+                height: navHeight,
+              ),
+            ),
+          ],
         ),
       ),
     );

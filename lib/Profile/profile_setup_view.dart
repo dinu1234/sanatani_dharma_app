@@ -2,6 +2,7 @@ import 'package:dharma_app/Home/home_view.dart';
 import 'package:dharma_app/core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import 'package:get/get.dart';
 
 class ProfileSetupView extends StatefulWidget {
@@ -15,7 +16,6 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _birthPlaceController = TextEditingController();
-  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   String _gender = 'Male';
   String _day = '5';
@@ -146,11 +146,9 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
                   22 * scale,
                   28 * scale,
                 ),
-                child: Form(
-                  key: _formKey,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                       SizedBox(height: 28 * scale),
                       Text(
                         'Set Up Your Profile',
@@ -224,41 +222,7 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
                         ),
                       ),
                       SizedBox(height: 12 * scale),
-                      Container(
-                        padding: EdgeInsets.symmetric(horizontal: 8 * scale),
-                        decoration: _fieldDecoration(scale),
-                        child: Row(
-                          children: [
-                            Expanded(
-                              child: _buildDateDropdown(
-                                value: _day,
-                                items: _days,
-                                scale: scale,
-                                onChanged: (value) =>
-                                    setState(() => _day = value!),
-                              ),
-                            ),
-                            Expanded(
-                              child: _buildDateDropdown(
-                                value: _month,
-                                items: _months,
-                                scale: scale,
-                                onChanged: (value) =>
-                                    setState(() => _month = value!),
-                              ),
-                            ),
-                            Expanded(
-                              child: _buildDateDropdown(
-                                value: _year,
-                                items: _years,
-                                scale: scale,
-                                onChanged: (value) =>
-                                    setState(() => _year = value!),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                      _buildDateSection(scale),
                       SizedBox(height: 24 * scale),
                       Text(
                         'Place of Birth',
@@ -280,15 +244,14 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
                           width: mediaQuery.size.width * 0.68,
                           child: ElevatedButton(
                             style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFFFF8514),
+                              backgroundColor: AppColors.homePrimary,
                               foregroundColor: AppColors.white,
-                              elevation: 0,
+                              elevation: 2,
                               padding: EdgeInsets.symmetric(
-                                vertical: 12 * scale,
+                                vertical: 13 * scale,
                               ),
                               shape: RoundedRectangleBorder(
-                                borderRadius:
-                                    BorderRadius.circular(24 * scale),
+                                borderRadius: BorderRadius.circular(30 * scale),
                               ),
                             ),
                             onPressed: _onContinuePressed,
@@ -303,8 +266,7 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
                         ),
                       ),
                       SizedBox(height: 150 * scale),
-                    ],
-                  ),
+                  ],
                 ),
               ),
             ],
@@ -321,14 +283,8 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
   }) {
     return Container(
       decoration: _fieldDecoration(scale),
-      child: TextFormField(
+      child: TextField(
         controller: controller,
-        validator: (value) {
-          if (value == null || value.trim().isEmpty) {
-            return 'Please enter $hint';
-          }
-          return null;
-        },
         decoration: InputDecoration(
           hintText: hint,
           hintStyle: TextStyle(
@@ -347,14 +303,17 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
 
   void _onContinuePressed() {
     FocusScope.of(context).unfocus();
-    if (!(_formKey.currentState?.validate() ?? false)) {
-      Get.snackbar(
-        'Missing Details',
-        'Please fill all fields before continuing',
-        snackPosition: SnackPosition.BOTTOM,
+
+    if (_nameController.text.trim().isEmpty ||
+        _locationController.text.trim().isEmpty ||
+        _birthPlaceController.text.trim().isEmpty) {
+      Fluttertoast.showToast(
+        msg: 'Please fill all fields before continuing',
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
         backgroundColor: AppColors.homePrimary,
-        colorText: AppColors.white,
-        margin: const EdgeInsets.all(12),
+        textColor: AppColors.white,
+        fontSize: 14,
       );
       return;
     }
@@ -376,37 +335,40 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
     );
   }
 
-  Widget _buildDateDropdown({
-    required String value,
-    required List<String> items,
-    required double scale,
-    required ValueChanged<String?> onChanged,
-  }) {
-    return DropdownButtonHideUnderline(
-      child: DropdownButton<String>(
-        value: value,
-        isExpanded: true,
-        icon: const Icon(Icons.keyboard_arrow_down),
-        borderRadius: BorderRadius.circular(16),
-        style: TextStyle(
-          color: Colors.black87,
-          fontSize: 14 * scale,
+  Widget _buildDateSection(double scale) {
+    return Row(
+      children: [
+        Expanded(
+          child: _DateTile(
+            value: _day,
+            items: _days,
+            scale: scale,
+            onChanged: (value) => setState(() => _day = value!),
+          ),
         ),
-        items: items
-            .map(
-              (item) => DropdownMenuItem<String>(
-                value: item,
-                child: Text(
-                  item,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            )
-            .toList(),
-        onChanged: onChanged,
-      ),
+        SizedBox(width: 10 * scale),
+        Expanded(
+          flex: 2,
+          child: _DateTile(
+            value: _month,
+            items: _months,
+            scale: scale,
+            onChanged: (value) => setState(() => _month = value!),
+          ),
+        ),
+        SizedBox(width: 10 * scale),
+        Expanded(
+          child: _DateTile(
+            value: _year,
+            items: _years,
+            scale: scale,
+            onChanged: (value) => setState(() => _year = value!),
+          ),
+        ),
+      ],
     );
   }
+
 }
 
 class _GenderChip extends StatelessWidget {
@@ -434,35 +396,108 @@ class _GenderChip extends StatelessWidget {
           vertical: 14 * scale,
         ),
         decoration: BoxDecoration(
-          color: AppColors.white.withOpacity(selected ? 0.98 : 0.9),
+          color: selected
+              ? AppColors.homePrimary.withOpacity(0.08)
+              : AppColors.white.withOpacity(0.9),
           borderRadius: BorderRadius.circular(20 * scale),
           border: Border.all(
             color: selected
-                ? AppColors.homeGoldDark.withOpacity(0.45)
+                ? AppColors.homePrimary
                 : Colors.transparent,
+            width: selected ? 1.4 : 1,
           ),
-          boxShadow: const [
+          boxShadow: [
             BoxShadow(
-              color: Color(0x18000000),
-              blurRadius: 14,
-              offset: Offset(0, 6),
+              color: selected
+                  ? AppColors.homePrimary.withOpacity(0.16)
+                  : const Color(0x18000000),
+              blurRadius: selected ? 18 : 14,
+              offset: const Offset(0, 6),
             ),
           ],
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 28 * scale, color: Colors.black54),
+            Icon(
+              icon,
+              size: 28 * scale,
+              color: selected ? AppColors.homePrimary : Colors.black54,
+            ),
             SizedBox(width: 12 * scale),
             Text(
               label,
               style: TextStyle(
                 fontSize: 14 * scale,
-                color: Colors.black87,
-                fontWeight: FontWeight.w500,
+                color: selected ? AppColors.homePrimary : Colors.black87,
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DateTile extends StatelessWidget {
+  const _DateTile({
+    required this.value,
+    required this.items,
+    required this.scale,
+    required this.onChanged,
+  });
+
+  final String value;
+  final List<String> items;
+  final double scale;
+  final ValueChanged<String?> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 12 * scale),
+      decoration: BoxDecoration(
+        color: AppColors.white.withOpacity(0.94),
+        borderRadius: BorderRadius.circular(16 * scale),
+        border: Border.all(
+          color: AppColors.homeGoldDark.withOpacity(0.18),
+        ),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x18000000),
+            blurRadius: 14,
+            offset: Offset(0, 6),
+          ),
+        ],
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: value,
+          isExpanded: true,
+          icon: Icon(
+            Icons.keyboard_arrow_down_rounded,
+            color: AppColors.homePrimary,
+            size: 20 * scale,
+          ),
+          borderRadius: BorderRadius.circular(16),
+          style: TextStyle(
+            color: Colors.black87,
+            fontSize: 14 * scale,
+            fontWeight: FontWeight.w500,
+          ),
+          items: items
+              .map(
+                (item) => DropdownMenuItem<String>(
+                  value: item,
+                  child: Text(
+                    item,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              )
+              .toList(),
+          onChanged: onChanged,
         ),
       ),
     );
