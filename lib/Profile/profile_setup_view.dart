@@ -17,10 +17,10 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _birthPlaceController = TextEditingController();
 
-  String _gender = 'Male';
-  String _day = '5';
-  String _month = 'June';
-  String _year = '1999';
+  String? _gender;
+  String? _day;
+  String? _month;
+  String? _year;
 
   static const List<String> _days = [
     '1',
@@ -306,7 +306,11 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
 
     if (_nameController.text.trim().isEmpty ||
         _locationController.text.trim().isEmpty ||
-        _birthPlaceController.text.trim().isEmpty) {
+        _birthPlaceController.text.trim().isEmpty ||
+        _gender == null ||
+        _day == null ||
+        _month == null ||
+        _year == null) {
       Fluttertoast.showToast(
         msg: 'Please fill all fields before continuing',
         toastLength: Toast.LENGTH_SHORT,
@@ -342,6 +346,7 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
           child: _DateTile(
             value: _day,
             items: _days,
+            hint: 'Day',
             scale: scale,
             onChanged: (value) => setState(() => _day = value!),
           ),
@@ -352,6 +357,7 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
           child: _DateTile(
             value: _month,
             items: _months,
+            hint: 'Month',
             scale: scale,
             onChanged: (value) => setState(() => _month = value!),
           ),
@@ -361,6 +367,7 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
           child: _DateTile(
             value: _year,
             items: _years,
+            hint: 'Year',
             scale: scale,
             onChanged: (value) => setState(() => _year = value!),
           ),
@@ -444,12 +451,14 @@ class _DateTile extends StatelessWidget {
   const _DateTile({
     required this.value,
     required this.items,
+    required this.hint,
     required this.scale,
     required this.onChanged,
   });
 
-  final String value;
+  final String? value;
   final List<String> items;
+  final String hint;
   final double scale;
   final ValueChanged<String?> onChanged;
 
@@ -475,6 +484,15 @@ class _DateTile extends StatelessWidget {
         child: DropdownButton<String>(
           value: value,
           isExpanded: true,
+          hint: Text(
+            hint,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              color: Colors.black54,
+              fontSize: 14 * scale,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
           icon: Icon(
             Icons.keyboard_arrow_down_rounded,
             color: AppColors.homePrimary,

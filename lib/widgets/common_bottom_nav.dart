@@ -318,37 +318,32 @@ class _BottomNavClipper extends CustomClipper<Path> {
   @override
   Path getClip(Size size) {
     final centerX = size.width / 2;
-    final notchHalfWidth = notchRadius * 1.12;
-    final notchDepth = notchRadius * 0.94;
+    final notchHalfWidth = notchRadius * 0.80;
+    final notchDepth = notchRadius * 0.8;
+    final shoulderRadius = notchRadius * 0.18;
+    final shoulderDepth = notchRadius * 0.10;
     final leftNotchStart = centerX - notchHalfWidth;
     final rightNotchEnd = centerX + notchHalfWidth;
 
     final path = Path()
       ..moveTo(0, topRadius)
       ..quadraticBezierTo(0, 0, topRadius, 0)
-      ..lineTo(leftNotchStart, 0)
-      ..cubicTo(
-        leftNotchStart + notchHalfWidth * 0.16,
+      ..lineTo(leftNotchStart - shoulderRadius, 0)
+      ..quadraticBezierTo(
+        leftNotchStart,
         0,
-        centerX - notchHalfWidth * 0.74,
-        notchDepth * 0.16,
-        centerX - notchHalfWidth * 0.50,
-        notchDepth * 0.78,
+        leftNotchStart,
+        shoulderDepth,
       )
-      ..cubicTo(
-        centerX - notchHalfWidth * 0.16,
-        notchDepth * 0.98,
-        centerX + notchHalfWidth * 0.16,
-        notchDepth * 0.98,
-        centerX + notchHalfWidth * 0.50,
-        notchDepth * 0.78,
+      ..arcToPoint(
+        Offset(rightNotchEnd, shoulderDepth),
+        radius: Radius.elliptical(notchHalfWidth, notchDepth),
+        clockwise: false,
       )
-      ..cubicTo(
-        centerX + notchHalfWidth * 0.74,
-        notchDepth * 0.16,
-        rightNotchEnd - notchHalfWidth * 0.16,
-        0,
+      ..quadraticBezierTo(
         rightNotchEnd,
+        0,
+        rightNotchEnd + shoulderRadius,
         0,
       )
       ..lineTo(size.width - topRadius, 0)
