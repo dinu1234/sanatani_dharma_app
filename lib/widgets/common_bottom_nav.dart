@@ -1,6 +1,9 @@
+import 'package:dharma_app/Chants/chants_view.dart';
+import 'package:dharma_app/GanaMatch/GanaMatch.dart';
 import 'dart:math' as math;
 
 import 'package:dharma_app/Home/home_view.dart';
+import 'package:dharma_app/Panchang/panchang_view.dart';
 import 'package:dharma_app/Profile/profile_view.dart';
 import 'package:dharma_app/core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
@@ -154,11 +157,22 @@ class CommonBottomNav extends StatelessWidget {
           MaterialPageRoute(builder: (_) => const ProfileView()),
         );
         break;
-      case AppNavItem.panchang:
-      case AppNavItem.chants:
       case AppNavItem.ganaMatch:
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${_labelFor(item)} coming soon')),
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const GanaMatchingView()),
+        );
+        break;
+      case AppNavItem.panchang:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const PanchangView()),
+        );
+        break;
+      case AppNavItem.chants:
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const ChantsView()),
         );
         break;
     }

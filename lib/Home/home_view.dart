@@ -1,5 +1,8 @@
 import 'dart:math' as math;
 
+import 'package:dharma_app/Chants/chants_view.dart';
+import 'package:dharma_app/GanaMatch/GanaMatch.dart';
+import 'package:dharma_app/Panchang/panchang_view.dart';
 import 'package:dharma_app/Profile/profile_view.dart';
 import 'package:dharma_app/core/constants/app_colors.dart';
 import 'package:dharma_app/widgets/common_bottom_nav.dart';
@@ -50,11 +53,47 @@ class HomeView extends StatelessWidget {
                       mainAxisSpacing: 14 * scale,
                       physics: const NeverScrollableScrollPhysics(),
                       childAspectRatio: width < 360 ? 0.9 : 0.98,
-                      children: const [
-                        _FeatureCard(title: 'Panchang', icon: Icons.wb_twilight),
-                        _FeatureCard(title: 'Chants', icon: Icons.auto_awesome),
-                        _FeatureCard(title: 'Darshan', icon: Icons.temple_hindu),
-                        _FeatureCard(title: 'Gana Match', icon: Icons.favorite),
+                      children: [
+                        _FeatureCard(
+                          title: 'Panchang',
+                          icon: Icons.wb_twilight,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const PanchangView(),
+                              ),
+                            );
+                          },
+                        ),
+                        _FeatureCard(
+                          title: 'Chants',
+                          icon: Icons.auto_awesome,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const ChantsView(),
+                              ),
+                            );
+                          },
+                        ),
+                        const _FeatureCard(
+                          title: 'Darshan',
+                          icon: Icons.temple_hindu,
+                        ),
+                        _FeatureCard(
+                          title: 'Gana Match',
+                          icon: Icons.favorite,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const GanaMatchingView(),
+                              ),
+                            );
+                          },
+                        ),
                       ],
                     ),
                     SizedBox(height: 18 * scale),
@@ -264,10 +303,15 @@ class _MembershipCard extends StatelessWidget {
 }
 
 class _FeatureCard extends StatelessWidget {
-  const _FeatureCard({required this.title, required this.icon});
+  const _FeatureCard({
+    required this.title,
+    required this.icon,
+    this.onTap,
+  });
 
   final String title;
   final IconData icon;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -275,57 +319,67 @@ class _FeatureCard extends StatelessWidget {
     final scale = (width / 390).clamp(0.84, 1.08);
     final iconWrap = math.min(86.0 * scale, width * 0.2);
 
-    return Container(
-      padding: EdgeInsets.all(4 * scale),
-      decoration: BoxDecoration(
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
         borderRadius: BorderRadius.circular(12 * scale),
-        gradient: const LinearGradient(
-          colors: [AppColors.homeCardTopBorder, AppColors.homeCardBottomBorder],
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-        ),
-      ),
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppColors.homeCardBackground,
-          borderRadius: BorderRadius.circular(12 * scale),
-          boxShadow: const [
-            BoxShadow(
-              color: Color(0x18000000),
-              blurRadius: 8,
-              offset: Offset(0, 3),
+        child: Container(
+          padding: EdgeInsets.all(4 * scale),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12 * scale),
+            gradient: const LinearGradient(
+              colors: [
+                AppColors.homeCardTopBorder,
+                AppColors.homeCardBottomBorder,
+              ],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
             ),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            SizedBox(
-              width: iconWrap,
-              height: iconWrap,
-              child: Icon(
-                icon,
-                color: AppColors.homePrimary,
-                size: iconWrap,
-              ),
-            ),
-            SizedBox(height: 8 * scale),
-            Padding(
-              padding: EdgeInsets.symmetric(horizontal: 10 * scale),
-              child: Text(
-                title,
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: title == 'Gana Match' ? 20 * scale : 21 * scale,
-                  height: 1.05,
-                  color: AppColors.homePrimary,
-                  fontWeight: FontWeight.w400,
+          ),
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppColors.homeCardBackground,
+              borderRadius: BorderRadius.circular(12 * scale),
+              boxShadow: const [
+                BoxShadow(
+                  color: Color(0x18000000),
+                  blurRadius: 8,
+                  offset: Offset(0, 3),
                 ),
-              ),
+              ],
             ),
-          ],
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                SizedBox(
+                  width: iconWrap,
+                  height: iconWrap,
+                  child: Icon(
+                    icon,
+                    color: AppColors.homePrimary,
+                    size: iconWrap,
+                  ),
+                ),
+                SizedBox(height: 8 * scale),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 10 * scale),
+                  child: Text(
+                    title,
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: title == 'Gana Match' ? 20 * scale : 21 * scale,
+                      height: 1.05,
+                      color: AppColors.homePrimary,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );

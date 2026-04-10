@@ -14,6 +14,6 @@ class SplashController extends GetxController {
 
   void navigateToLogin() async {
     await Future.delayed(const Duration(seconds: 3));
-    Get.off(() => ProfileSetupView());
+    Get.off(() => HomeView());
   }
 }
