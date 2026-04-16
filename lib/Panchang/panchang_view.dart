@@ -1,56 +1,37 @@
+import 'package:dharma_app/Panchang/panchang_controller.dart';
+import 'package:dharma_app/Panchang/panchang_model.dart';
 import 'package:dharma_app/core/constants/app_colors.dart';
 import 'package:dharma_app/widgets/common_bottom_nav.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 
-class PanchangView extends StatelessWidget {
+class PanchangView extends StatefulWidget {
   const PanchangView({super.key});
+
+  @override
+  State<PanchangView> createState() => _PanchangViewState();
+}
+
+class _PanchangViewState extends State<PanchangView> {
+  late final PanchangController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = Get.isRegistered<PanchangController>()
+        ? Get.find<PanchangController>()
+        : Get.put(PanchangController(), permanent: true);
+  }
 
   @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
     final width = mediaQuery.size.width;
-    final safeBottom = mediaQuery.padding.bottom;
+    final safeBottom = CommonBottomNav.bottomInset(mediaQuery);
     final scale = (width / 390).clamp(0.84, 1.08);
     final navHeight = CommonBottomNav.navHeight(safeBottom);
     final centerNavSize = CommonBottomNav.centerSize(scale);
-
-    const elements = <Map<String, String>>[
-      {'title': 'Tithi', 'value': 'Krishna Shashthi until 02:49 PM'},
-      {'title': 'Nakshatra', 'value': 'Jyeshtha until 06:17 AM, April 14'},
-      {'title': 'Yoga', 'value': 'Variyan until 07:44 AM, April 14'},
-      {'title': 'Karana', 'value': 'Vanija Until 02:49 PM'},
-      {'title': 'Vishti', 'value': 'Until 03:07 AM, April 14'},
-      {'title': 'Weekday', 'value': 'Budhavara - Wednesday'},
-    ];
-
-    const timings = <Map<String, dynamic>>[
-      {
-        'label': 'Amrit Kaal: 09:37 PM to 11:19 PM',
-        'color': Color(0xFF0AA533),
-        'textColor': Colors.white,
-      },
-      {
-        'label': 'Rahu Kaal: 12:21 PM to 01:54 PM (Inauspicious)',
-        'color': Color(0xFF2A2327),
-        'textColor': Colors.white,
-      },
-      {
-        'label': 'Gulika Kaal: 10:48 AM to 12:21 PM',
-        'color': Color(0xFF2A2327),
-        'textColor': Colors.white,
-      },
-      {
-        'label': 'Yamaganda: 07:42 AM to 09:15 AM',
-        'color': Color(0xFF2A2327),
-        'textColor': Colors.white,
-      },
-      {
-        'label': 'Abhijit Muhurat: None (Not available on Wednesdays)',
-        'color': Color(0xFFFFEE58),
-        'textColor': AppColors.homePrimary,
-      },
-    ];
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
@@ -77,142 +58,504 @@ class PanchangView extends StatelessWidget {
                 ),
               ),
             ),
-            SingleChildScrollView(
-              padding: EdgeInsets.only(bottom: navHeight + centerNavSize * 0.15),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Container(
-                    padding: EdgeInsets.fromLTRB(
-                      18 * scale,
-                      mediaQuery.padding.top + 14 * scale,
-                      18 * scale,
-                      18 * scale,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.homePrimary,
-                      borderRadius: BorderRadius.only(
-                        bottomLeft: Radius.circular(30 * scale),
-                        bottomRight: Radius.circular(30 * scale),
+            Obx(() {
+              final data = _controller.panchang.value;
+              final loading =
+                  _controller.isLoading.value ||
+                  _controller.isRequestingLocation.value;
+
+              return RefreshIndicator(
+                color: AppColors.homePrimary,
+                onRefresh: () => _controller.refreshPanchang(),
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: EdgeInsets.only(bottom: centerNavSize * 0.15),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      _HeaderCard(
+                        scale: scale,
+                        topPadding: mediaQuery.padding.top,
+                        controller: _controller,
+                        data: data,
                       ),
-                    ),
-                    child: Column(
-                      children: [
-                        SizedBox(height: 10 * scale),
-                        Text(
-                          "Today's Panchang",
-                          style: TextStyle(
-                            fontSize: 17 * scale,
-                            color: AppColors.white,
-                            fontWeight: FontWeight.w500,
-                          ),
+                      Padding(
+                        padding: EdgeInsets.fromLTRB(
+                          10 * scale,
+                          14 * scale,
+                          10 * scale,
+                          0,
                         ),
-                        SizedBox(height: 8 * scale),
-                        Text(
-                          'Bengaluru - Wednesday, April 14, 2026',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 15 * scale,
-                            color: AppColors.white,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      10 * scale,
-                      14 * scale,
-                      10 * scale,
-                      0,
-                    ),
-                    child: Column(
-                      children: [
-                        Text(
-                          'Panchang Elements',
-                          style: TextStyle(
-                            fontSize: 16 * scale,
-                            color: AppColors.homePrimary,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        SizedBox(height: 14 * scale),
-                        Container(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: 10 * scale,
-                            vertical: 12 * scale,
-                          ),
-                          decoration: BoxDecoration(
-                            color: AppColors.white.withOpacity(0.4),
-                            borderRadius: BorderRadius.circular(22 * scale),
-                            boxShadow: const [
-                              BoxShadow(
-                                color: Color(0x18000000),
-                                blurRadius: 18,
-                                offset: Offset(0, 8),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            children: elements
-                                .map(
-                                  (item) => Padding(
-                                    padding: EdgeInsets.only(bottom: 10 * scale),
-                                    child: _PanchangElementTile(
-                                      scale: scale,
-                                      title: item['title']!,
-                                      value: item['value']!,
-                                    ),
+                        child: loading
+                            ? SizedBox(
+                                height: mediaQuery.size.height * 0.5,
+                                child: const Center(
+                                  child: CircularProgressIndicator(
+                                    color: AppColors.homePrimary,
                                   ),
-                                )
-                                .toList(),
-                          ),
-                        ),
-                        SizedBox(height: 14 * scale),
-                        Text(
-                          'Auspicious & Inauspicious Timings',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 15.5 * scale,
-                            color: AppColors.homePrimary,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        SizedBox(height: 12 * scale),
-                        ...timings.map(
-                          (item) => Padding(
-                            padding: EdgeInsets.only(bottom: 10 * scale),
-                            child: _TimingPill(
-                              scale: scale,
-                              label: item['label']! as String,
-                              color: item['color']! as Color,
-                              textColor: item['textColor']! as Color,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                                ),
+                              )
+                            : data == null
+                                ? _PermissionOrErrorCard(
+                                    scale: scale,
+                                    controller: _controller,
+                                  )
+                                : _PanchangContent(
+                                    scale: scale,
+                                    data: data,
+                                  ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ),
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: CommonBottomNav(
-                currentItem: AppNavItem.panchang,
-                scale: scale,
-                safeBottom: safeBottom,
-                centerNavSize: centerNavSize,
-                height: navHeight,
-              ),
-            ),
+                ),
+              );
+            }),
           ],
+        ),
+        bottomNavigationBar: CommonBottomNav(
+          currentItem: AppNavItem.panchang,
+          scale: scale,
+          safeBottom: safeBottom,
+          centerNavSize: centerNavSize,
+          height: navHeight,
         ),
       ),
     );
+  }
+}
+
+class _HeaderCard extends StatelessWidget {
+  const _HeaderCard({
+    required this.scale,
+    required this.topPadding,
+    required this.controller,
+    required this.data,
+  });
+
+  final double scale;
+  final double topPadding;
+  final PanchangController controller;
+  final PanchangData? data;
+
+  @override
+  Widget build(BuildContext context) {
+    final subtitle = data?.displayDate ?? 'Location permission is required';
+
+    return Container(
+      padding: EdgeInsets.fromLTRB(
+        18 * scale,
+        topPadding + 14 * scale,
+        18 * scale,
+        18 * scale,
+      ),
+      decoration: BoxDecoration(
+        color: AppColors.homePrimary,
+        borderRadius: BorderRadius.only(
+          bottomLeft: Radius.circular(30 * scale),
+          bottomRight: Radius.circular(30 * scale),
+        ),
+      ),
+      child: Column(
+        children: [
+          SizedBox(height: 10 * scale),
+          Text(
+            "Today's Panchang",
+            style: TextStyle(
+              fontSize: 17 * scale,
+              color: AppColors.white,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          SizedBox(height: 8 * scale),
+          Text(
+            controller.locationLabel,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 15 * scale,
+              color: AppColors.white,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          SizedBox(height: 6 * scale),
+          Text(
+            subtitle,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 15 * scale,
+              color: AppColors.white.withOpacity(0.96),
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PermissionOrErrorCard extends StatelessWidget {
+  const _PermissionOrErrorCard({
+    required this.scale,
+    required this.controller,
+  });
+
+  final double scale;
+  final PanchangController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    final locationDisabled = !controller.isLocationEnabled.value;
+    final error = controller.errorMessage.value.trim();
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(18 * scale),
+      decoration: BoxDecoration(
+        color: AppColors.white.withOpacity(0.4),
+        borderRadius: BorderRadius.circular(22 * scale),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x18000000),
+            blurRadius: 18,
+            offset: Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          Text(
+            locationDisabled
+                ? 'Location On Chahiye'
+                : 'Location Permission Chahiye',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 18 * scale,
+              fontWeight: FontWeight.w700,
+              color: AppColors.homePrimary,
+            ),
+          ),
+          SizedBox(height: 10 * scale),
+          Text(
+            error.isNotEmpty
+                ? error
+                : 'Panchang dekhne ke liye location permission aur GPS on hona chahiye.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 13 * scale,
+              color: AppColors.homePrimary.withOpacity(0.82),
+              height: 1.35,
+            ),
+          ),
+          SizedBox(height: 18 * scale),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () => controller.refreshPanchang(),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.homePrimary,
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(vertical: 14 * scale),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14 * scale),
+                ),
+              ),
+              child: Text(
+                locationDisabled ? 'Turn On Location' : 'Allow Location',
+              ),
+            ),
+          ),
+          if (controller.isPermissionDeniedForever.value) ...[
+            SizedBox(height: 10 * scale),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: controller.openAppSettings,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.homePrimary,
+                  side: const BorderSide(color: AppColors.homePrimary),
+                  padding: EdgeInsets.symmetric(vertical: 14 * scale),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14 * scale),
+                  ),
+                ),
+                child: const Text('Open App Settings'),
+              ),
+            ),
+          ],
+          if (locationDisabled) ...[
+            SizedBox(height: 10 * scale),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: controller.openLocationSettings,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.homePrimary,
+                  side: const BorderSide(color: AppColors.homePrimary),
+                  padding: EdgeInsets.symmetric(vertical: 14 * scale),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14 * scale),
+                  ),
+                ),
+                child: const Text('Open Location Settings'),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _PanchangContent extends StatelessWidget {
+  const _PanchangContent({
+    required this.scale,
+    required this.data,
+  });
+
+  final double scale;
+  final PanchangData data;
+
+  @override
+  Widget build(BuildContext context) {
+    final elements = <Map<String, String>>[
+      {
+        'title': 'Tithi',
+        'value': _formatElement(data.elements?.tithi, fallback: data.tithi?.name),
+      },
+      {
+        'title': 'Nakshatra',
+        'value': _formatElement(
+          data.elements?.nakshatra,
+          fallback: data.nakshatra?.name,
+        ),
+      },
+      {
+        'title': 'Yoga',
+        'value': _formatElement(data.elements?.yoga, fallback: data.yoga?.name),
+      },
+      {
+        'title': 'Karana',
+        'value': _formatElement(
+          data.elements?.karana,
+          fallback: data.karana?.name,
+        ),
+      },
+      {
+        'title': 'Vishti',
+        'value': _formatVishti(data.elements?.vishti),
+      },
+      {
+        'title': 'Weekday',
+        'value': _formatWeekday(data.elements?.weekday, data.vara),
+      },
+    ];
+
+    final timings = <_TimingItem>[
+      _TimingItem(
+        label: _formatRangeLabel(
+          'Amrit Kaal',
+          data.auspiciousInauspiciousTimings?.amritKaal,
+        ),
+        color: const Color(0xFF0AA533),
+        textColor: Colors.white,
+      ),
+      _TimingItem(
+        label:
+            '${_formatRangeLabel('Rahu Kaal', data.auspiciousInauspiciousTimings?.rahuKaal)} (Inauspicious)',
+        color: const Color(0xFF2A2327),
+        textColor: Colors.white,
+      ),
+      _TimingItem(
+        label: _formatRangeLabel(
+          'Gulika Kaal',
+          data.auspiciousInauspiciousTimings?.gulikaKaal,
+        ),
+        color: const Color(0xFF2A2327),
+        textColor: Colors.white,
+      ),
+      _TimingItem(
+        label: _formatRangeLabel(
+          'Yamaganda',
+          data.auspiciousInauspiciousTimings?.yamaganda,
+        ),
+        color: const Color(0xFF2A2327),
+        textColor: Colors.white,
+      ),
+      _TimingItem(
+        label: _formatAbhijit(
+          data.auspiciousInauspiciousTimings?.abhijitMuhurta,
+        ),
+        color: const Color(0xFFFFEE58),
+        textColor: AppColors.homePrimary,
+      ),
+    ];
+
+    return Column(
+      children: [
+        Text(
+          'Panchang Elements',
+          style: TextStyle(
+            fontSize: 16 * scale,
+            color: AppColors.homePrimary,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        SizedBox(height: 14 * scale),
+        Container(
+          padding: EdgeInsets.symmetric(
+            horizontal: 10 * scale,
+            vertical: 12 * scale,
+          ),
+          decoration: BoxDecoration(
+            color: AppColors.white.withOpacity(0.4),
+            borderRadius: BorderRadius.circular(22 * scale),
+            boxShadow: const [
+              BoxShadow(
+                color: Color(0x18000000),
+                blurRadius: 18,
+                offset: Offset(0, 8),
+              ),
+            ],
+          ),
+          child: Column(
+            children: elements
+                .map(
+                  (item) => Padding(
+                    padding: EdgeInsets.only(bottom: 10 * scale),
+                    child: _PanchangElementTile(
+                      scale: scale,
+                      title: item['title']!,
+                      value: item['value']!,
+                    ),
+                  ),
+                )
+                .toList(),
+          ),
+        ),
+        SizedBox(height: 14 * scale),
+        Text(
+          'Auspicious & Inauspicious Timings',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 15.5 * scale,
+            color: AppColors.homePrimary,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        SizedBox(height: 12 * scale),
+        ...timings.map(
+          (item) => Padding(
+            padding: EdgeInsets.only(bottom: 10 * scale),
+            child: _TimingPill(
+              scale: scale,
+              label: item.label,
+              color: item.color,
+              textColor: item.textColor,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  String _formatElement(ElementInfo? info, {String? fallback}) {
+    final label = info?.label?.trim();
+    final until = _formatDateTime(info?.until);
+    if (label != null && label.isNotEmpty && until != null) {
+      return '$label until $until';
+    }
+    if (label != null && label.isNotEmpty) return label;
+    if (fallback != null && fallback.trim().isNotEmpty) return fallback.trim();
+    return 'Not available';
+  }
+
+  String _formatVishti(TimeRangeLabel? info) {
+    final label = info?.label?.trim();
+    final start = _formatDateTime(info?.start);
+    final end = _formatDateTime(info?.end);
+    if (label != null && label.isNotEmpty && start != null && end != null) {
+      return '$label: $start to $end';
+    }
+    if (label != null && label.isNotEmpty) return label;
+    return 'Not available';
+  }
+
+  String _formatWeekday(WeekdayInfo? weekday, VaraData? vara) {
+    final sanskrit = weekday?.sanskrit?.trim() ?? vara?.nameSa?.trim();
+    final english = weekday?.english?.trim() ?? vara?.name?.trim();
+    final lord = weekday?.lord?.trim() ?? vara?.lord?.trim();
+
+    final parts = <String>[
+      if (sanskrit != null && sanskrit.isNotEmpty) sanskrit,
+      if (english != null && english.isNotEmpty) english,
+      if (lord != null && lord.isNotEmpty) 'Lord: $lord',
+    ];
+    return parts.isEmpty ? 'Not available' : parts.join(' - ');
+  }
+
+  String _formatRangeLabel(String title, TimeRange? range) {
+    final start = _formatTimeOnly(range?.start);
+    final end = _formatTimeOnly(range?.end);
+    if (start != null && end != null) {
+      return '$title: $start to $end';
+    }
+    return '$title: Not available';
+  }
+
+  String _formatAbhijit(AbhijitMuhurta? muhurta) {
+    if (muhurta == null) return 'Abhijit Muhurta: Not available';
+    if (!muhurta.available) {
+      return 'Abhijit Muhurta: Not available';
+    }
+    return _formatRangeLabel('Abhijit Muhurta', muhurta);
+  }
+
+  String? _formatDateTime(String? value) {
+    if (value == null || value.isEmpty) return null;
+    final parsed = DateTime.tryParse(value);
+    if (parsed == null) return value;
+    final month = _monthShort(parsed.month);
+    final day = parsed.day.toString().padLeft(2, '0');
+    return '${_formatHourMinute(parsed)}, $day $month';
+  }
+
+  String? _formatTimeOnly(String? value) {
+    if (value == null || value.isEmpty) return null;
+    if (value.contains('T')) {
+      final parsed = DateTime.tryParse(value);
+      if (parsed != null) return _formatHourMinute(parsed);
+    }
+
+    final parts = value.split(':');
+    if (parts.length < 2) return value;
+    final hour = int.tryParse(parts[0]);
+    final minute = int.tryParse(parts[1]);
+    if (hour == null || minute == null) return value;
+    return _formatHourMinute(DateTime(2000, 1, 1, hour, minute));
+  }
+
+  String _formatHourMinute(DateTime dateTime) {
+    final hour = dateTime.hour % 12 == 0 ? 12 : dateTime.hour % 12;
+    final minute = dateTime.minute.toString().padLeft(2, '0');
+    final suffix = dateTime.hour >= 12 ? 'PM' : 'AM';
+    return '${hour.toString().padLeft(2, '0')}:$minute $suffix';
+  }
+
+  String _monthShort(int month) {
+    const months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return months[month - 1];
   }
 }
 
@@ -313,4 +656,16 @@ class _TimingPill extends StatelessWidget {
       ),
     );
   }
+}
+
+class _TimingItem {
+  const _TimingItem({
+    required this.label,
+    required this.color,
+    required this.textColor,
+  });
+
+  final String label;
+  final Color color;
+  final Color textColor;
 }

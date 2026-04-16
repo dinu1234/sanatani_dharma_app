@@ -1,9 +1,18 @@
+import 'dart:async';
 import 'dart:math' as math;
 
+import 'package:audioplayers/audioplayers.dart';
+import 'package:dharma_app/content/content_controller.dart';
+import 'package:dharma_app/core/constants/api_constants.dart';
 import 'package:dharma_app/core/constants/app_colors.dart';
+import 'package:dharma_app/core/utils/toast_utils.dart';
+import 'package:dharma_app/core/widgets/app_svg_asset.dart';
+import 'package:dharma_app/japa/japa_controller.dart';
 import 'package:dharma_app/widgets/common_bottom_nav.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
+import 'package:vibration/vibration.dart';
 
 class ChantsView extends StatefulWidget {
   const ChantsView({super.key});
@@ -12,23 +21,176 @@ class ChantsView extends StatefulWidget {
   State<ChantsView> createState() => _ChantsViewState();
 }
 
-class _ChantsViewState extends State<ChantsView> {
-  static const int _targetCount = 108;
-  int _count = 1;
-  bool _hapticsOn = true;
+class _ChantsViewState extends State<ChantsView> with WidgetsBindingObserver {
+  final AudioPlayer _audioPlayer = AudioPlayer();
 
-  void _incrementCount() {
-    setState(() {
-      _count = _count >= _targetCount ? 1 : _count + 1;
+  bool _hapticsOn = false;
+  bool _isAudioLoading = false;
+  bool _isPlayingAudio = false;
+  bool _allowPop = false;
+  String? _activeAudioUrl;
+  int? _boundMantraId;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _audioPlayer.onPlayerComplete.listen((_) {
+      if (!mounted) return;
+      setState(() {
+        _isPlayingAudio = false;
+        _isAudioLoading = false;
+      });
     });
+    _audioPlayer.onPlayerStateChanged.listen((state) {
+      if (!mounted) return;
+      setState(() {
+        _isPlayingAudio = state == PlayerState.playing;
+        if (state != PlayerState.playing) {
+          _isAudioLoading = false;
+        }
+      });
+    });
+  }
+
+  Future<void> _incrementCount(
+    ContentController contentController,
+    JapaController japaController,
+  ) async {
+    if (_hapticsOn) {
+      await _triggerCountVibration();
+    }
+    await japaController.incrementCount(contentController.featuredMantra);
+  }
+
+  Future<void> _triggerCountVibration() async {
+    try {
+      final hasVibrator = await Vibration.hasVibrator();
+      if (hasVibrator == true) {
+        await Vibration.vibrate(duration: 140, amplitude: 180);
+        return;
+      }
+    } catch (_) {}
+
+    HapticFeedback.heavyImpact();
+  }
+
+  Future<void> _toggleMantraAudio(String? audioPath) async {
+    if (audioPath == null || audioPath.trim().isEmpty) {
+      ToastUtils.show('Audio not available for this mantra');
+      return;
+    }
+
+    final audioUrl = '${ApiConstants.baseUrl}${audioPath.trim()}';
+
+    try {
+      if (_isPlayingAudio && _activeAudioUrl == audioUrl) {
+        await _audioPlayer.pause().timeout(const Duration(seconds: 5));
+        if (!mounted) return;
+        setState(() {
+          _isPlayingAudio = false;
+          _isAudioLoading = false;
+        });
+        return;
+      }
+
+      if (mounted) {
+        setState(() {
+          _isAudioLoading = true;
+          _activeAudioUrl = audioUrl;
+        });
+      }
+
+      await _audioPlayer.stop().timeout(const Duration(seconds: 5));
+      await _audioPlayer
+          .play(UrlSource(audioUrl))
+          .timeout(const Duration(seconds: 12));
+    } on TimeoutException {
+      if (!mounted) return;
+      setState(() {
+        _isAudioLoading = false;
+        _isPlayingAudio = false;
+      });
+      ToastUtils.show('Audio loading timed out. Please try again.');
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _isAudioLoading = false;
+        _isPlayingAudio = false;
+      });
+      ToastUtils.show('Unable to play mantra audio');
+    }
+  }
+
+  void _bindJapaData(
+    ContentController contentController,
+    JapaController japaController,
+  ) {
+    final mantra = contentController.featuredMantra;
+    final mantraId = mantra?.id;
+    if (mantraId == null || _boundMantraId == mantraId) return;
+    _boundMantraId = mantraId;
+
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await japaController.ensureLoaded(mantra);
+      if (!mounted) return;
+      await japaController.refreshFromServer(mantra);
+    });
+  }
+
+  Future<void> _saveAndPop() async {
+    final japaController =
+        Get.isRegistered<JapaController>() ? Get.find<JapaController>() : null;
+    await japaController?.saveNow();
+    if (!mounted) return;
+    setState(() => _allowPop = true);
+    Navigator.of(context).pop();
+  }
+
+  @override
+  void dispose() {
+    final japaController =
+        Get.isRegistered<JapaController>() ? Get.find<JapaController>() : null;
+    japaController?.saveNow();
+    WidgetsBinding.instance.removeObserver(this);
+    _audioPlayer.dispose();
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      final contentController =
+          Get.isRegistered<ContentController>() ? Get.find<ContentController>() : null;
+      final japaController =
+          Get.isRegistered<JapaController>() ? Get.find<JapaController>() : null;
+      japaController?.refreshFromServer(contentController?.featuredMantra);
+    } else if (state == AppLifecycleState.inactive ||
+        state == AppLifecycleState.paused ||
+        state == AppLifecycleState.detached) {
+      final japaController =
+          Get.isRegistered<JapaController>() ? Get.find<JapaController>() : null;
+      japaController?.saveNow();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
+    final contentController =
+        Get.isRegistered<ContentController>()
+            ? Get.find<ContentController>()
+            : Get.put(ContentController(), permanent: true);
+    final japaController =
+        Get.isRegistered<JapaController>()
+            ? Get.find<JapaController>()
+            : Get.put(JapaController(), permanent: true);
+
+    _bindJapaData(contentController, japaController);
+
     final mediaQuery = MediaQuery.of(context);
     final width = mediaQuery.size.width;
     final height = mediaQuery.size.height;
-    final safeBottom = mediaQuery.padding.bottom;
+    final safeBottom = CommonBottomNav.bottomInset(mediaQuery);
     final scale = (width / 390).clamp(0.84, 1.08);
     final compactWidth = width < 370;
     final verticalScale = height < 720
@@ -45,67 +207,74 @@ class _ChantsViewState extends State<ChantsView> {
         statusBarColor: Colors.white,
         statusBarIconBrightness: Brightness.dark,
         statusBarBrightness: Brightness.light,
+        systemNavigationBarColor: Colors.white,
+        systemNavigationBarIconBrightness: Brightness.dark,
+        systemNavigationBarDividerColor: Colors.white,
       ),
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        body: Stack(
-          children: [
-            Positioned.fill(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      const Color(0xFFFFFFFF),
-                      const Color(0xFFFBFAFE),
-                      const Color(0xFFF6F5FB),
-                    ],
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
+      child: PopScope(
+        canPop: _allowPop,
+        onPopInvokedWithResult: (didPop, result) async {
+          if (didPop || _allowPop) return;
+          await _saveAndPop();
+        },
+        child: Scaffold(
+          backgroundColor: Colors.white,
+          body: SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(
+            (compactWidth ? 16 : 22) * scale,
+            mediaQuery.padding.top + (12 * scale * verticalScale),
+            (compactWidth ? 16 : 22) * scale,
+            0,
+          ),
+          child: Column(
+            children: [
+              SizedBox(height: 24 * scale * verticalScale),
+              Text(
+                'Daily Japa',
+                style: TextStyle(
+                  fontSize: (compactLayout ? 24 : 27) * scale,
+                  color: AppColors.homePrimary,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              SizedBox(height: 18 * scale * verticalScale),
+              Obx(
+                () => _JapaCounterMandala(
+                  availableWidth: width - ((compactWidth ? 32 : 44) * scale),
+                  scale: scale,
+                  verticalScale: verticalScale,
+                  compactWidth: compactWidth,
+                  count: japaController.count,
+                  targetCount: japaController.targetCount,
+                  onTap: () => _incrementCount(
+                    contentController,
+                    japaController,
                   ),
                 ),
               ),
-            ),
-            SingleChildScrollView(
-              padding: EdgeInsets.fromLTRB(
-                (compactWidth ? 16 : 22) * scale,
-                mediaQuery.padding.top + (12 * scale * verticalScale),
-                (compactWidth ? 16 : 22) * scale,
-                navHeight + centerNavSize * 0.15,
-              ),
-              child: Column(
-                children: [
-                    SizedBox(height: 24 * scale * verticalScale),
-                    Text(
-                      'Daily Japa',
-                      style: TextStyle(
-                        fontSize: (compactLayout ? 24 : 27) * scale,
-                        color: AppColors.homePrimary,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    SizedBox(height: 18 * scale * verticalScale),
-                    _JapaCounterMandala(
-                      availableWidth: width - ((compactWidth ? 32 : 44) * scale),
-                      scale: scale,
-                      verticalScale: verticalScale,
-                      compactWidth: compactWidth,
-                      count: _count,
-                      targetCount: _targetCount,
-                      onTap: _incrementCount,
-                    ),
-                    SizedBox(height: 20 * scale * verticalScale),
-                    Column(
+              SizedBox(height: 10 * scale * verticalScale),
+              Obx(() {
+                final mantra = contentController.featuredMantra;
+                final audioPath = japaController.audioPath ?? mantra?.audioPath;
+                final hasAudio = audioPath?.trim().isNotEmpty == true;
+
+                return LayoutBuilder(
+                  builder: (context, constraints) {
+                    return Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        if (compactWidth)
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
+                        Expanded(
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
                             children: [
                               Flexible(
                                 child: Text(
                                   'Haptic vibration',
-                                  textAlign: TextAlign.center,
+                                  overflow: TextOverflow.ellipsis,
+                                  maxLines: 1,
                                   style: TextStyle(
-                                    fontSize: 14 * scale,
+                                    fontSize:
+                                        (compactLayout ? 14 : 15.5) * scale,
                                     color: AppColors.homePrimary,
                                     fontWeight: FontWeight.w700,
                                   ),
@@ -120,157 +289,160 @@ class _ChantsViewState extends State<ChantsView> {
                                 },
                               ),
                             ],
-                          )
-                        else
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Row(
-                                children: [
-                                  Text(
-                                    'Haptic vibration',
-                                    style: TextStyle(
-                                      fontSize:
-                                          (compactLayout ? 14 : 15.5) * scale,
-                                      color: AppColors.homePrimary,
-                                      fontWeight: FontWeight.w700,
-                                    ),
-                                  ),
-                                  SizedBox(width: 8 * scale),
-                                  _MiniToggle(
-                                    scale: scale,
-                                    value: _hapticsOn,
-                                    onChanged: (value) {
-                                      setState(() => _hapticsOn = value);
-                                    },
-                                  ),
-                                ],
-                              ),
-                              Text(
-                                'Listen mantra',
-                                style: TextStyle(
-                                  fontSize: (compactLayout ? 14 : 15.5) * scale,
-                                  color: AppColors.homePrimary,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                              ),
-                            ],
                           ),
-                        SizedBox(height: (compactWidth ? 10 : 0) * scale),
-                        if (compactWidth)
-                          Text(
-                            'Listen mantra',
-                            style: TextStyle(
-                              fontSize: 14 * scale,
-                              color: AppColors.homePrimary,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
+                        ),
+                        SizedBox(width: 12 * scale),
+                        _AudioAction(
+                          scale: scale,
+                          enabled: hasAudio,
+                          isPlaying: _isPlayingAudio,
+                          isLoading: _isAudioLoading,
+                          onTap: hasAudio
+                              ? () => _toggleMantraAudio(audioPath)
+                              : null,
+                        ),
                       ],
+                    );
+                  },
+                );
+              }),
+              SizedBox(height: 14 * scale * verticalScale),
+              Obx(() {
+                final mantraName = japaController.mantraName.trim().isNotEmpty
+                    ? japaController.mantraName
+                    : contentController.featuredMantra?.name?.trim().isNotEmpty ==
+                            true
+                        ? contentController.featuredMantra!.name!
+                        : 'Om Shreem Maha\nLakshmiyei Namaha';
+
+                return Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.symmetric(
+                    horizontal: (compactWidth ? 14 : 18) * scale,
+                    vertical: 16 * scale * verticalScale,
+                  ),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(18 * scale),
+                    gradient: const LinearGradient(
+                      colors: [
+                        Color(0xFFD49A42),
+                        Color(0xFFF9E788),
+                        Color(0xFFF8E977),
+                      ],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
                     ),
-                    SizedBox(height: 14 * scale * verticalScale),
-                    Container(
-                      width: double.infinity,
-                      padding: EdgeInsets.symmetric(
-                        horizontal: (compactWidth ? 14 : 18) * scale,
-                        vertical: 16 * scale * verticalScale,
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x1C000000),
+                        blurRadius: 12,
+                        offset: Offset(0, 5),
                       ),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(18 * scale),
-                        gradient: const LinearGradient(
-                          colors: [
-                            Color(0xFFD49A42),
-                            Color(0xFFF9E788),
-                            Color(0xFFF8E977),
-                          ],
-                          begin: Alignment.centerLeft,
-                          end: Alignment.centerRight,
-                        ),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Color(0x1C000000),
-                            blurRadius: 12,
-                            offset: Offset(0, 5),
-                          ),
-                        ],
-                      ),
-                      child: Text(
-                        'Om Shreem Maha\nLakshmiyei Namaha',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          fontSize: (compactWidth ? 16.8 : compactLayout ? 18 : 20) * scale,
-                          height: 1.15,
-                          color: AppColors.homePrimary,
-                          fontWeight: FontWeight.w700,
-                        ),
+                    ],
+                  ),
+                  child: Text(
+                    mantraName,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize:
+                          (compactWidth ? 16.8 : compactLayout ? 18 : 20) *
+                              scale,
+                      height: 1.15,
+                      color: AppColors.homePrimary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                );
+              }),
+              Obx(() {
+                final audioPath =
+                    japaController.audioPath ??
+                    contentController.featuredMantra?.audioPath;
+                if (audioPath == null || audioPath.trim().isEmpty) {
+                  return SizedBox(height: 18 * scale * verticalScale);
+                }
+
+                final audioUrl = '${ApiConstants.baseUrl}$audioPath';
+                return Padding(
+                  padding: EdgeInsets.only(
+                    top: 10 * scale,
+                    bottom: 18 * scale * verticalScale,
+                  ),
+                  child: Text(
+                    _activeAudioUrl == audioUrl
+                        ? 'Audio ready to play'
+                        : 'Audio available',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 12 * scale,
+                      color: AppColors.homePrimary.withOpacity(0.7),
+                    ),
+                  ),
+                );
+              }),
+              Container(
+                width: double.infinity,
+                padding: EdgeInsets.fromLTRB(
+                  16 * scale,
+                  16 * scale * verticalScale,
+                  16 * scale,
+                  14 * scale * verticalScale,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF7F8FD),
+                  borderRadius: BorderRadius.circular(20 * scale),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x18000000),
+                      blurRadius: 14,
+                      offset: Offset(0, 5),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Daily Summary',
+                      style: TextStyle(
+                        fontSize: (compactLayout ? 16 : 17) * scale,
+                        color: AppColors.homePrimary,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
-                    SizedBox(height: 18 * scale * verticalScale),
-                    Container(
-                      width: double.infinity,
-                      padding: EdgeInsets.fromLTRB(
-                        16 * scale,
-                        16 * scale * verticalScale,
-                        16 * scale,
-                        14 * scale * verticalScale,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF7F8FD),
-                        borderRadius: BorderRadius.circular(20 * scale),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Color(0x18000000),
-                            blurRadius: 14,
-                            offset: Offset(0, 5),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Daily Summary',
-                            style: TextStyle(
-                              fontSize: (compactLayout ? 16 : 17) * scale,
-                              color: AppColors.homePrimary,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                          SizedBox(height: 16 * scale * verticalScale),
-                          _SummaryRow(
-                            scale: scale,
-                            title: 'Chants Today',
-                            value: '356',
-                          ),
-                          Divider(
-                            height: 24 * scale * verticalScale,
-                            color: const Color(0xFFE2E2EC),
-                          ),
-                          _SummaryRow(
-                            scale: scale,
-                            title: 'Malas Completed',
-                            value: '3/30',
-                          ),
-                        ],
+                    SizedBox(height: 16 * scale * verticalScale),
+                    Obx(
+                      () => _SummaryRow(
+                        scale: scale,
+                        title: 'Chants Today',
+                        value: '${japaController.chantsToday}',
                       ),
                     ),
-                    SizedBox(height: 8 * scale),
-                ],
+                    Divider(
+                      height: 24 * scale * verticalScale,
+                      color: const Color(0xFFE2E2EC),
+                    ),
+                    Obx(
+                      () => _SummaryRow(
+                        scale: scale,
+                        title: 'Malas Completed',
+                        value: '${japaController.malasCompleted}/30',
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: CommonBottomNav(
-                currentItem: AppNavItem.chants,
-                scale: scale,
-                safeBottom: safeBottom,
-                centerNavSize: centerNavSize,
-                height: navHeight,
-              ),
-            ),
-          ],
+              SizedBox(height: 8 * scale),
+            ],
+          ),
+          ),
+          bottomNavigationBar: CommonBottomNav(
+            currentItem: AppNavItem.chants,
+            scale: scale,
+            safeBottom: safeBottom,
+            centerNavSize: centerNavSize,
+            height: navHeight,
+          ),
         ),
       ),
     );
@@ -300,7 +472,6 @@ class _JapaCounterMandala extends StatelessWidget {
   Widget build(BuildContext context) {
     final desiredOuterSize = 286 * scale * (0.9 + (verticalScale * 0.1));
     final outerSize = math.min(desiredOuterSize, availableWidth);
-    final centerSize = 170 * scale * (0.92 + (verticalScale * 0.08));
 
     return GestureDetector(
       onTap: onTap,
@@ -310,62 +481,37 @@ class _JapaCounterMandala extends StatelessWidget {
         child: Stack(
           alignment: Alignment.center,
           children: [
-            SizedBox(
+            AppSvgAsset(
+              assetName: 'assets/images/dailyjapa.svg',
               width: outerSize,
               height: outerSize,
-              child: CustomPaint(
-                painter: _MandalaPainter(
-                  strokeColor: AppColors.homeGoldBorder.withOpacity(0.34),
-                  fineColor: AppColors.homeGoldBorder.withOpacity(0.18),
-                ),
-              ),
+              fit: BoxFit.contain,
             ),
             Container(
-              width: centerSize,
-              height: centerSize,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: Colors.white,
-                border: Border.all(
-                  color: const Color(0xFFF0DFC4),
-                  width: 2.6 * scale,
-                ),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x12000000),
-                    blurRadius: 12,
-                    offset: Offset(0, 4),
-                  ),
-                ],
-              ),
+              width: outerSize * 0.54,
+              height: outerSize * 0.54,
+              alignment: Alignment.center,
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'COUNT',
-                    style: TextStyle(
-                      fontSize: (compactWidth ? 12 : 13) * scale,
-                      color: AppColors.homePrimary,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  SizedBox(height: 6 * scale),
-                  Text(
                     '$count / $targetCount',
+                    textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: (compactWidth ? 27 : 30) * scale,
+                      fontSize: (compactWidth ? 28 : 31) * scale,
                       height: 1,
                       color: AppColors.homePrimary,
                       fontWeight: FontWeight.w800,
                     ),
                   ),
-                  SizedBox(height: 14 * scale),
+                  SizedBox(height: 12 * scale),
                   Text(
                     'TAP TO COUNT',
+                    textAlign: TextAlign.center,
                     style: TextStyle(
-                      fontSize: (compactWidth ? 10.8 : 11.8) * scale,
+                      fontSize: (compactWidth ? 11.5 : 13) * scale,
                       color: AppColors.homePrimary.withOpacity(0.78),
-                      fontWeight: FontWeight.w500,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
@@ -391,55 +537,142 @@ class _MiniToggle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final knobSize = 20 * scale;
+    final toggleWidth = 52 * scale;
+    final activeColor = AppColors.homePrimary;
+    final inactiveColor = const Color(0xFFD8DDE6);
+    final textColor = value ? AppColors.white : const Color(0xFF6C7280);
+
     return GestureDetector(
       onTap: () => onChanged(!value),
       child: AnimatedContainer(
-        duration: const Duration(milliseconds: 180),
-        width: 42 * scale,
-        height: 22 * scale,
-        padding: EdgeInsets.symmetric(horizontal: 2 * scale),
+        duration: const Duration(milliseconds: 220),
+        width: toggleWidth,
+        height: 30 * scale,
+        padding: EdgeInsets.symmetric(horizontal: 3 * scale),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(999),
-          color: const Color(0xFFE8E8E8),
-          border: Border.all(color: const Color(0xFFD0D0D0)),
+          gradient: LinearGradient(
+            colors: value
+                ? [activeColor.withOpacity(0.92), activeColor]
+                : [inactiveColor, const Color(0xFFEDF1F6)],
+            begin: Alignment.centerLeft,
+            end: Alignment.centerRight,
+          ),
+          border: Border.all(
+            color: value
+                ? activeColor.withOpacity(0.85)
+                : const Color(0xFFC7CDD8),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: (value ? activeColor : Colors.black).withOpacity(0.12),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
         child: Row(
           mainAxisAlignment:
               value ? MainAxisAlignment.end : MainAxisAlignment.start,
           children: [
             if (!value)
-              Padding(
-                padding: EdgeInsets.only(left: 3 * scale),
+              Expanded(
                 child: Text(
                   'OFF',
+                  textAlign: TextAlign.center,
                   style: TextStyle(
-                    fontSize: 8.5 * scale,
-                    color: AppColors.homePrimary.withOpacity(0.65),
-                    fontWeight: FontWeight.w600,
+                    fontSize: 8.8 * scale,
+                    color: textColor,
+                    fontWeight: FontWeight.w700,
                   ),
                 ),
               ),
-            if (value)
-              Padding(
-                padding: EdgeInsets.only(right: 3 * scale),
-                child: Text(
-                  'ON',
-                  style: TextStyle(
-                    fontSize: 8.5 * scale,
-                    color: AppColors.homePrimary.withOpacity(0.65),
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            Container(
-              width: 18 * scale,
-              height: 18 * scale,
-              decoration: const BoxDecoration(
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 220),
+              width: knobSize,
+              height: knobSize,
+              decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Color(0xFF14B53D),
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.18),
+                    blurRadius: 6,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Icon(
+                value ? Icons.check_rounded : Icons.close_rounded,
+                size: 13 * scale,
+                color: value ? activeColor : const Color(0xFF8A9099),
               ),
             ),
+            if (value)
+              Expanded(
+                child: Text(
+                  'ON',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 8.8 * scale,
+                    color: textColor,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AudioAction extends StatelessWidget {
+  const _AudioAction({
+    required this.scale,
+    required this.enabled,
+    required this.isPlaying,
+    required this.isLoading,
+    this.onTap,
+  });
+
+  final double scale;
+  final bool enabled;
+  final bool isPlaying;
+  final bool isLoading;
+  final VoidCallback? onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final color = enabled ? AppColors.homePrimary : Colors.grey;
+    final icon = isLoading
+        ? Icons.hourglass_top_rounded
+        : isPlaying
+            ? Icons.pause_circle_filled_rounded
+            : Icons.play_circle_fill_rounded;
+
+    return GestureDetector(
+      onTap: enabled ? onTap : null,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        width: 34 * scale,
+        height: 34 * scale,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          color: enabled
+              ? color.withOpacity(0.1)
+              : Colors.grey.withOpacity(0.12),
+          border: Border.all(
+            color: enabled
+                ? color.withOpacity(0.28)
+                : Colors.grey.withOpacity(0.2),
+          ),
+        ),
+        child: Icon(
+          icon,
+          size: 22 * scale,
+          color: color,
         ),
       ),
     );
@@ -483,100 +716,5 @@ class _SummaryRow extends StatelessWidget {
         ),
       ],
     );
-  }
-}
-
-class _MandalaPainter extends CustomPainter {
-  const _MandalaPainter({
-    required this.strokeColor,
-    required this.fineColor,
-  });
-
-  final Color strokeColor;
-  final Color fineColor;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final outerRadius = size.width / 2;
-    final midRadius = outerRadius * 0.72;
-    final innerRadius = outerRadius * 0.5;
-
-    final mainPaint = Paint()
-      ..color = strokeColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.45;
-
-    final finePaint = Paint()
-      ..color = fineColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 0.8;
-
-    for (var i = 0; i < 16; i++) {
-      final angle = (math.pi * 2 / 16) * i;
-      canvas.save();
-      canvas.translate(center.dx, center.dy);
-      canvas.rotate(angle);
-
-      final petal = Path()
-        ..moveTo(0, -innerRadius * 0.84)
-        ..quadraticBezierTo(
-          outerRadius * 0.2,
-          -outerRadius * 0.78,
-          0,
-          -outerRadius,
-        )
-        ..quadraticBezierTo(
-          -outerRadius * 0.2,
-          -outerRadius * 0.78,
-          0,
-          -innerRadius * 0.84,
-        );
-      canvas.drawPath(petal, mainPaint);
-
-      for (var j = 1; j <= 3; j++) {
-        final inset = j * outerRadius * 0.035;
-        final detailPetal = Path()
-          ..moveTo(0, -innerRadius * 0.84 - inset * 0.25)
-          ..quadraticBezierTo(
-            (outerRadius * 0.2) - inset * 0.2,
-            (-outerRadius * 0.78) + inset * 0.5,
-            0,
-            -outerRadius + inset,
-          )
-          ..quadraticBezierTo(
-            (-outerRadius * 0.2) + inset * 0.2,
-            (-outerRadius * 0.78) + inset * 0.5,
-            0,
-            -innerRadius * 0.84 - inset * 0.25,
-          );
-        canvas.drawPath(detailPetal, finePaint);
-      }
-
-      final beadCenter = Offset(0, -midRadius);
-      canvas.drawCircle(beadCenter, outerRadius * 0.03, mainPaint);
-      canvas.drawCircle(beadCenter, outerRadius * 0.05, finePaint);
-      canvas.restore();
-    }
-
-    for (var i = 0; i < 32; i++) {
-      final angle = (math.pi * 2 / 32) * i;
-      final point = Offset(
-        center.dx + math.cos(angle) * midRadius,
-        center.dy + math.sin(angle) * midRadius,
-      );
-      canvas.drawCircle(point, outerRadius * 0.016, finePaint);
-      canvas.drawCircle(point, outerRadius * 0.028, finePaint);
-    }
-
-    canvas.drawCircle(center, innerRadius, mainPaint);
-    canvas.drawCircle(center, innerRadius * 1.12, finePaint);
-    canvas.drawCircle(center, midRadius * 0.94, finePaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant _MandalaPainter oldDelegate) {
-    return oldDelegate.strokeColor != strokeColor ||
-        oldDelegate.fineColor != fineColor;
   }
 }

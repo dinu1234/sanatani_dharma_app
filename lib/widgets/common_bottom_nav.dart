@@ -1,12 +1,13 @@
 import 'package:dharma_app/Chants/chants_view.dart';
 import 'package:dharma_app/GanaMatch/GanaMatch.dart';
-import 'dart:math' as math;
-
 import 'package:dharma_app/Home/home_view.dart';
 import 'package:dharma_app/Panchang/panchang_view.dart';
 import 'package:dharma_app/Profile/profile_view.dart';
 import 'package:dharma_app/core/constants/app_colors.dart';
+import 'package:dharma_app/core/widgets/app_svg_asset.dart';
+import 'package:dharma_app/core/widgets/shree_svg.dart';
 import 'package:flutter/material.dart';
+import 'dart:math' as math;
 
 enum AppNavItem {
   home,
@@ -32,13 +33,25 @@ class CommonBottomNav extends StatelessWidget {
   final double centerNavSize;
   final double height;
 
-  static double navHeight(double safeBottom) => 72.0 + safeBottom;
+  static double navHeight(double safeBottom) =>
+      72.0 + safeBottom.clamp(0.0, double.infinity);
+
+  static double bottomInset(MediaQueryData mediaQuery) {
+    final paddingBottom = mediaQuery.padding.bottom;
+    final viewPaddingBottom = mediaQuery.viewPadding.bottom;
+
+    return paddingBottom > 0 ? paddingBottom : viewPaddingBottom;
+  }
 
   static double centerSize(double scale) => 72.0 * scale;
 
   @override
   Widget build(BuildContext context) {
+    final bottomInset = safeBottom.clamp(0.0, double.infinity);
     final notchSize = centerNavSize * 1.72;
+    final itemBottomPadding = bottomInset > 0
+        ? math.min(bottomInset, 10.0 * scale)
+        : 0.0;
 
     return SizedBox(
       height: height,
@@ -51,7 +64,7 @@ class CommonBottomNav extends StatelessWidget {
             right: 0,
             bottom: 0,
             child: Container(
-              height: height,
+              height: 72.0 + bottomInset,
               decoration: const BoxDecoration(
                 color: Colors.transparent,
                 boxShadow: [
@@ -81,14 +94,14 @@ class CommonBottomNav extends StatelessWidget {
                       14 * scale,
                       8 * scale,
                       14 * scale,
-                      math.max(14, safeBottom + 4),
+                      itemBottomPadding,
                     ),
                     child: Row(
                       children: [
                         Expanded(
                           child: _NavItem(
                             label: 'Home',
-                            icon: Icons.home_filled,
+                            assetName: 'assets/images/home.svg',
                             selected: currentItem == AppNavItem.home,
                             onTap: () => _handleTap(context, AppNavItem.home),
                           ),
@@ -96,7 +109,7 @@ class CommonBottomNav extends StatelessWidget {
                         Expanded(
                           child: _NavItem(
                             label: 'Panchang',
-                            icon: Icons.wb_twilight,
+                            assetName: 'assets/images/panchang.svg',
                             selected: currentItem == AppNavItem.panchang,
                             onTap: () =>
                                 _handleTap(context, AppNavItem.panchang),
@@ -106,7 +119,7 @@ class CommonBottomNav extends StatelessWidget {
                         Expanded(
                           child: _NavItem(
                             label: 'Chants',
-                            icon: Icons.auto_awesome,
+                            assetName: 'assets/images/chants.svg',
                             selected: currentItem == AppNavItem.chants,
                             onTap: () => _handleTap(context, AppNavItem.chants),
                           ),
@@ -114,7 +127,7 @@ class CommonBottomNav extends StatelessWidget {
                         Expanded(
                           child: _NavItem(
                             label: 'Gana Match',
-                            icon: Icons.favorite,
+                            assetName: 'assets/images/ganamatch.svg',
                             selected: currentItem == AppNavItem.ganaMatch,
                             onTap: () =>
                                 _handleTap(context, AppNavItem.ganaMatch),
@@ -197,13 +210,13 @@ class CommonBottomNav extends StatelessWidget {
 class _NavItem extends StatelessWidget {
   const _NavItem({
     required this.label,
-    required this.icon,
+    required this.assetName,
     required this.selected,
     required this.onTap,
   });
 
   final String label;
-  final IconData icon;
+  final String assetName;
   final bool selected;
   final VoidCallback onTap;
 
@@ -218,7 +231,14 @@ class _NavItem extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, size: 24 * scale, color: color),
+          SizedBox(
+            width: 35 * scale,
+            height: 35 * scale,
+            child: AppSvgAsset(
+              assetName: assetName,
+              fit: BoxFit.contain,
+            ),
+          ),
           SizedBox(height: 3 * scale),
           Text(
             label,
@@ -266,20 +286,19 @@ class _CenterNavItem extends StatelessWidget {
               child: Container(
                 width: size * 1.02,
                 height: size * 0.76,
-               
                 child: Column(
                   children: [
                     Container(
                       width: size * 0.42,
                       height: 1.3,
                       margin: EdgeInsets.only(top: size * 0.12),
-                      color: AppColors.homePrimary.withOpacity(0.14),
+                      color: Colors.transparent,
                     ),
-                    SizedBox(height: size * 0.18),
+                    SizedBox(height: size * 0.10),
                     Text(
                       'Sanathan ID',
                       style: TextStyle(
-                        fontSize: 11 * scale,
+                        fontSize: 12 * scale,
                         color: AppColors.homePrimary,
                         fontWeight: FontWeight.w800,
                         // height: 1.05,
@@ -290,26 +309,13 @@ class _CenterNavItem extends StatelessWidget {
               ),
             ),
             Positioned(
-               top: size * -0.4,
+              top: size * -0.4,
               child: Container(
-                width: size * 0.80,
-                height: size * 0.80,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color:
-                      selected ? AppColors.profileHeader : AppColors.homePrimary,
-                  border: Border.all(
-                    color: AppColors.white,
-                    width: 2.4 * scale,
-                  ),
-                 
-                ),
+                width: size * 0.90,
+                height: size * 0.90,
                 child: Padding(
                   padding: EdgeInsets.all(size * 0.075),
-                  child: Image.asset(
-                    'assets/images/dharma.png',
-                    fit: BoxFit.contain,
-                  ),
+                  child: const ShreeSvg(fit: BoxFit.contain),
                 ),
               ),
             ),

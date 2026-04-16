@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "373902869954",
+    "project_id": "sanatan-27bc5",
+    "storage_bucket": "sanatan-27bc5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:373902869954:android:bcdbea67a5a58a3280825b",
+        "android_client_info": {
+          "package_name": "com.dharma.sanatan"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "373902869954-qf87cmddok05s35pglaj5qsnbj4g16e9.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.dharma.sanatan",
+            "certificate_hash": "b8bcbdf3ad43a5b831030b8c022a25e68f315bef"
+          }
+        },
+        {
+          "client_id": "373902869954-41mml4cs9hmpco9uplveoof7unmevlpd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB9SkRTwKsQSifX3vLIA-KxY27PaLC7SSo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "373902869954-41mml4cs9hmpco9uplveoof7unmevlpd.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

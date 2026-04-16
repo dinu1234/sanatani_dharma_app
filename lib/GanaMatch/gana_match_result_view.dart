@@ -1,38 +1,45 @@
+import 'dart:io';
 import 'dart:math' as math;
+import 'dart:typed_data';
+import 'dart:ui' as ui;
 
+import 'package:dharma_app/GanaMatch/gana_match_model.dart';
 import 'package:dharma_app/core/constants/app_colors.dart';
+import 'package:dharma_app/core/utils/toast_utils.dart';
+import 'package:dharma_app/core/widgets/app_svg_asset.dart';
 import 'package:dharma_app/widgets/common_bottom_nav.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 
-class GanaMatchResultView extends StatelessWidget {
+class GanaMatchResultView extends StatefulWidget {
   const GanaMatchResultView({
     super.key,
-    required this.groomName,
-    required this.brideName,
+    required this.result,
   });
 
-  final String groomName;
-  final String brideName;
+  final KundliMatchResult result;
 
-  static const _breakdown = <_BreakdownItem>[
-    _BreakdownItem('Varna', 0.76, 0.87),
-    _BreakdownItem('Vasya', 0.84, 0.94),
-    _BreakdownItem('Tara', 0.28, 0.44),
-    _BreakdownItem('Yoni', 0.51, 0.67, fillColor: Color(0xFFE7D628)),
-    _BreakdownItem('Maitri', 0.85, 0.94),
-    _BreakdownItem('Gana', 0.81, 0.91),
-    _BreakdownItem('Bhakoot', 0.82, 0.93),
-    _BreakdownItem('Nadi', 0.8, 0.91),
-  ];
+  @override
+  State<GanaMatchResultView> createState() => _GanaMatchResultViewState();
+}
+
+class _GanaMatchResultViewState extends State<GanaMatchResultView> {
+  static const MethodChannel _shareChannel = MethodChannel(
+    'dharma_app/whatsapp_share',
+  );
+
+  final GlobalKey _captureKey = GlobalKey();
+  bool _isSharing = false;
 
   @override
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
     final width = mediaQuery.size.width;
     final height = mediaQuery.size.height;
-    final safeBottom = mediaQuery.padding.bottom;
+    final safeBottom = CommonBottomNav.bottomInset(mediaQuery);
     final scale = (width / 390).clamp(0.84, 1.08);
+    final compactWidth = width < 380;
     final verticalScale = height < 700
         ? 0.74
         : height < 780
@@ -41,10 +48,23 @@ class GanaMatchResultView extends StatelessWidget {
     final compactLayout = height < 780;
     final navHeight = CommonBottomNav.navHeight(safeBottom);
     final centerNavSize = CommonBottomNav.centerSize(scale);
+    final breakdown = widget.result.breakdown
+        .map(
+          (item) => _BreakdownItem(
+            item.name ?? '-',
+            ((item.obtainedPoints ?? 0) / ((item.maximumPoints ?? 1) == 0 ? 1 : (item.maximumPoints ?? 1)))
+                .clamp(0, 1)
+                .toDouble(),
+            (item.percentage ?? 0) / 100,
+            fillColor: _indicatorColor(item.indicatorColor),
+            subtitle: _buildSubtitle(item),
+          ),
+        )
+        .toList();
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
-        statusBarColor: AppColors.homeBackground,
+        statusBarColor: Color(0xFFD8E7F7),
         statusBarIconBrightness: Brightness.dark,
         statusBarBrightness: Brightness.light,
       ),
@@ -85,151 +105,299 @@ class GanaMatchResultView extends StatelessWidget {
             ),
             SingleChildScrollView(
               padding: EdgeInsets.fromLTRB(
-                14 * scale,
+                (compactWidth ? 12 : 14) * scale,
                 mediaQuery.padding.top + (8 * scale * verticalScale),
-                14 * scale,
-                navHeight + centerNavSize * 0.15,
+                (compactWidth ? 12 : 14) * scale,
+                navHeight + centerNavSize * (compactLayout ? 0.45 : 0.35),
               ),
               child: Column(
                 children: [
-                    SizedBox(height: 4 * scale * verticalScale),
-                    Text(
-                      'Gana Matching',
-                      style: TextStyle(
-                        fontSize: (compactLayout ? 20 : 22) * scale,
-                        color: AppColors.homePrimary,
-                        fontWeight: FontWeight.w700,
-                      ),
+                  SizedBox(height: 4 * scale * verticalScale),
+                  Text(
+                    'Gana Matching',
+                    style: TextStyle(
+                      fontSize: (compactLayout ? 20 : 22) * scale,
+                      color: AppColors.homePrimary,
+                      fontWeight: FontWeight.w700,
                     ),
-                    SizedBox(height: 10 * scale * verticalScale),
-                    _MandalaScore(scale: scale, verticalScale: verticalScale),
-                    SizedBox(height: 4 * scale * verticalScale),
-                    _CoupleSection(
-                      scale: scale,
-                      compactLayout: compactLayout,
-                      groomName: groomName,
-                      brideName: brideName,
-                    ),
-                    SizedBox(height: 2 * scale * verticalScale),
-                    Container(
+                  ),
+                  SizedBox(height: 10 * scale * verticalScale),
+                  RepaintBoundary(
+                    key: _captureKey,
+                    child: Container(
                       width: double.infinity,
-                      padding: EdgeInsets.fromLTRB(
-                        12 * scale,
-                        10 * scale * verticalScale,
-                        12 * scale,
-                        12 * scale * verticalScale,
-                      ),
                       decoration: BoxDecoration(
-                        color: AppColors.white.withOpacity(0.5),
-                        borderRadius: BorderRadius.circular(18 * scale),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Color(0x14000000),
-                            blurRadius: 16,
-                            offset: Offset(0, 6),
-                          ),
-                        ],
+                        gradient: LinearGradient(
+                          colors: [
+                            const Color(0xFFD8E7F7),
+                            const Color(0xFFEAE7FB),
+                            const Color(0xFFF6F7FC),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(28 * scale),
+                      ),
+                      padding: EdgeInsets.fromLTRB(
+                        8 * scale,
+                        8 * scale,
+                        8 * scale,
+                        8 * scale,
                       ),
                       child: Column(
                         children: [
-                          Text(
-                            'BREAKDOWN',
-                            style: TextStyle(
-                              fontSize: (compactLayout ? 14 : 15) * scale,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.homePrimary,
+                          _MandalaScore(
+                            scale: scale,
+                            verticalScale: verticalScale,
+                            scoreText: widget.result.score?.display ?? '0/36',
+                          ),
+                          SizedBox(height: 4 * scale * verticalScale),
+                          _CoupleSection(
+                            scale: scale,
+                            compactLayout: compactLayout,
+                            compactWidth: compactWidth,
+                            groomName: widget.result.couple?.boy?.name ?? 'Boy',
+                            brideName: widget.result.couple?.girl?.name ?? 'Girl',
+                          ),
+                          SizedBox(height: 2 * scale * verticalScale),
+                          Container(
+                            width: double.infinity,
+                            margin: EdgeInsets.symmetric(
+                              vertical: (compactWidth ? 6 : 8) * scale,
+                            ).add(EdgeInsets.only(bottom: 4 * scale)),
+                            padding: EdgeInsets.fromLTRB(
+                              14 * scale,
+                              14 * scale * verticalScale,
+                              14 * scale,
+                              14 * scale * verticalScale,
+                            ),
+                            decoration: BoxDecoration(
+                              color: AppColors.white.withOpacity(0.46),
+                              borderRadius: BorderRadius.circular(22 * scale),
+                              border: Border.all(
+                                color: AppColors.white.withOpacity(0.35),
+                                width: 1.1 * scale,
+                              ),
+                              boxShadow: const [
+                                BoxShadow(
+                                  color: Color(0x14000000),
+                                  blurRadius: 16,
+                                  offset: Offset(0, 6),
+                                ),
+                              ],
+                            ),
+                            child: Column(
+                              children: [
+                                Text(
+                                  'BREAKDOWN',
+                                  style: TextStyle(
+                                    fontSize: (compactLayout ? 15 : 16.5) * scale,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.homePrimary,
+                                  ),
+                                ),
+                                SizedBox(height: 10 * scale * verticalScale),
+                                Column(
+                                  children: breakdown
+                                      .map(
+                                        (item) => _BreakdownRow(
+                                          scale: scale,
+                                          compactLayout: compactLayout,
+                                          item: item,
+                                        ),
+                                      )
+                                      .toList(),
+                                ),
+                              ],
                             ),
                           ),
                           SizedBox(height: 6 * scale * verticalScale),
-                          ..._breakdown.map(
-                            (item) => _BreakdownRow(
-                              scale: scale,
-                              compactLayout: compactLayout,
-                              item: item,
+                          Text(
+                            _buildSummaryText(),
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: (compactLayout ? 14.4 : 16.2) * scale,
+                              height: 1.25,
+                              color: AppColors.homePrimary,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    SizedBox(height: 6 * scale * verticalScale),
-                    Text(
-                      "The boy's nadi is Antya and the girl belongs to Adi nadi.\nThis is very good combination from the\nviewpoint of match making.",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: (compactLayout ? 10.4 : 11.2) * scale,
-                        height: 1.25,
-                        color: AppColors.homePrimary,
-                      ),
+                  ),
+                  SizedBox(height: 8 * scale * verticalScale),
+                  Container(
+                    constraints: BoxConstraints(
+                      minWidth: math.min(width * 0.72, 220 * scale),
+                      maxWidth: math.min(width * 0.86, 300 * scale),
                     ),
-                    SizedBox(height: 8 * scale * verticalScale),
-                    Container(
-                      constraints: BoxConstraints(
-                        minWidth: math.min(width * 0.72, 220 * scale),
-                        maxWidth: math.min(width * 0.86, 300 * scale),
-                      ),
-                      height: (compactLayout ? 31 : 33) * scale,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(22 * scale),
-                        gradient: const LinearGradient(
-                          colors: [
-                            AppColors.homeGoldDark,
-                            AppColors.homeGoldLight,
-                            AppColors.homeGoldDark,
-                          ],
-                          begin: Alignment.centerLeft,
-                          end: Alignment.centerRight,
-                        ),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Color(0x19000000),
-                            blurRadius: 8,
-                            offset: Offset(0, 4),
-                          ),
+                    margin: EdgeInsets.only(bottom: 8 * scale),
+                    height: (compactLayout ? 31 : 33) * scale,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(22 * scale),
+                      gradient: const LinearGradient(
+                        colors: [
+                          AppColors.homeGoldDark,
+                          AppColors.homeGoldLight,
+                          AppColors.homeGoldDark,
                         ],
+                        begin: Alignment.centerLeft,
+                        end: Alignment.centerRight,
                       ),
-                      child: TextButton(
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('WhatsApp sharing will be added next.'),
-                            ),
-                          );
-                        },
-                        style: TextButton.styleFrom(
-                          foregroundColor: AppColors.homePrimary,
-                          padding: EdgeInsets.zero,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(22 * scale),
-                          ),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x19000000),
+                          blurRadius: 8,
+                          offset: Offset(0, 4),
                         ),
-                        child: Text(
-                          'Share on Whatsapp',
-                          style: TextStyle(
-                            fontSize: (compactLayout ? 12.8 : 13.5) * scale,
-                            fontWeight: FontWeight.w700,
-                          ),
+                      ],
+                    ),
+                    child: TextButton(
+                      onPressed: _isSharing ? null : () => _shareOnWhatsApp(),
+                      style: TextButton.styleFrom(
+                        foregroundColor: AppColors.homePrimary,
+                        padding: EdgeInsets.zero,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(22 * scale),
+                        ),
+                      ),
+                      child: Text(
+                        'Share on Whatsapp',
+                        style: TextStyle(
+                          fontSize: (compactLayout ? 14.8 : 15.5) * scale,
+                          fontWeight: FontWeight.w700,
                         ),
                       ),
                     ),
+                  ),
                 ],
-              ),
-            ),
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: CommonBottomNav(
-                currentItem: AppNavItem.ganaMatch,
-                scale: scale,
-                safeBottom: safeBottom,
-                centerNavSize: centerNavSize,
-                height: navHeight,
               ),
             ),
           ],
         ),
+        bottomNavigationBar: CommonBottomNav(
+          currentItem: AppNavItem.ganaMatch,
+          scale: scale,
+          safeBottom: safeBottom,
+          centerNavSize: centerNavSize,
+          height: navHeight,
+        ),
       ),
     );
+  }
+
+  String _buildSummaryText() {
+    final summary = widget.result.summary?.message?.trim();
+    if (summary != null && summary.isNotEmpty) {
+      return summary;
+    }
+    return 'Compatibility result is available.';
+  }
+
+  String? _buildSubtitle(KundliBreakdownItem item) {
+    final girlValue = item.girlValue?.trim();
+    final boyValue = item.boyValue?.trim();
+    if ((girlValue == null || girlValue.isEmpty) &&
+        (boyValue == null || boyValue.isEmpty)) {
+      return null;
+    }
+    return '${girlValue ?? '-'} / ${boyValue ?? '-'}';
+  }
+
+  Color _indicatorColor(String? value) {
+    switch (value?.toLowerCase()) {
+      case 'green':
+        return const Color(0xFF11B455);
+      case 'yellow':
+        return const Color(0xFFE7D628);
+      case 'red':
+        return const Color(0xFFE61E50);
+      default:
+        return const Color(0xFF11B455);
+    }
+  }
+
+  Future<void> _shareOnWhatsApp() async {
+    if (_isSharing) return;
+
+    setState(() {
+      _isSharing = true;
+    });
+
+    try {
+      final imagePath = await _captureShareImage();
+      final shared = await _shareChannel.invokeMethod<bool>(
+        'shareImageToWhatsApp',
+        {'imagePath': imagePath},
+      );
+
+      if (shared != true) {
+        ToastUtils.show('WhatsApp is not available on this device.');
+      }
+    } catch (exception) {
+      ToastUtils.show('WhatsApp image share failed: $exception');
+      print('Error sharing image to WhatsApp: $exception');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSharing = false;
+        });
+      }
+    }
+  }
+
+  Future<String> _captureShareImage() async {
+    await Future<void>.delayed(const Duration(milliseconds: 32));
+
+    final boundary =
+        _captureKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+    if (boundary == null) {
+      throw StateError('Capture boundary is not ready');
+    }
+
+    final pixelRatio = MediaQuery.of(context).devicePixelRatio.clamp(2.0, 3.0);
+    final ui.Image image = await boundary.toImage(pixelRatio: pixelRatio);
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+    final size = Size(
+      image.width.toDouble(),
+      image.height.toDouble(),
+    );
+    final rect = Offset.zero & size;
+    final backgroundPaint = Paint()
+      ..shader = const LinearGradient(
+        colors: [
+          Color(0xFFD8E7F7),
+          Color(0xFFEAE7FB),
+          Color(0xFFF6F7FC),
+        ],
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+      ).createShader(rect);
+
+    canvas.drawRect(rect, backgroundPaint);
+    canvas.drawImage(image, Offset.zero, Paint());
+
+    final composedImage = await recorder.endRecording().toImage(
+          image.width,
+          image.height,
+        );
+    final byteData = await composedImage.toByteData(
+      format: ui.ImageByteFormat.png,
+    );
+    image.dispose();
+    composedImage.dispose();
+    if (byteData == null) {
+      throw StateError('Unable to encode image');
+    }
+
+    final bytes = byteData.buffer.asUint8List();
+    final directory = Directory.systemTemp;
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    final file = File('${directory.path}/gana_match_$timestamp.png');
+    await file.writeAsBytes(Uint8List.fromList(bytes), flush: true);
+
+    return file.path;
   }
 }
 
@@ -237,16 +405,16 @@ class _MandalaScore extends StatelessWidget {
   const _MandalaScore({
     required this.scale,
     required this.verticalScale,
+    required this.scoreText,
   });
 
   final double scale;
   final double verticalScale;
+  final String scoreText;
 
   @override
   Widget build(BuildContext context) {
     final outerSize = 256 * scale * (0.9 + (verticalScale * 0.1));
-    final outerPaintSize = 226 * scale * (0.9 + (verticalScale * 0.1));
-    final centerSize = 136 * scale * (0.92 + (verticalScale * 0.08));
 
     return SizedBox(
       width: outerSize,
@@ -254,61 +422,59 @@ class _MandalaScore extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          SizedBox(
-            width: outerPaintSize,
-            height: outerPaintSize,
-            child: CustomPaint(
-              painter: _LotusPainter(
-                color: AppColors.homeGoldBorder.withOpacity(0.22),
-                strokeWidth: 1.6 * scale,
-              ),
-            ),
+          AppSvgAsset(
+            assetName: 'assets/images/dailyjapa.svg',
+            width: outerSize,
+            height: outerSize,
+            fit: BoxFit.contain,
           ),
-          Container(
-            width: centerSize,
-            height: centerSize,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              gradient: const LinearGradient(
-                colors: [
-                  Color(0xFFF4CB58),
-                  Color(0xFFF8F0A7),
-                  Color(0xFFE1AC47),
-                ],
-                begin: Alignment.centerLeft,
-                end: Alignment.centerRight,
-              ),
-              border: Border.all(
-                color: const Color(0xFFF6E2A2),
-                width: 3 * scale,
-              ),
-              boxShadow: const [
-                BoxShadow(
-                  color: Color(0x16000000),
-                  blurRadius: 10,
-                  offset: Offset(0, 5),
+            Container(
+              width: outerSize * 0.58,
+              height: outerSize * 0.58,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                gradient: const LinearGradient(
+                  colors: [
+                    Color(0xFFE6BA54),
+                    Color(0xFFF9F1A2),
+                    Color(0xFFE0A947),
+                  ],
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
                 ),
-              ],
-            ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'OBTAINED POINTS',
-                  style: TextStyle(
-                    fontSize: (11.2 + (verticalScale - 0.74) * 2) * scale,
-                    color: AppColors.homePrimary,
-                    fontWeight: FontWeight.w700,
+                border: Border.all(
+                  color: const Color(0xFFF6E0A2),
+                  width: 3 * scale,
+                ),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x18000000),
+                    blurRadius: 12,
+                    offset: Offset(0, 5),
                   ),
-                ),
-                SizedBox(height: 2 * scale),
-                Text(
-                  '32/36',
-                  style: TextStyle(
-                    fontSize: (28 + (verticalScale * 3)) * scale,
-                    height: 1,
-                    color: AppColors.homePrimary,
-                    fontWeight: FontWeight.w800,
+                ],
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    'OBTAINED POINTS',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: (12.2 + (verticalScale - 0.74) * 2.2) * scale,
+                      color: AppColors.homePrimary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  SizedBox(height: 6 * scale),
+                  Text(
+                    scoreText,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: (33 + (verticalScale * 3.8)) * scale,
+                      height: 1,
+                      color: AppColors.homePrimary,
+                      fontWeight: FontWeight.w800,
                   ),
                 ),
               ],
@@ -324,32 +490,33 @@ class _CoupleSection extends StatelessWidget {
   const _CoupleSection({
     required this.scale,
     required this.compactLayout,
+    required this.compactWidth,
     required this.groomName,
     required this.brideName,
   });
 
   final double scale;
   final bool compactLayout;
+  final bool compactWidth;
   final String groomName;
   final String brideName;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      crossAxisAlignment: CrossAxisAlignment.end,
+    return Wrap(
+      alignment: WrapAlignment.center,
+      crossAxisAlignment: WrapCrossAlignment.end,
+      spacing: (compactWidth ? 8 : 12) * scale,
+      runSpacing: 12 * scale,
       children: [
         _PersonAvatar(
           scale: scale,
+          compactWidth: compactWidth,
           name: groomName,
-          icon: Icons.person_rounded,
+          assetName: 'assets/images/Ganamale.svg',
         ),
         Padding(
-          padding: EdgeInsets.only(
-            left: (compactLayout ? 10 : 12) * scale,
-            right: (compactLayout ? 10 : 12) * scale,
-            bottom: (compactLayout ? 14 : 18) * scale,
-          ),
+          padding: EdgeInsets.only(bottom: (compactLayout ? 14 : 18) * scale),
           child: Text(
             '&',
             style: TextStyle(
@@ -359,11 +526,12 @@ class _CoupleSection extends StatelessWidget {
             ),
           ),
         ),
-        _PersonAvatar(
-          scale: scale,
-          name: brideName,
-          icon: Icons.face_3_rounded,
-        ),
+          _PersonAvatar(
+            scale: scale,
+            compactWidth: compactWidth,
+            name: brideName,
+            assetName: 'assets/images/Ganafemale.svg',
+          ),
       ],
     );
   }
@@ -372,56 +540,64 @@ class _CoupleSection extends StatelessWidget {
 class _PersonAvatar extends StatelessWidget {
   const _PersonAvatar({
     required this.scale,
+    required this.compactWidth,
     required this.name,
-    required this.icon,
+    required this.assetName,
   });
 
   final double scale;
+  final bool compactWidth;
   final String name;
-  final IconData icon;
+  final String assetName;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
-        Container(
-          width: 70 * scale,
-          height: 70 * scale,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(
-              color: AppColors.homeGoldBorder.withOpacity(0.82),
-              width: 1.2 * scale,
-            ),
-            gradient: const LinearGradient(
-              colors: [Color(0xFFF4E7AC), Color(0xFFD4A64D)],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
+        SizedBox(
+          width: 90 * scale,
+          height: 90 * scale,
+          // decoration: BoxDecoration(
+          //   shape: BoxShape.circle,
+          //   border: Border.all(
+          //     color: AppColors.homeGoldDark.withOpacity(0.7),
+          //     width: 1.4 * scale,
+          //   ),
+          //   gradient: const LinearGradient(
+          //     colors: [Color(0xFFF4D676), Color(0xFFD09B3F)],
+          //     begin: Alignment.topLeft,
+          //     end: Alignment.bottomRight,
+          //   ),
+          //   boxShadow: const [
+          //     BoxShadow(
+          //       color: Color(0x12000000),
+          //       blurRadius: 8,
+          //       offset: Offset(0, 3),
+          //     ),
+          //   ],
+          // ),
           child: Container(
-            margin: EdgeInsets.all(4 * scale),
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              color: Color(0xFFF4F4F5),
-            ),
-            child: Icon(
-              icon,
-              size: 38 * scale,
-              color: const Color(0xE3D1A134),
+            margin: EdgeInsets.all(3.5 * scale),
+            // decoration: const BoxDecoration(
+            //   shape: BoxShape.circle,
+            //   color: Color(0xFFF1F3F6),
+            // ),
+            child: AppSvgAsset(
+              assetName: assetName,
+              fit: BoxFit.contain,
             ),
           ),
         ),
         SizedBox(height: 5 * scale),
         SizedBox(
-          width: 82 * scale,
+          width: (compactWidth ? 74 : 82) * scale,
           child: Text(
             name,
             textAlign: TextAlign.center,
-            maxLines: 1,
+            maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              fontSize: 14 * scale,
+              fontSize: (compactWidth ? 12.8 : 14) * scale,
               fontWeight: FontWeight.w700,
               color: AppColors.homePrimary,
             ),
@@ -438,12 +614,14 @@ class _BreakdownItem {
     this.progress,
     this.marker, {
     this.fillColor,
+    this.subtitle,
   });
 
   final String title;
   final double progress;
   final double marker;
   final Color? fillColor;
+  final String? subtitle;
 }
 
 class _BreakdownRow extends StatelessWidget {
@@ -463,88 +641,128 @@ class _BreakdownRow extends StatelessWidget {
         (item.progress < 0.5 ? const Color(0xFFE61E50) : const Color(0xFF11B455));
 
     return Padding(
-      padding: EdgeInsets.only(bottom: (compactLayout ? 10 : 13) * scale),
-      child: Row(
-        children: [
-          SizedBox(
-            width: (compactLayout ? 72 : 78) * scale,
-            child: Text(
-              item.title,
-              style: TextStyle(
-                fontSize: (compactLayout ? 12.6 : 13.5) * scale,
-                color: AppColors.homePrimary,
-                fontWeight: FontWeight.w500,
-              ),
+      padding: EdgeInsets.only(bottom: (compactLayout ? 8 : 10) * scale),
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: 6 * scale),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: const Color(0xFFD9B8BB).withOpacity(0.9),
+              width: 0.8 * scale,
             ),
           ),
-          SizedBox(width: (compactLayout ? 9 : 12) * scale),
-          Expanded(
-            child: Container(
-              height: (compactLayout ? 10 : 12) * scale,
-              decoration: BoxDecoration(
-                color: AppColors.white.withOpacity(0.78),
-                borderRadius: BorderRadius.circular(99),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              width: (compactLayout ? 88 : 96) * scale,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.title,
+                    style: TextStyle(
+                      fontSize: (compactLayout ? 13.2 : 14.5) * scale,
+                      color: AppColors.homePrimary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                
+                ],
               ),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final markerLeft = (constraints.maxWidth * item.progress).clamp(
-                    12.0,
-                    constraints.maxWidth - 12.0,
-                  );
-
-                  return Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      Positioned(
-                        left: 0,
-                        top: 0,
-                        bottom: 0,
-                        child: Container(
-                          width: constraints.maxWidth * item.progress,
-                          decoration: BoxDecoration(
-                            color: fillColor,
-                            borderRadius: BorderRadius.circular(99),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        left: markerLeft -
-                            ((compactLayout ? 9.5 : 10.5) * scale),
-                        top: (compactLayout ? -4.5 : -5) * scale,
-                        child: Container(
-                          width: (compactLayout ? 20 : 22) * scale,
-                          height: (compactLayout ? 20 : 22) * scale,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: const Color(0xFFFF4D7A),
-                            border: Border.all(
-                              color: AppColors.white,
-                              width: 2 * scale,
-                            ),
-                            boxShadow: const [
-                              BoxShadow(
-                                color: Color(0x22000000),
-                                blurRadius: 6,
-                                offset: Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Center(
-                            child: Icon(
-                              Icons.favorite,
-                              color: AppColors.white,
-                              size: (compactLayout ? 8.5 : 9.5) * scale,
-                            ),
-                          ),
-                        ),
+            ),
+            SizedBox(width: (compactLayout ? 9 : 12) * scale),
+            Expanded(
+              child: Padding(
+                padding: EdgeInsets.only(
+                  top: item.subtitle == null ? 4 * scale : 2 * scale,
+                ),
+                child: Container(
+                  height: (compactLayout ? 22 : 24) * scale,
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF1F2F5).withOpacity(0.95),
+                    borderRadius: BorderRadius.circular(99),
+                    boxShadow: const [
+                      BoxShadow(
+                        color: Color(0x12000000),
+                        blurRadius: 7,
+                        offset: Offset(0, 3),
                       ),
                     ],
-                  );
-                },
+                  ),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final markerLeft = (constraints.maxWidth * item.progress)
+                          .clamp(12.0, constraints.maxWidth - 12.0);
+
+                      return Stack(
+                        clipBehavior: Clip.none,
+                        children: [
+                          Positioned(
+                            left: 0,
+                            top: 0,
+                            bottom: 0,
+                            child: Container(
+                              width: (constraints.maxWidth * item.progress)
+                                  .clamp(0.0, constraints.maxWidth),
+                              margin: EdgeInsets.symmetric(
+                                horizontal: 4 * scale,
+                                vertical: 5 * scale,
+                              ),
+                              decoration: BoxDecoration(
+                                color: fillColor,
+                                borderRadius: BorderRadius.circular(99),
+                              ),
+                            ),
+                          ),
+                          Positioned(
+                            left: markerLeft -
+                                ((compactLayout ? 10 : 11) * scale),
+                            top: (compactLayout ? -0.5 : -1) * scale,
+                            child: Container(
+                              width: (compactLayout ? 24 : 26) * scale,
+                              height: (compactLayout ? 24 : 26) * scale,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: const LinearGradient(
+                                  colors: [
+                                    Color(0xFFFF6C92),
+                                    Color(0xFFFF2E63),
+                                  ],
+                                  begin: Alignment.topCenter,
+                                  end: Alignment.bottomCenter,
+                                ),
+                                border: Border.all(
+                                  color: AppColors.white,
+                                  width: 2 * scale,
+                                ),
+                                boxShadow: const [
+                                  BoxShadow(
+                                    color: Color(0x22000000),
+                                    blurRadius: 6,
+                                    offset: Offset(0, 2),
+                                  ),
+                                ],
+                              ),
+                              child: Center(
+                                child: Icon(
+                                  Icons.favorite,
+                                  color: AppColors.white,
+                                  size: (compactLayout ? 11 : 12) * scale,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -571,62 +789,5 @@ class _GlowOrb extends StatelessWidget {
         ),
       ),
     );
-  }
-}
-
-class _LotusPainter extends CustomPainter {
-  const _LotusPainter({
-    required this.color,
-    required this.strokeWidth,
-  });
-
-  final Color color;
-  final double strokeWidth;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final outerRadius = size.width / 2;
-    final innerRadius = outerRadius * 0.42;
-    final petalPaint = Paint()
-      ..color = color
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth;
-
-    for (var i = 0; i < 16; i++) {
-      final angle = (math.pi * 2 / 16) * i;
-      canvas.save();
-      canvas.translate(center.dx, center.dy);
-      canvas.rotate(angle);
-
-      final petal = Path()
-        ..moveTo(0, -innerRadius * 0.9)
-        ..quadraticBezierTo(
-          outerRadius * 0.16,
-          -outerRadius * 0.84,
-          0,
-          -outerRadius,
-        )
-        ..quadraticBezierTo(
-          -outerRadius * 0.16,
-          -outerRadius * 0.84,
-          0,
-          -innerRadius * 0.9,
-        );
-      canvas.drawPath(petal, petalPaint);
-      canvas.restore();
-    }
-
-    final ringPaint = Paint()
-      ..color = color.withOpacity(0.75)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeWidth * 0.8;
-    canvas.drawCircle(center, innerRadius, ringPaint);
-    canvas.drawCircle(center, outerRadius * 0.76, ringPaint);
-  }
-
-  @override
-  bool shouldRepaint(covariant _LotusPainter oldDelegate) {
-    return oldDelegate.color != color || oldDelegate.strokeWidth != strokeWidth;
   }
 }

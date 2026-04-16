@@ -1,7 +1,11 @@
+import 'package:dharma_app/Profile/profile_controller.dart';
 import 'package:dharma_app/core/constants/app_colors.dart';
+import 'package:dharma_app/core/widgets/app_loader.dart';
+import 'package:dharma_app/core/widgets/shree_svg.dart';
 import 'package:dharma_app/widgets/common_bottom_nav.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 
 class ProfileView extends StatelessWidget {
   const ProfileView({super.key});
@@ -10,10 +14,14 @@ class ProfileView extends StatelessWidget {
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
     final width = mediaQuery.size.width;
-    final safeBottom = mediaQuery.padding.bottom;
+    final safeBottom = CommonBottomNav.bottomInset(mediaQuery);
     final scale = (width / 390).clamp(0.84, 1.08);
     final navHeight = CommonBottomNav.navHeight(safeBottom);
     final centerNavSize = CommonBottomNav.centerSize(scale);
+    final controller =
+        Get.isRegistered<ProfileController>()
+            ? Get.find<ProfileController>()
+            : Get.put(ProfileController(), permanent: true);
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
@@ -23,46 +31,54 @@ class ProfileView extends StatelessWidget {
       ),
       child: Scaffold(
         backgroundColor: AppColors.homeBackground,
-        body: Stack(
-          children: [
-            SingleChildScrollView(
-              padding: EdgeInsets.only(bottom: navHeight + centerNavSize * 0.1),
-              child: Column(
-                children: [
-                  _ProfileHeader(scale: scale),
-                  Transform.translate(
-                    offset: Offset(0, -28 * scale),
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 16 * scale),
-                      child: Column(
-                        children: [
-                          _IdCard(scale: scale),
-                          SizedBox(height: 18 * scale),
-                          _BalanceCard(scale: scale),
-                          SizedBox(height: 18 * scale),
-                          _ActionRow(scale: scale),
-                          SizedBox(height: 18 * scale),
-                          _TransactionCard(scale: scale),
-                        ],
+        body: Obx(
+          () => Stack(
+            children: [
+              SingleChildScrollView(
+                padding: EdgeInsets.only(bottom: centerNavSize * 0.1),
+                child: Column(
+                  children: [
+                    _ProfileHeader(scale: scale, controller: controller),
+                    Transform.translate(
+                      offset: Offset(0, -28 * scale),
+                      child: Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 16 * scale),
+                        child: Column(
+                          children: [
+                            _IdCard(scale: scale, controller: controller),
+                            SizedBox(height: 18 * scale),
+                            _BalanceCard(
+                              scale: scale,
+                              coinText:
+                                  '${controller.user?.coin?.toStringAsFixed(0) ?? '0'} SRC',
+                            ),
+                            SizedBox(height: 18 * scale),
+                            _ActionRow(scale: scale),
+                            SizedBox(height: 18 * scale),
+                            _TransactionCard(scale: scale),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: CommonBottomNav(
-                currentItem: AppNavItem.sanathanId,
-                scale: scale,
-                safeBottom: safeBottom,
-                centerNavSize: centerNavSize,
-                height: navHeight,
-              ),
-            ),
-          ],
+              if (controller.isLoading.value || controller.isUpdatingImage.value)
+                AppLoader(
+                  message:
+                      controller.isUpdatingImage.value
+                          ? 'Updating profile image'
+                          : 'Loading profile',
+                ),
+            ],
+          ),
+        ),
+        bottomNavigationBar: CommonBottomNav(
+          currentItem: AppNavItem.sanathanId,
+          scale: scale,
+          safeBottom: safeBottom,
+          centerNavSize: centerNavSize,
+          height: navHeight,
         ),
       ),
     );
@@ -70,9 +86,10 @@ class ProfileView extends StatelessWidget {
 }
 
 class _ProfileHeader extends StatelessWidget {
-  const _ProfileHeader({required this.scale});
+  const _ProfileHeader({required this.scale, required this.controller});
 
   final double scale;
+  final ProfileController controller;
 
   @override
   Widget build(BuildContext context) {
@@ -91,36 +108,36 @@ class _ProfileHeader extends StatelessWidget {
           bottomRight: Radius.circular(32 * scale),
         ),
       ),
-      child: Column(
+      child: Row(
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  'Namaste, Joy',
-                  style: TextStyle(
-                    fontSize: 28 * scale,
-                    height: 1,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.profileHeaderText,
-                  ),
-                ),
+          Expanded(
+            child: Text(
+              'Namaste, ${controller.fullName}',
+              style: TextStyle(
+                fontSize: 28 * scale,
+                height: 1,
+                fontWeight: FontWeight.w700,
+                color: AppColors.profileHeaderText,
               ),
-              Container(
-                width: 50 * scale,
-                height: 50 * scale,
-                decoration: const BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.white,
-                ),
-                child: ClipOval(
-                  child: Image.asset(
-                    'assets/images/dharma.png',
-                    fit: BoxFit.cover,
-                  ),
-                ),
-              ),
-            ],
+            ),
+          ),
+          Container(
+            width: 50 * scale,
+            height: 50 * scale,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: AppColors.white,
+            ),
+            child: ClipOval(
+              child: controller.profileImageUrl != null
+                  ? Image.network(
+                      controller.profileImageUrl!,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) =>
+                          const ShreeSvg(fit: BoxFit.cover),
+                    )
+                  : const ShreeSvg(fit: BoxFit.cover),
+            ),
           ),
         ],
       ),
@@ -129,9 +146,18 @@ class _ProfileHeader extends StatelessWidget {
 }
 
 class _IdCard extends StatelessWidget {
-  const _IdCard({required this.scale});
+  const _IdCard({required this.scale, required this.controller});
 
   final double scale;
+  final ProfileController controller;
+
+  String _memberSinceText() {
+    final date = controller.user?.createdAt;
+    if (date == null || date.isEmpty) return '-';
+    final parsed = DateTime.tryParse(date);
+    if (parsed == null) return date;
+    return '${parsed.day.toString().padLeft(2, '0')} - ${parsed.month} - ${parsed.year}';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -201,34 +227,65 @@ class _IdCard extends StatelessWidget {
                       width: 118 * scale,
                       height: 142 * scale,
                       decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(4 * scale),
+                        borderRadius: BorderRadius.circular(14 * scale),
                         border: Border.all(
                           color: AppColors.homeGoldDark,
                           width: 2 * scale,
                         ),
+                        color: AppColors.white,
                       ),
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(14 * scale),
-                        child: Image.asset(
-                          'assets/images/dharma.png',
-                          fit: BoxFit.cover,
-                        ),
+                        borderRadius: BorderRadius.circular(12 * scale),
+                        child: controller.profileImageUrl != null
+                            ? Image.network(
+                                controller.profileImageUrl!,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => _ProfilePlaceholder(
+                                  scale: scale,
+                                ),
+                              )
+                            : _ProfilePlaceholder(scale: scale),
                       ),
                     ),
-                    Positioned(
-                      top: -10 * scale,
-                      right: -10 * scale,
-                      child: Container(
-                        width: 32 * scale,
-                        height: 32 * scale,
-                        decoration: const BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: AppColors.homeBlue,
+                    if (controller.hasActiveSubscription)
+                      Positioned(
+                        top: -10 * scale,
+                        right: -10 * scale,
+                        child: Container(
+                          width: 32 * scale,
+                          height: 32 * scale,
+                          decoration: const BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: AppColors.homeBlue,
+                          ),
+                          child: Icon(
+                            Icons.check_rounded,
+                            size: 18 * scale,
+                            color: AppColors.white,
+                          ),
                         ),
-                        child: Icon(
-                          Icons.check_rounded,
-                          size: 18 * scale,
-                          color: AppColors.white,
+                      ),
+                    Positioned(
+                      left: -8 * scale,
+                      bottom: -8 * scale,
+                      child: GestureDetector(
+                        onTap: controller.pickAndUploadProfileImage,
+                        child: Container(
+                          width: 34 * scale,
+                          height: 34 * scale,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: AppColors.profileHeader,
+                            border: Border.all(
+                              color: AppColors.white,
+                              width: 2,
+                            ),
+                          ),
+                          child: Icon(
+                            Icons.edit_rounded,
+                            size: 18 * scale,
+                            color: AppColors.profileHeaderText,
+                          ),
                         ),
                       ),
                     ),
@@ -247,7 +304,7 @@ class _IdCard extends StatelessWidget {
                         const Text('Name'),
                         SizedBox(height: 2 * scale),
                         Text(
-                          'Joyappa Achaiah',
+                          controller.fullName,
                           style: TextStyle(
                             fontSize: 14 * scale,
                             fontWeight: FontWeight.w700,
@@ -255,7 +312,7 @@ class _IdCard extends StatelessWidget {
                         ),
                         SizedBox(height: 14 * scale),
                         Text(
-                          'Sanathan ID 2306160',
+                          'Sanathan ID ${controller.user?.sanatanId ?? '-'}',
                           style: TextStyle(
                             fontSize: 14 * scale,
                             fontWeight: FontWeight.w700,
@@ -263,7 +320,7 @@ class _IdCard extends StatelessWidget {
                         ),
                         SizedBox(height: 14 * scale),
                         Text(
-                          'Member from 07 - 3 - 2024',
+                          'Member from ${_memberSinceText()}',
                           style: TextStyle(
                             fontSize: 14 * scale,
                             fontWeight: FontWeight.w700,
@@ -271,7 +328,7 @@ class _IdCard extends StatelessWidget {
                         ),
                         SizedBox(height: 14 * scale),
                         Text(
-                          'SRC Holdings\n11036',
+                          'SRC Holdings\n${controller.user?.coin?.toStringAsFixed(0) ?? '0'}',
                           style: TextStyle(
                             fontSize: 14 * scale,
                             fontWeight: FontWeight.w700,
@@ -291,10 +348,30 @@ class _IdCard extends StatelessWidget {
   }
 }
 
-class _BalanceCard extends StatelessWidget {
-  const _BalanceCard({required this.scale});
+class _ProfilePlaceholder extends StatelessWidget {
+  const _ProfilePlaceholder({required this.scale});
 
   final double scale;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: AppColors.white,
+      alignment: Alignment.center,
+      child: Icon(
+        Icons.person_rounded,
+        size: 54 * scale,
+        color: AppColors.profileHeader.withOpacity(0.45),
+      ),
+    );
+  }
+}
+
+class _BalanceCard extends StatelessWidget {
+  const _BalanceCard({required this.scale, required this.coinText});
+
+  final double scale;
+  final String coinText;
 
   @override
   Widget build(BuildContext context) {
@@ -340,7 +417,7 @@ class _BalanceCard extends StatelessWidget {
           SizedBox(width: 14 * scale),
           Expanded(
             child: Text(
-              'श्रीराम कॉइन\nSri Ram Coin',
+              'Sri Ram Coin',
               style: TextStyle(
                 fontSize: 17 * scale,
                 height: 1.15,
@@ -362,7 +439,7 @@ class _BalanceCard extends StatelessWidget {
               ),
               SizedBox(height: 8 * scale),
               Text(
-                '11036 SRC',
+                coinText,
                 style: TextStyle(
                   fontSize: 16 * scale,
                   color: AppColors.profileHeaderText,

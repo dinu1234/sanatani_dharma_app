@@ -1,4 +1,5 @@
 import 'package:dharma_app/Login/LoginView.dart';
+import 'package:dharma_app/core/widgets/shree_svg.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../core/constants/app_colors.dart';
@@ -65,10 +66,7 @@ class LanguageView extends StatelessWidget {
                           ),
                         ],
                       ),
-                      child: Image.asset(
-                        "assets/images/dharma.png",
-                        height: size.height * 0.13,
-                      ),
+                      child: ShreeSvg(height: size.height * 0.13),
                     ),
         
                     SizedBox(height: size.height * 0.02),

@@ -1,8 +1,12 @@
+import 'package:dharma_app/GanaMatch/gana_match_controller.dart';
 import 'package:dharma_app/core/constants/app_colors.dart';
+import 'package:dharma_app/core/utils/toast_utils.dart';
 import 'package:dharma_app/GanaMatch/gana_match_result_view.dart';
+import 'package:dharma_app/core/widgets/app_svg_asset.dart';
 import 'package:dharma_app/widgets/common_bottom_nav.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 
 class GanaMatchingView extends StatefulWidget {
   const GanaMatchingView({super.key});
@@ -12,6 +16,8 @@ class GanaMatchingView extends StatefulWidget {
 }
 
 class _GanaMatchingViewState extends State<GanaMatchingView> {
+  late final GanaMatchController _controller;
+  Worker? _resultWorker;
   final TextEditingController _groomNameController = TextEditingController();
   final TextEditingController _groomDobController = TextEditingController();
   final TextEditingController _groomTimeController = TextEditingController();
@@ -20,6 +26,24 @@ class _GanaMatchingViewState extends State<GanaMatchingView> {
   final TextEditingController _brideDobController = TextEditingController();
   final TextEditingController _brideTimeController = TextEditingController();
   final TextEditingController _bridePlaceController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = Get.isRegistered<GanaMatchController>()
+        ? Get.find<GanaMatchController>()
+        : Get.put(GanaMatchController(), permanent: false);
+    _resultWorker = ever(_controller.result, (result) {
+      if (!mounted || result == null) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => GanaMatchResultView(result: result),
+        ),
+      );
+      _controller.result.value = null;
+    });
+  }
 
   @override
   void dispose() {
@@ -31,6 +55,10 @@ class _GanaMatchingViewState extends State<GanaMatchingView> {
     _brideDobController.dispose();
     _brideTimeController.dispose();
     _bridePlaceController.dispose();
+    _resultWorker?.dispose();
+    if (Get.isRegistered<GanaMatchController>()) {
+      Get.delete<GanaMatchController>();
+    }
     super.dispose();
   }
 
@@ -38,14 +66,14 @@ class _GanaMatchingViewState extends State<GanaMatchingView> {
   Widget build(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
     final width = mediaQuery.size.width;
-    final safeBottom = mediaQuery.padding.bottom;
+    final safeBottom = CommonBottomNav.bottomInset(mediaQuery);
     final scale = (width / 390).clamp(0.84, 1.08);
     final navHeight = CommonBottomNav.navHeight(safeBottom);
     final centerNavSize = CommonBottomNav.centerSize(scale);
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
-        statusBarColor: AppColors.homeBackground,
+        statusBarColor: Color(0xFFB8D6EC),
         statusBarIconBrightness: Brightness.dark,
         statusBarBrightness: Brightness.light,
       ),
@@ -58,12 +86,12 @@ class _GanaMatchingViewState extends State<GanaMatchingView> {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      const Color(0xFFBCD5F0).withOpacity(0.98),
-                      const Color(0xFFD5D9F5).withOpacity(0.88),
-                      const Color(0xFFF1F6FB),
+                      const Color(0xFFB8D6EC),
+                      const Color(0xFFD9E8F7),
+                      const Color(0xFFF9FBFF),
                     ],
                     begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+                    end: Alignment.bottomCenter,
                   ),
                 ),
               ),
@@ -93,140 +121,134 @@ class _GanaMatchingViewState extends State<GanaMatchingView> {
               ),
             ),
             SafeArea(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.fromLTRB(
-                  22 * scale,
-                  12 * scale,
-                  22 * scale,
-                  navHeight + centerNavSize * 0.25,
-                ),
-                child: Column(
-                  children: [
-                    SizedBox(height: 34 * scale),
-                    Text(
-                      'Gana Matching',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 28 * scale,
-                        color: AppColors.homePrimary,
-                        fontWeight: FontWeight.w700,
+              child: Obx(
+                () => SingleChildScrollView(
+                  padding: EdgeInsets.fromLTRB(
+                    22 * scale,
+                    12 * scale,
+                    22 * scale,
+                    centerNavSize * 0.25,
+                  ),
+                  child: Column(
+                    children: [
+                      SizedBox(height: 34 * scale),
+                      Text(
+                        'Gana Matching',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 28 * scale,
+                          color: AppColors.homePrimary,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
-                    ),
-                    SizedBox(height: 22 * scale),
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          child: _ProfileColumn(
-                            scale: scale,
-                            title: "Groom's Details (Boy)",
-                            icon: Icons.person,
-                            nameController: _groomNameController,
-                            dobController: _groomDobController,
-                            timeController: _groomTimeController,
-                            placeController: _groomPlaceController,
-                            onDobTap: () => _pickDate(_groomDobController),
-                            onTimeTap: () => _pickTime(_groomTimeController),
+                      SizedBox(height: 22 * scale),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: _ProfileColumn(
+                              scale: scale,
+                              title: "Groom's Details (Boy)",
+                              assetName: 'assets/images/Ganamale.svg',
+                              nameController: _groomNameController,
+                              dobController: _groomDobController,
+                              timeController: _groomTimeController,
+                              placeController: _groomPlaceController,
+                              onDobTap: () => _pickDate(_groomDobController),
+                              onTimeTap: () => _pickTime(_groomTimeController),
+                            ),
                           ),
-                        ),
-                        SizedBox(width: 16 * scale),
-                        Expanded(
-                          child: _ProfileColumn(
-                            scale: scale,
-                            title: "Bride's Details (Girl)",
-                            icon: Icons.face_3,
-                            nameController: _brideNameController,
-                            dobController: _brideDobController,
-                            timeController: _brideTimeController,
-                            placeController: _bridePlaceController,
-                            onDobTap: () => _pickDate(_brideDobController),
-                            onTimeTap: () => _pickTime(_brideTimeController),
-                          ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 30 * scale),
-                    Container(
-                      width: double.infinity,
-                      height: 56 * scale,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(32 * scale),
-                        gradient: const LinearGradient(
-                          colors: [
-                            AppColors.homeGoldDark,
-                            AppColors.homeGoldLight,
-                            AppColors.homeGoldDark,
-                          ],
-                          begin: Alignment.centerLeft,
-                          end: Alignment.centerRight,
-                        ),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Color(0x24000000),
-                            blurRadius: 14,
-                            offset: Offset(0, 7),
+                          SizedBox(width: 16 * scale),
+                          Expanded(
+                            child: _ProfileColumn(
+                              scale: scale,
+                              title: "Bride's Details (Girl)",
+                              assetName: 'assets/images/Ganafemale.svg',
+                              nameController: _brideNameController,
+                              dobController: _brideDobController,
+                              timeController: _brideTimeController,
+                              placeController: _bridePlaceController,
+                              onDobTap: () => _pickDate(_brideDobController),
+                              onTimeTap: () => _pickTime(_brideTimeController),
+                            ),
                           ),
                         ],
                       ),
-                      child: TextButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => GanaMatchResultView(
-                                groomName: _groomNameController.text.trim().isEmpty
-                                    ? 'Krishna'
-                                    : _groomNameController.text.trim(),
-                                brideName: _brideNameController.text.trim().isEmpty
-                                    ? 'Radha'
-                                    : _brideNameController.text.trim(),
-                              ),
+                      SizedBox(height: 30 * scale),
+                      Container(
+                        width: double.infinity,
+                        height: 56 * scale,
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(32 * scale),
+                          gradient: const LinearGradient(
+                            colors: [
+                              AppColors.homeGoldDark,
+                              AppColors.homeGoldLight,
+                              AppColors.homeGoldDark,
+                            ],
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                          ),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Color(0x24000000),
+                              blurRadius: 14,
+                              offset: Offset(0, 7),
                             ),
-                          );
-                        },
-                        style: TextButton.styleFrom(
-                          foregroundColor: AppColors.homePrimary,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(32 * scale),
-                          ),
+                          ],
                         ),
-                        child: Text(
-                          'Check Compatibility',
-                          style: TextStyle(
-                            fontSize: 19 * scale,
-                            fontWeight: FontWeight.w700,
+                        child: TextButton(
+                          onPressed: _controller.isSubmitting.value
+                              ? null
+                              : _submit,
+                          style: TextButton.styleFrom(
+                            foregroundColor: AppColors.homePrimary,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(32 * scale),
+                            ),
+                          ),
+                          child: Text(
+                            _controller.isSubmitting.value
+                                ? 'Checking...'
+                                : 'Check Compatibility',
+                            style: TextStyle(
+                              fontSize: 19 * scale,
+                              fontWeight: FontWeight.w700,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    SizedBox(height: 34 * scale),
-                    Text(
-                      'Traditional Ashtakoot Guna Milan (Ashta Koota) system which evaluates 8 different aspects of compatibility, totaling 36 points (gunas). This includes checking for Manglik Dosha, Nadi Dosha, Bhakoot Dosha and other important factors.',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 15 * scale,
-                        height: 1.28,
-                        color: AppColors.homePrimary,
-                        fontWeight: FontWeight.w500,
+                      if (_controller.showLocationHelp.value) ...[
+                        SizedBox(height: 18 * scale),
+                        _LocationRequiredCard(
+                          scale: scale,
+                          controller: _controller,
+                        ),
+                      ],
+                      SizedBox(height: 34 * scale),
+                      Text(
+                        'Traditional Ashtakoot Guna Milan (Ashta Koota) system which evaluates 8 different aspects of compatibility, totaling 36 points (gunas). This includes checking for Manglik Dosha, Nadi Dosha, Bhakoot Dosha and other important factors.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 15 * scale,
+                          height: 1.28,
+                          color: AppColors.homePrimary,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: CommonBottomNav(
-                currentItem: AppNavItem.ganaMatch,
-                scale: scale,
-                safeBottom: safeBottom,
-                centerNavSize: centerNavSize,
-                height: navHeight,
-              ),
-            ),
           ],
+        ),
+        bottomNavigationBar: CommonBottomNav(
+          currentItem: AppNavItem.ganaMatch,
+          scale: scale,
+          safeBottom: safeBottom,
+          centerNavSize: centerNavSize,
+          height: navHeight,
         ),
       ),
     );
@@ -282,197 +304,155 @@ class _GanaMatchingViewState extends State<GanaMatchingView> {
 
     controller.text = pickedTime.format(context);
   }
+
+  Future<void> _submit() async {
+   
+    FocusScope.of(context).unfocus();
+    final groomName = _groomNameController.text.trim();
+    final groomDob = _groomDobController.text.trim();
+    final groomTime = _groomTimeController.text.trim();
+    final groomPlace = _groomPlaceController.text.trim();
+    final brideName = _brideNameController.text.trim();
+    final brideDob = _brideDobController.text.trim();
+    final brideTime = _brideTimeController.text.trim();
+    final bridePlace = _bridePlaceController.text.trim();
+
+    if (groomName.isEmpty ||
+        groomDob.isEmpty ||
+        groomTime.isEmpty ||
+        groomPlace.isEmpty ||
+        brideName.isEmpty ||
+        brideDob.isEmpty ||
+        brideTime.isEmpty ||
+        bridePlace.isEmpty) {
+      ToastUtils.show(
+        'Please fill all groom and bride details.',
+        backgroundColor: const Color(0xFFD32F2F),
+      );
+      return;
+    }
+
+    final result = await _controller.submitMatching(
+      girlName: brideName,
+      girlDate: brideDob,
+      girlTime: brideTime,
+      boyName: groomName,
+      boyDate: groomDob,
+      boyTime: groomTime,
+    );
+
+    if (!mounted || result == null) return;
+  }
 }
 
-class GanaMatchingResultView extends StatelessWidget {
-  const GanaMatchingResultView({
-    super.key,
-    required this.groomName,
-    required this.brideName,
+class _LocationRequiredCard extends StatelessWidget {
+  const _LocationRequiredCard({
+    required this.scale,
+    required this.controller,
   });
 
-  final String groomName;
-  final String brideName;
+  final double scale;
+  final GanaMatchController controller;
 
   @override
   Widget build(BuildContext context) {
-    final mediaQuery = MediaQuery.of(context);
-    final width = mediaQuery.size.width;
-    final safeBottom = mediaQuery.padding.bottom;
-    final scale = (width / 390).clamp(0.84, 1.08);
-    final navHeight = CommonBottomNav.navHeight(safeBottom);
-    final centerNavSize = CommonBottomNav.centerSize(scale);
+    final locationDisabled = !controller.isLocationEnabled.value;
+    final error = controller.errorMessage.value.trim();
 
-    const breakdown = <Map<String, dynamic>>[
-      {'title': 'Varna', 'score': 0.78, 'marker': 0.87},
-      {'title': 'Vasya', 'score': 0.86, 'marker': 0.92},
-      {'title': 'Tara', 'score': 0.26, 'marker': 0.43},
-      {'title': 'Yoni', 'score': 0.62, 'marker': 0.66},
-      {'title': 'Maitri', 'score': 0.82, 'marker': 0.91},
-      {'title': 'Gana', 'score': 0.80, 'marker': 0.90},
-      {'title': 'Bhakoot', 'score': 0.83, 'marker': 0.92},
-      {'title': 'Nadi', 'score': 0.79, 'marker': 0.90},
-    ];
-
-    return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: const SystemUiOverlayStyle(
-        statusBarColor: AppColors.homeBackground,
-        statusBarIconBrightness: Brightness.dark,
-        statusBarBrightness: Brightness.light,
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(18 * scale),
+      decoration: BoxDecoration(
+        color: AppColors.white.withOpacity(0.4),
+        borderRadius: BorderRadius.circular(22 * scale),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x18000000),
+            blurRadius: 18,
+            offset: Offset(0, 8),
+          ),
+        ],
       ),
-      child: Scaffold(
-        backgroundColor: AppColors.homeBackground,
-        body: Stack(
-          children: [
-            Positioned.fill(
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      const Color(0xFFBED6F1).withOpacity(0.98),
-                      const Color(0xFFDCE4FA).withOpacity(0.88),
-                      const Color(0xFFF3F7FC),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+      child: Column(
+        children: [
+          Text(
+            locationDisabled
+                ? 'Location On Chahiye'
+                : 'Location Permission Chahiye',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 18 * scale,
+              fontWeight: FontWeight.w700,
+              color: AppColors.homePrimary,
+            ),
+          ),
+          SizedBox(height: 10 * scale),
+          Text(
+            error.isNotEmpty
+                ? error
+                : 'Gana match ke liye current location permission aur GPS on hona chahiye.',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 13 * scale,
+              color: AppColors.homePrimary.withOpacity(0.82),
+              height: 1.35,
+            ),
+          ),
+          SizedBox(height: 18 * scale),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: controller.refreshLocation,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.homePrimary,
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(vertical: 14 * scale),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14 * scale),
+                ),
+              ),
+              child: Text(
+                locationDisabled ? 'Turn On Location' : 'Allow Location',
+              ),
+            ),
+          ),
+          if (controller.isPermissionDeniedForever.value) ...[
+            SizedBox(height: 10 * scale),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: controller.openAppSettings,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.homePrimary,
+                  side: const BorderSide(color: AppColors.homePrimary),
+                  padding: EdgeInsets.symmetric(vertical: 14 * scale),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14 * scale),
                   ),
                 ),
-              ),
-            ),
-            SafeArea(
-              child: SingleChildScrollView(
-                padding: EdgeInsets.fromLTRB(
-                  12 * scale,
-                  10 * scale,
-                  12 * scale,
-                  navHeight + centerNavSize * 0.22,
-                ),
-                child: Column(
-                  children: [
-                    SizedBox(height: 14 * scale),
-                    Text(
-                      'Gana Matching',
-                      style: TextStyle(
-                        fontSize: 22 * scale,
-                        color: AppColors.homePrimary,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    SizedBox(height: 22 * scale),
-                    _ScoreMandala(scale: scale),
-                    SizedBox(height: 14 * scale),
-                    _CoupleRow(
-                      scale: scale,
-                      groomName: groomName,
-                      brideName: brideName,
-                    ),
-                    SizedBox(height: 16 * scale),
-                    Container(
-                      width: double.infinity,
-                      padding: EdgeInsets.fromLTRB(
-                        10 * scale,
-                        12 * scale,
-                        10 * scale,
-                        14 * scale,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.white.withOpacity(0.35),
-                        borderRadius: BorderRadius.circular(18 * scale),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Color(0x14000000),
-                            blurRadius: 14,
-                            offset: Offset(0, 6),
-                          ),
-                        ],
-                      ),
-                      child: Column(
-                        children: [
-                          Text(
-                            'BREAKDOWN',
-                            style: TextStyle(
-                              fontSize: 15 * scale,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.homePrimary,
-                            ),
-                          ),
-                          SizedBox(height: 10 * scale),
-                          ...breakdown.map(
-                            (item) => _BreakdownRow(
-                              scale: scale,
-                              title: item['title']! as String,
-                              score: item['score']! as double,
-                              marker: item['marker']! as double,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: 12 * scale),
-                    Text(
-                      "The boy's nadi is Antya and the girl belongs to Adi nadi.\nThis is very good combination from the\nviewpoint of match making.",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 11 * scale,
-                        height: 1.22,
-                        color: AppColors.homePrimary,
-                      ),
-                    ),
-                    SizedBox(height: 12 * scale),
-                    Container(
-                      width: width * 0.64,
-                      height: 32 * scale,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(20 * scale),
-                        gradient: const LinearGradient(
-                          colors: [
-                            AppColors.homeGoldDark,
-                            AppColors.homeGoldLight,
-                            AppColors.homeGoldDark,
-                          ],
-                          begin: Alignment.centerLeft,
-                          end: Alignment.centerRight,
-                        ),
-                      ),
-                      child: TextButton(
-                        onPressed: () {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text('WhatsApp sharing will be added next.'),
-                            ),
-                          );
-                        },
-                        style: TextButton.styleFrom(
-                          padding: EdgeInsets.zero,
-                          foregroundColor: AppColors.homePrimary,
-                        ),
-                        child: Text(
-                          'Share on Whatsapp',
-                          style: TextStyle(
-                            fontSize: 13.5 * scale,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 0,
-              child: CommonBottomNav(
-                currentItem: AppNavItem.ganaMatch,
-                scale: scale,
-                safeBottom: safeBottom,
-                centerNavSize: centerNavSize,
-                height: navHeight,
+                child: const Text('Open App Settings'),
               ),
             ),
           ],
-        ),
+          if (locationDisabled) ...[
+            SizedBox(height: 10 * scale),
+            SizedBox(
+              width: double.infinity,
+              child: OutlinedButton(
+                onPressed: controller.openLocationSettings,
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.homePrimary,
+                  side: const BorderSide(color: AppColors.homePrimary),
+                  padding: EdgeInsets.symmetric(vertical: 14 * scale),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14 * scale),
+                  ),
+                ),
+                child: const Text('Open Location Settings'),
+              ),
+            ),
+          ],
+        ],
       ),
     );
   }
@@ -482,46 +462,51 @@ class _ProfileColumn extends StatelessWidget {
   const _ProfileColumn({
     required this.scale,
     required this.title,
-    required this.icon,
+    required this.assetName,
     required this.nameController,
     required this.dobController,
     required this.timeController,
     required this.placeController,
     required this.onDobTap,
     required this.onTimeTap,
+    this.compact = false,
   });
 
   final double scale;
   final String title;
-  final IconData icon;
+  final String assetName;
   final TextEditingController nameController;
   final TextEditingController dobController;
   final TextEditingController timeController;
   final TextEditingController placeController;
   final VoidCallback onDobTap;
   final VoidCallback onTimeTap;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
+    final avatarSize = compact ? 112.0 * scale : 140.0 * scale;
+
     return Column(
       children: [
-        _AvatarBadge(scale: scale, icon: icon),
-        SizedBox(height: 12 * scale),
+        _AvatarBadge(scale: scale, assetName: assetName, size: avatarSize),
+        SizedBox(height: (compact ? 10 : 12) * scale),
         Text(
           title,
           textAlign: TextAlign.center,
           style: TextStyle(
-            fontSize: 14.5 * scale,
+            fontSize: (compact ? 13.2 : 14.5) * scale,
             height: 1.15,
             color: AppColors.homePrimary,
             fontWeight: FontWeight.w600,
           ),
         ),
-        SizedBox(height: 18 * scale),
+        SizedBox(height: (compact ? 14 : 18) * scale),
         _EntryField(
           hint: 'Full Name',
           scale: scale,
           controller: nameController,
+          compact: compact,
         ),
         SizedBox(height: 14 * scale),
         _EntryField(
@@ -531,6 +516,7 @@ class _ProfileColumn extends StatelessWidget {
           readOnly: true,
           onTap: onDobTap,
           suffixIcon: Icons.calendar_month_rounded,
+          compact: compact,
         ),
         SizedBox(height: 14 * scale),
         _EntryField(
@@ -540,12 +526,14 @@ class _ProfileColumn extends StatelessWidget {
           readOnly: true,
           onTap: onTimeTap,
           suffixIcon: Icons.access_time_rounded,
+          compact: compact,
         ),
         SizedBox(height: 14 * scale),
         _EntryField(
           hint: 'Place of Birth',
           scale: scale,
           controller: placeController,
+          compact: compact,
         ),
       ],
     );
@@ -555,48 +543,72 @@ class _ProfileColumn extends StatelessWidget {
 class _AvatarBadge extends StatelessWidget {
   const _AvatarBadge({
     required this.scale,
-    required this.icon,
+    required this.assetName,
+    required this.size,
   });
 
   final double scale;
-  final IconData icon;
+  final String assetName;
+  final double size;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: 132 * scale,
-      height: 132 * scale,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        border: Border.all(
-          color: AppColors.homeGoldBorder,
-          width: 3 * scale,
-        ),
-        gradient: const LinearGradient(
-          colors: [Color(0xFFF7E48F), Color(0xFFC4903F)],
-          begin: Alignment.centerLeft,
-          end: Alignment.centerRight,
-        ),
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x18000000),
-            blurRadius: 12,
-            offset: Offset(0, 4),
+    return _ResultAvatar(
+      scale: scale,
+      assetName: assetName,
+      name: '',
+      size: size,
+      showName: false,
+    );
+  }
+}
+
+class _ResultAvatar extends StatelessWidget {
+  const _ResultAvatar({
+    required this.scale,
+    required this.assetName,
+    required this.name,
+    this.size,
+    this.showName = true,
+  });
+
+  final double scale;
+  final String assetName;
+  final String name;
+  final double? size;
+  final bool showName;
+
+  @override
+  Widget build(BuildContext context) {
+    final avatarSize = size ?? (66 * scale);
+
+    return Column(
+      children: [
+        SizedBox(
+          width: avatarSize,
+          height: avatarSize,
+          child: AppSvgAsset(
+            assetName: assetName,
+            fit: BoxFit.contain,
           ),
-        ],
-      ),
-      child: Container(
-        margin: EdgeInsets.all(8 * scale),
-        decoration: const BoxDecoration(
-          shape: BoxShape.circle,
-          color: Color(0xFFF4F4F6),
         ),
-        child: Icon(
-          icon,
-          color: AppColors.homeGoldDark,
-          size: 76 * scale,
-        ),
-      ),
+        if (showName) SizedBox(height: 5 * scale),
+        if (showName)
+          SizedBox(
+            width: 80 * scale,
+            child: Text(
+              name,
+              textAlign: TextAlign.center,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(
+                fontSize: 14 * scale,
+                color: AppColors.homePrimary,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+      ],
     );
   }
 }
@@ -609,6 +621,7 @@ class _EntryField extends StatelessWidget {
     this.readOnly = false,
     this.onTap,
     this.suffixIcon,
+    this.compact = false,
   });
 
   final String hint;
@@ -617,6 +630,7 @@ class _EntryField extends StatelessWidget {
   final bool readOnly;
   final VoidCallback? onTap;
   final IconData? suffixIcon;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -640,12 +654,12 @@ class _EntryField extends StatelessWidget {
           hintText: hint,
           hintStyle: TextStyle(
             color: const Color(0xFF767676),
-            fontSize: 14 * scale,
+            fontSize: (compact ? 13 : 14) * scale,
           ),
           border: InputBorder.none,
           contentPadding: EdgeInsets.symmetric(
             horizontal: 16 * scale,
-            vertical: 16 * scale,
+            vertical: (compact ? 14 : 16) * scale,
           ),
           suffixIcon: suffixIcon == null
               ? null
@@ -657,7 +671,7 @@ class _EntryField extends StatelessWidget {
         ),
         style: TextStyle(
           color: AppColors.homePrimary,
-          fontSize: 14 * scale,
+          fontSize: (compact ? 13 : 14) * scale,
           fontWeight: FontWeight.w500,
         ),
       ),
@@ -823,7 +837,11 @@ class _CoupleRow extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        _ResultAvatar(scale: scale, icon: Icons.person, name: groomName),
+        _ResultAvatar(
+          scale: scale,
+          assetName: 'assets/images/Ganamale.svg',
+          name: groomName,
+        ),
         Padding(
           padding: EdgeInsets.symmetric(horizontal: 10 * scale),
           child: Text(
@@ -835,182 +853,12 @@ class _CoupleRow extends StatelessWidget {
             ),
           ),
         ),
-        _ResultAvatar(scale: scale, icon: Icons.face_3, name: brideName),
-      ],
-    );
-  }
-}
-
-class _ResultAvatar extends StatelessWidget {
-  const _ResultAvatar({
-    required this.scale,
-    required this.icon,
-    required this.name,
-  });
-
-  final double scale;
-  final IconData icon;
-  final String name;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Container(
-          width: 66 * scale,
-          height: 66 * scale,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: AppColors.homeGoldBorder, width: 1.3),
-            gradient: const LinearGradient(
-              colors: [Color(0xFFF7E48F), Color(0xFFC4903F)],
-              begin: Alignment.centerLeft,
-              end: Alignment.centerRight,
-            ),
-          ),
-          child: Container(
-            margin: EdgeInsets.all(4 * scale),
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              color: Color(0xFFF4F4F6),
-            ),
-            child: Icon(
-              icon,
-              color: AppColors.homeGoldDark,
-              size: 34 * scale,
-            ),
-          ),
-        ),
-        SizedBox(height: 5 * scale),
-        SizedBox(
-          width: 80 * scale,
-          child: Text(
-            name,
-            textAlign: TextAlign.center,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: TextStyle(
-              fontSize: 14 * scale,
-              color: AppColors.homePrimary,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
+        _ResultAvatar(
+          scale: scale,
+          assetName: 'assets/images/Ganafemale.svg',
+          name: brideName,
         ),
       ],
-    );
-  }
-}
-
-class _BreakdownRow extends StatelessWidget {
-  const _BreakdownRow({
-    required this.scale,
-    required this.title,
-    required this.score,
-    required this.marker,
-  });
-
-  final double scale;
-  final String title;
-  final double score;
-  final double marker;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: 8 * scale),
-      child: Row(
-        children: [
-          SizedBox(
-            width: 68 * scale,
-            child: Text(
-              title,
-              style: TextStyle(
-                fontSize: 13.5 * scale,
-                color: AppColors.homePrimary,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Container(
-              height: 16 * scale,
-              decoration: BoxDecoration(
-                color: AppColors.white.withOpacity(0.78),
-                borderRadius: BorderRadius.circular(20 * scale),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Color(0x11000000),
-                    blurRadius: 4,
-                    offset: Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: LayoutBuilder(
-                builder: (context, constraints) {
-                  final width = constraints.maxWidth;
-                  final markerLeft = (width * marker).clamp(
-                    12.0,
-                    width - 12.0,
-                  );
-
-                  return Stack(
-                    clipBehavior: Clip.none,
-                    children: [
-                      Positioned(
-                        left: 0,
-                        top: 0,
-                        bottom: 0,
-                        child: Container(
-                          width: width * score,
-                          decoration: BoxDecoration(
-                            color: score < 0.5
-                                ? const Color(0xFFE81C4F)
-                                : const Color(0xFF08B14A),
-                            borderRadius: BorderRadius.circular(20 * scale),
-                          ),
-                        ),
-                      ),
-                      Positioned(
-                        left: markerLeft - (8 * scale),
-                        top: -1 * scale,
-                        child: Container(
-                          width: 18 * scale,
-                          height: 18 * scale,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: const Color(0xFFFF4D7A),
-                            border: Border.all(
-                              color: AppColors.white,
-                              width: 2 * scale,
-                            ),
-                            boxShadow: const [
-                              BoxShadow(
-                                color: Color(0x22000000),
-                                blurRadius: 6,
-                                offset: Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Center(
-                            child: Container(
-                              width: 6 * scale,
-                              height: 6 * scale,
-                              decoration: const BoxDecoration(
-                                shape: BoxShape.circle,
-                                color: AppColors.white,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  );
-                },
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }
