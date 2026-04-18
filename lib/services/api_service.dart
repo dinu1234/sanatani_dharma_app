@@ -297,6 +297,7 @@ class ApiService extends GetConnect {
   Future<Response<dynamic>> saveJapaProgress({
     required int mantraId,
     int? incrementBy,
+    int? currentCount,
     int? chantCount,
     int? targetCount,
   }) {
@@ -304,6 +305,7 @@ class ApiService extends GetConnect {
       'mantra_id': mantraId,
     };
     if (incrementBy != null) body['increment_by'] = incrementBy;
+    if (currentCount != null) body['current_count'] = currentCount;
     if (chantCount != null) body['chant_count'] = chantCount;
     if (targetCount != null) body['target_count'] = targetCount;
 
@@ -350,6 +352,28 @@ class ApiService extends GetConnect {
       {
         'notification_id': notificationId,
       },
+      contentType: 'application/x-www-form-urlencoded',
+      requireAuth: true,
+      showErrorToast: false,
+    );
+  }
+
+  Future<Response<dynamic>> listLiveDarshan({
+    int page = 1,
+    int limit = 20,
+    int? isLive,
+  }) {
+    final body = <String, dynamic>{
+      'page': page < 1 ? 1 : page,
+      'limit': limit.clamp(1, 100),
+    };
+    if (isLive != null) {
+      body['is_live'] = isLive == 1 ? 1 : 0;
+    }
+
+    return postRequest(
+      ApiConstants.listLiveDarshan,
+      body,
       contentType: 'application/x-www-form-urlencoded',
       requireAuth: true,
       showErrorToast: false,

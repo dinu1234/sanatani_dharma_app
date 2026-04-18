@@ -3,9 +3,11 @@ package com.dharma.sanatan
 import android.content.Intent
 import android.net.Uri
 import androidx.core.content.FileProvider
+import com.pichillilorenzo.flutter_inappwebview_android.InAppWebViewFlutterPlugin
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
+import io.flutter.plugins.GeneratedPluginRegistrant
 import java.io.File
 
 class MainActivity : FlutterActivity() {
@@ -16,6 +18,10 @@ class MainActivity : FlutterActivity() {
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
+        GeneratedPluginRegistrant.registerWith(flutterEngine)
+        if (!flutterEngine.plugins.has(InAppWebViewFlutterPlugin::class.java)) {
+            flutterEngine.plugins.add(InAppWebViewFlutterPlugin())
+        }
 
         MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,

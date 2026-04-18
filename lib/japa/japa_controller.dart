@@ -28,8 +28,8 @@ class JapaController extends GetxController {
   bool get isReady => progress.value != null;
   int get count {
     final currentCount = progress.value?.currentCount;
-    if (currentCount == null || currentCount <= 0) return 1;
-    return currentCount;
+    if (currentCount == null) return 0;
+    return currentCount < 0 ? 0 : currentCount;
   }
   int get targetCount => progress.value?.targetCount ?? 108;
   int get chantsToday => progress.value?.chantsToday ?? count;
@@ -133,6 +133,7 @@ class JapaController extends GetxController {
       final model = await _repository.saveJapaProgress(
         mantraId: mantraId,
         incrementBy: _pendingIncrement,
+        currentCount: current.currentCount,
         targetCount: current.targetCount ?? 108,
       );
       final remote = model.data?.japa;
@@ -164,7 +165,7 @@ class JapaController extends GetxController {
       mantraName: mantra?.name,
       audioFile: mantra?.audioFile,
       audioPath: mantra?.audioPath,
-      currentCount: 1,
+      currentCount: 0,
       targetCount: defaultTarget,
       malaSize: defaultTarget,
       chantsToday: 0,

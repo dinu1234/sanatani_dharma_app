@@ -89,52 +89,44 @@ class CommonBottomNav extends StatelessWidget {
                       ),
                     ),
                   ),
-                  Padding(
-                    padding: EdgeInsets.fromLTRB(
-                      14 * scale,
-                      8 * scale,
-                      14 * scale,
-                      itemBottomPadding,
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: _NavItem(
-                            label: 'Home',
-                            assetName: 'assets/images/home.svg',
-                            selected: currentItem == AppNavItem.home,
-                            onTap: () => _handleTap(context, AppNavItem.home),
-                          ),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _NavItem(
+                          label: 'Home',
+                          assetName: 'assets/images/home.svg',
+                          selected: currentItem == AppNavItem.home,
+                          onTap: () => _handleTap(context, AppNavItem.home),
                         ),
-                        Expanded(
-                          child: _NavItem(
-                            label: 'Panchang',
-                            assetName: 'assets/images/panchang.svg',
-                            selected: currentItem == AppNavItem.panchang,
-                            onTap: () =>
-                                _handleTap(context, AppNavItem.panchang),
-                          ),
+                      ),
+                      Expanded(
+                        child: _NavItem(
+                          label: 'Panchang',
+                          assetName: 'assets/images/panchang.svg',
+                          selected: currentItem == AppNavItem.panchang,
+                          onTap: () =>
+                              _handleTap(context, AppNavItem.panchang),
                         ),
-                        SizedBox(width: centerNavSize * 1.42),
-                        Expanded(
-                          child: _NavItem(
-                            label: 'Chants',
-                            assetName: 'assets/images/chants.svg',
-                            selected: currentItem == AppNavItem.chants,
-                            onTap: () => _handleTap(context, AppNavItem.chants),
-                          ),
+                      ),
+                      SizedBox(width: centerNavSize * 1.42),
+                      Expanded(
+                        child: _NavItem(
+                          label: 'Chants',
+                          assetName: 'assets/images/chants.svg',
+                          selected: currentItem == AppNavItem.chants,
+                          onTap: () => _handleTap(context, AppNavItem.chants),
                         ),
-                        Expanded(
-                          child: _NavItem(
-                            label: 'Gana Match',
-                            assetName: 'assets/images/ganamatch.svg',
-                            selected: currentItem == AppNavItem.ganaMatch,
-                            onTap: () =>
-                                _handleTap(context, AppNavItem.ganaMatch),
-                          ),
+                      ),
+                      Expanded(
+                        child: _NavItem(
+                          label: 'Gana Match',
+                          assetName: 'assets/images/ganamatch.svg',
+                          selected: currentItem == AppNavItem.ganaMatch,
+                          onTap: () =>
+                              _handleTap(context, AppNavItem.ganaMatch),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -298,7 +290,7 @@ class _CenterNavItem extends StatelessWidget {
                     Text(
                       'Sanathan ID',
                       style: TextStyle(
-                        fontSize: 12 * scale,
+                        fontSize: 11.5 * scale,
                         color: AppColors.homePrimary,
                         fontWeight: FontWeight.w800,
                         // height: 1.05,

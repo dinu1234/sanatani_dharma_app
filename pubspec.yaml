@@ -47,6 +47,7 @@ dependencies:
   geolocator: ^11.1.0
   location: ^8.0.1
   url_launcher: ^6.3.1
+  youtube_player_flutter: ^9.1.1
   firebase_core: ^4.6.0
   firebase_messaging: ^16.1.3
   flutter_local_notifications: ^21.0.0
@@ -82,6 +83,23 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/
+    - assets/font/
+
+  fonts:
+    - family: Geist
+      fonts:
+        - asset: assets/font/Geist-Light.ttf
+          weight: 300
+        - asset: assets/font/Geist-Regular.ttf
+          weight: 400
+        - asset: assets/font/Geist-Medium.ttf
+          weight: 500
+        - asset: assets/font/Geist-Medium.ttf
+          weight: 600
+        - asset: assets/font/Geist-Bold.ttf
+          weight: 700
+        - asset: assets/font/Geist-Bold.ttf
+          weight: 800
 
   # To add assets to your application, add an assets section, like this:
   # assets:

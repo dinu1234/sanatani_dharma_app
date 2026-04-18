@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:dharma_app/Chants/chants_view.dart';
 import 'package:dharma_app/GanaMatch/GanaMatch.dart';
+import 'package:dharma_app/LiveDarshan/live_darshan_view.dart';
 import 'package:dharma_app/Notifications/notifications_controller.dart';
 import 'package:dharma_app/Notifications/notifications_view.dart';
 import 'package:dharma_app/Panchang/panchang_view.dart';
@@ -163,9 +164,17 @@ class _HomeViewState extends State<HomeView> {
                             );
                           },
                         ),
-                        const _FeatureCard(
+                        _FeatureCard(
                           title: 'Darshan',
                           assetName: 'assets/images/darshan.svg',
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const LiveDarshanView(),
+                              ),
+                            );
+                          },
                         ),
                         _FeatureCard(
                           title: 'Gana Match',

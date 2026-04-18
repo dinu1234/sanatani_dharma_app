@@ -29,12 +29,14 @@ class JapaRepository {
   Future<JapaStatusResponseModel> saveJapaProgress({
     required int mantraId,
     int? incrementBy,
+    int? currentCount,
     int? chantCount,
     int? targetCount,
   }) async {
     final response = await _apiService.saveJapaProgress(
       mantraId: mantraId,
       incrementBy: incrementBy,
+      currentCount: currentCount,
       chantCount: chantCount,
       targetCount: targetCount,
     );

@@ -62,6 +62,7 @@ class DharmaApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.red,
         scaffoldBackgroundColor: const Color(0xFFD6EAF8),
+        fontFamily: 'Geist',
       ),
       home: SplashView(),
     );

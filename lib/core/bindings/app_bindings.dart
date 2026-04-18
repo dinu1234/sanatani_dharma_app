@@ -1,4 +1,6 @@
 import 'package:dharma_app/Login/login_repository.dart';
+import 'package:dharma_app/LiveDarshan/live_darshan_controller.dart';
+import 'package:dharma_app/LiveDarshan/live_darshan_repository.dart';
 import 'package:dharma_app/Notifications/notifications_controller.dart';
 import 'package:dharma_app/Notifications/notifications_repository.dart';
 import 'package:dharma_app/Profile/profile_controller.dart';
@@ -37,6 +39,13 @@ class AppBindings {
     if (!Get.isRegistered<NotificationsRepository>()) {
       Get.put(
         NotificationsRepository(apiService: Get.find<ApiService>()),
+        permanent: true,
+      );
+    }
+
+    if (!Get.isRegistered<LiveDarshanRepository>()) {
+      Get.put(
+        LiveDarshanRepository(apiService: Get.find<ApiService>()),
         permanent: true,
       );
     }
@@ -93,6 +102,13 @@ class AppBindings {
     if (!Get.isRegistered<NotificationsController>()) {
       Get.put(
         NotificationsController(repository: Get.find<NotificationsRepository>()),
+        permanent: true,
+      );
+    }
+
+    if (!Get.isRegistered<LiveDarshanController>()) {
+      Get.put(
+        LiveDarshanController(repository: Get.find<LiveDarshanRepository>()),
         permanent: true,
       );
     }
