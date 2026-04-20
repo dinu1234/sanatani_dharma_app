@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <inset xmlns:android="http://schemas.android.com/apk/res/android"
-    android:insetLeft="112dp"
-    android:insetTop="112dp"
-    android:insetRight="112dp"
-    android:insetBottom="112dp">
+    android:insetLeft="144dp"
+    android:insetTop="144dp"
+    android:insetRight="144dp"
+    android:insetBottom="144dp">
     <bitmap
         android:gravity="center"
         android:src="@drawable/splash_logo" />

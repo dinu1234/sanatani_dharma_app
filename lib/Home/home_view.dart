@@ -3,7 +3,6 @@ import 'dart:math' as math;
 
 import 'package:dharma_app/Chants/chants_view.dart';
 import 'package:dharma_app/GanaMatch/GanaMatch.dart';
-import 'package:dharma_app/LiveDarshan/live_darshan_view.dart';
 import 'package:dharma_app/Notifications/notifications_controller.dart';
 import 'package:dharma_app/Notifications/notifications_view.dart';
 import 'package:dharma_app/Panchang/panchang_view.dart';
@@ -102,7 +101,7 @@ class _HomeViewState extends State<HomeView> {
           if (didPop) return;
           final shouldExit = await _confirmExit(context);
           if (shouldExit && context.mounted) {
-            Navigator.of(context).maybePop();
+            SystemNavigator.pop();
           }
         },
         child: Scaffold(
@@ -164,17 +163,10 @@ class _HomeViewState extends State<HomeView> {
                             );
                           },
                         ),
-                        _FeatureCard(
+                        const _FeatureCard(
                           title: 'Darshan',
                           assetName: 'assets/images/darshan.svg',
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const LiveDarshanView(),
-                              ),
-                            );
-                          },
+                          badgeText: 'Coming Soon',
                         ),
                         _FeatureCard(
                           title: 'Gana Match',
@@ -191,6 +183,7 @@ class _HomeViewState extends State<HomeView> {
                         const _FeatureCard(
                           title: 'Nitya Karma',
                           assetName: 'assets/images/dailyjapa.svg',
+                          badgeText: 'Coming Soon',
                         ),
                       ],
                     ),
@@ -471,11 +464,13 @@ class _FeatureCard extends StatelessWidget {
     required this.title,
     required this.assetName,
     this.onTap,
+    this.badgeText,
   });
 
   final String title;
   final String assetName;
   final VoidCallback? onTap;
+  final String? badgeText;
 
   @override
   Widget build(BuildContext context) {
@@ -537,6 +532,28 @@ class _FeatureCard extends StatelessWidget {
                     ),
                   ),
                 ),
+                if (badgeText != null) ...[
+                  SizedBox(height: 8 * scale),
+                  Container(
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 10 * scale,
+                      vertical: 4 * scale,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.homePrimary.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: Text(
+                      badgeText!,
+                      style: TextStyle(
+                        fontSize: 11 * scale,
+                        color: AppColors.homePrimary,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 0.2,
+                      ),
+                    ),
+                  ),
+                ],
               ],
             ),
           ),
@@ -564,6 +581,13 @@ class _SponsoredBannerState extends State<_SponsoredBanner> {
   void initState() {
     super.initState();
     _pageController = PageController(viewportFraction: 0.96);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final controller =
+          Get.isRegistered<ContentController>()
+              ? Get.find<ContentController>()
+              : Get.put(ContentController(), permanent: true);
+      controller.ensureContentLoaded();
+    });
     _startAutoScroll();
   }
 

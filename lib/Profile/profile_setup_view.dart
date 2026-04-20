@@ -167,193 +167,155 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
       ),
       child: Scaffold(
         backgroundColor: AppColors.homeBackground,
-        body: Obx(
-          () => Stack(
+        body: Obx(() {
+          return Stack(
             children: [
               SafeArea(
-                child: Stack(
-                  children: [
-                    Positioned(
-                      left: mediaQuery.size.width * 0.12,
-                      right: mediaQuery.size.width * 0.12,
-                      bottom: 18 * scale,
-                      child: IgnorePointer(
-                        child: Container(
-                          height: 220 * scale,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: AppColors.homeGoldDark.withOpacity(0.16),
-                              width: 1.6,
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.fromLTRB(
+                    22 * scale,
+                    12 * scale,
+                    22 * scale,
+                    28 * scale,
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(height: 28 * scale),
+                      Text(
+                        'Set Up Your Profile',
+                        style: TextStyle(
+                          fontSize: 26 * scale,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.homePrimary,
+                        ),
+                      ),
+                      SizedBox(height: 22 * scale),
+                      Text(
+                        'Birth Details (Nakshatra, Date, Time)',
+                        style: TextStyle(
+                          fontSize: 17 * scale,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.homePrimary,
+                        ),
+                      ),
+                      SizedBox(height: 14 * scale),
+                      _buildInputField(
+                        controller: _nameController,
+                        hint: 'Full Name',
+                        scale: scale,
+                        onChanged: _controller.updateFullName,
+                      ),
+                      SizedBox(height: 18 * scale),
+                      _buildInputField(
+                        controller: _locationController,
+                        hint: 'Current Location',
+                        scale: scale,
+                        onChanged: _controller.updateCurrentLocation,
+                      ),
+                      SizedBox(height: 24 * scale),
+                      Text(
+                        'Gender',
+                        style: TextStyle(
+                          fontSize: 17 * scale,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.homePrimary,
+                        ),
+                      ),
+                      SizedBox(height: 12 * scale),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _GenderChip(
+                              label: 'Male',
+                              icon: Icons.male,
+                              selected: _gender == 'Male',
+                              scale: scale,
+                              onTap: () => setState(() {
+                                _gender = 'Male';
+                                _controller.updateGender(_gender);
+                              }),
                             ),
                           ),
-                          child: Center(
-                            child: Container(
-                              width: 180 * scale,
-                              height: 180 * scale,
-                              decoration: BoxDecoration(
-                                shape: BoxShape.circle,
-                                border: Border.all(
-                                  color: AppColors.homeGoldDark.withOpacity(
-                                    0.12,
-                                  ),
-                                  width: 1.2,
-                                ),
+                          SizedBox(width: 12 * scale),
+                          Expanded(
+                            child: _GenderChip(
+                              label: 'Female',
+                              icon: Icons.female,
+                              selected: _gender == 'Female',
+                              scale: scale,
+                              onTap: () => setState(() {
+                                _gender = 'Female';
+                                _controller.updateGender(_gender);
+                              }),
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 24 * scale),
+                      Text(
+                        'Birth Date',
+                        style: TextStyle(
+                          fontSize: 17 * scale,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.homePrimary,
+                        ),
+                      ),
+                      SizedBox(height: 12 * scale),
+                      _buildDateSection(scale),
+                      SizedBox(height: 24 * scale),
+                      Text(
+                        'Place of Birth',
+                        style: TextStyle(
+                          fontSize: 17 * scale,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.homePrimary,
+                        ),
+                      ),
+                      SizedBox(height: 12 * scale),
+                      _buildInputField(
+                        controller: _birthPlaceController,
+                        hint: 'Enter Place Name...',
+                        scale: scale,
+                        onChanged: _controller.updateBirthPlace,
+                      ),
+                      SizedBox(height: 34 * scale),
+                      Center(
+                        child: SizedBox(
+                          width: mediaQuery.size.width * 0.68,
+                          child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppColors.homePrimary,
+                              foregroundColor: AppColors.white,
+                              elevation: 2,
+                              padding: EdgeInsets.symmetric(
+                                vertical: 13 * scale,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30 * scale),
+                              ),
+                            ),
+                            onPressed: _onContinuePressed,
+                            child: Text(
+                              'Continue',
+                              style: TextStyle(
+                                fontSize: 16 * scale,
+                                fontWeight: FontWeight.w700,
                               ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                    SingleChildScrollView(
-                      padding: EdgeInsets.fromLTRB(
-                        22 * scale,
-                        12 * scale,
-                        22 * scale,
-                        28 * scale,
-                      ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(height: 28 * scale),
-                          Text(
-                            'Set Up Your Profile',
-                            style: TextStyle(
-                              fontSize: 26 * scale,
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.homePrimary,
-                            ),
-                          ),
-                          SizedBox(height: 22 * scale),
-                          Text(
-                            'Birth Details (Nakshatra, Date, Time)',
-                            style: TextStyle(
-                              fontSize: 17 * scale,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.homePrimary,
-                            ),
-                          ),
-                          SizedBox(height: 14 * scale),
-                          _buildInputField(
-                            controller: _nameController,
-                            hint: 'Full Name',
-                            scale: scale,
-                            onChanged: _controller.updateFullName,
-                          ),
-                          SizedBox(height: 18 * scale),
-                          _buildInputField(
-                            controller: _locationController,
-                            hint: 'Current Location',
-                            scale: scale,
-                            onChanged: _controller.updateCurrentLocation,
-                          ),
-                          SizedBox(height: 24 * scale),
-                          Text(
-                            'Gender',
-                            style: TextStyle(
-                              fontSize: 17 * scale,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.homePrimary,
-                            ),
-                          ),
-                          SizedBox(height: 12 * scale),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: _GenderChip(
-                                  label: 'Male',
-                                  icon: Icons.male,
-                                  selected: _gender == 'Male',
-                                  scale: scale,
-                                  onTap: () => setState(() {
-                                    _gender = 'Male';
-                                    _controller.updateGender(_gender);
-                                  }),
-                                ),
-                              ),
-                              SizedBox(width: 12 * scale),
-                              Expanded(
-                                child: _GenderChip(
-                                  label: 'Female',
-                                  icon: Icons.female,
-                                  selected: _gender == 'Female',
-                                  scale: scale,
-                                  onTap: () => setState(() {
-                                    _gender = 'Female';
-                                    _controller.updateGender(_gender);
-                                  }),
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: 24 * scale),
-                          Text(
-                            'Birth Date',
-                            style: TextStyle(
-                              fontSize: 17 * scale,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.homePrimary,
-                            ),
-                          ),
-                          SizedBox(height: 12 * scale),
-                          _buildDateSection(scale),
-                          SizedBox(height: 24 * scale),
-                          Text(
-                            'Place of Birth',
-                            style: TextStyle(
-                              fontSize: 17 * scale,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.homePrimary,
-                            ),
-                          ),
-                          SizedBox(height: 12 * scale),
-                          _buildInputField(
-                            controller: _birthPlaceController,
-                            hint: 'Enter Place Name...',
-                            scale: scale,
-                            onChanged: _controller.updateBirthPlace,
-                          ),
-                          SizedBox(height: 34 * scale),
-                          Center(
-                            child: SizedBox(
-                              width: mediaQuery.size.width * 0.68,
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.homePrimary,
-                                  foregroundColor: AppColors.white,
-                                  elevation: 2,
-                                  padding: EdgeInsets.symmetric(
-                                    vertical: 13 * scale,
-                                  ),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(
-                                      30 * scale,
-                                    ),
-                                  ),
-                                ),
-                                onPressed: _onContinuePressed,
-                                child: Text(
-                                  'Continue',
-                                  style: TextStyle(
-                                    fontSize: 16 * scale,
-                                    fontWeight: FontWeight.w700,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          SizedBox(height: 150 * scale),
-                        ],
-                      ),
-                    ),
-                  ],
+                      SizedBox(height: 150 * scale),
+                    ],
+                  ),
                 ),
               ),
               if (_controller.isLoading)
                 AppLoader(message: _controller.loadingMessage),
             ],
-          ),
-        ),
+          );
+        }),
       ),
     );
   }

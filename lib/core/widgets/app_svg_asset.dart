@@ -9,6 +9,7 @@ class AppSvgAsset extends StatelessWidget {
     this.width,
     this.height,
     this.fit = BoxFit.contain,
+    this.color,
   }) : _svgFuture = _pendingLoads.putIfAbsent(
          assetName,
          () => rootBundle.loadString(assetName).then(_inlineSvgStyles),
@@ -18,6 +19,7 @@ class AppSvgAsset extends StatelessWidget {
   final double? width;
   final double? height;
   final BoxFit fit;
+  final Color? color;
   final Future<String> _svgFuture;
 
   static final Map<String, String> _svgCache = {};
@@ -76,6 +78,8 @@ class AppSvgAsset extends StatelessWidget {
         width: width,
         height: height,
         fit: fit,
+        colorFilter:
+            color == null ? null : ColorFilter.mode(color!, BlendMode.srcIn),
       );
     }
 
@@ -94,6 +98,8 @@ class AppSvgAsset extends StatelessWidget {
           width: width,
           height: height,
           fit: fit,
+          colorFilter:
+              color == null ? null : ColorFilter.mode(color!, BlendMode.srcIn),
         );
       },
     );

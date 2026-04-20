@@ -1,5 +1,6 @@
 import 'package:dharma_app/Profile/profile_controller.dart';
 import 'package:dharma_app/core/constants/app_colors.dart';
+import 'package:dharma_app/core/widgets/app_svg_asset.dart';
 import 'package:dharma_app/core/widgets/app_loader.dart';
 import 'package:dharma_app/core/widgets/shree_svg.dart';
 import 'package:dharma_app/widgets/common_bottom_nav.dart';
@@ -465,7 +466,7 @@ class _ActionRow extends StatelessWidget {
         Expanded(
           child: _ActionBox(
             scale: scale,
-            icon: Icons.send_outlined,
+            assetName: 'assets/images/Send.svg',
             title: 'Send',
           ),
         ),
@@ -473,7 +474,7 @@ class _ActionRow extends StatelessWidget {
         Expanded(
           child: _ActionBox(
             scale: scale,
-            icon: Icons.download_for_offline_outlined,
+            assetName: 'assets/images/Recieve.svg',
             title: 'Recieve',
           ),
         ),
@@ -481,9 +482,8 @@ class _ActionRow extends StatelessWidget {
         Expanded(
           child: _ActionBox(
             scale: scale,
-            icon: Icons.add_box_outlined,
+            assetName: 'assets/images/add.svg',
             title: 'Add SRC',
-            highlight: true,
           ),
         ),
       ],
@@ -494,15 +494,13 @@ class _ActionRow extends StatelessWidget {
 class _ActionBox extends StatelessWidget {
   const _ActionBox({
     required this.scale,
-    required this.icon,
+    required this.assetName,
     required this.title,
-    this.highlight = false,
   });
 
   final double scale;
-  final IconData icon;
+  final String assetName;
   final String title;
-  final bool highlight;
 
   @override
   Widget build(BuildContext context) {
@@ -522,26 +520,15 @@ class _ActionBox extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              if (highlight)
-                Container(
-                  width: 40 * scale,
-                  height: 40 * scale,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: AppColors.profileHeaderText,
-                  ),
-                ),
-              Icon(
-                icon,
-                size: 38 * scale,
-                color: AppColors.profileHeader,
-              ),
-            ],
+          SizedBox(
+            width: 68 * scale,
+            height: 68 * scale,
+            child: AppSvgAsset(
+              assetName: assetName,
+              fit: BoxFit.contain,
+            ),
           ),
-          SizedBox(height: 12 * scale),
+          // SizedBox(height: 12 * scale),
           Text(
             title,
             style: TextStyle(

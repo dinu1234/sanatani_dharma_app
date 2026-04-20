@@ -11,6 +11,8 @@ class ContentController extends GetxController {
                 : Get.put(ContentRepository(), permanent: true));
 
   final ContentRepository _repository;
+  Future<void>? _sponsorsLoadFuture;
+  Future<void>? _mantrasLoadFuture;
 
   final isLoadingSponsors = false.obs;
   final isLoadingMantras = false.obs;
@@ -31,6 +33,17 @@ class ContentController extends GetxController {
   }
 
   Future<void> loadSponsors() async {
+    if (_sponsorsLoadFuture != null) {
+      await _sponsorsLoadFuture;
+      return;
+    }
+
+    final future = _loadSponsorsInternal();
+    _sponsorsLoadFuture = future;
+    await future;
+  }
+
+  Future<void> _loadSponsorsInternal() async {
     isLoadingSponsors.value = true;
     try {
       final model = await _repository.getSponsors();
@@ -39,10 +52,22 @@ class ContentController extends GetxController {
       }
     } finally {
       isLoadingSponsors.value = false;
+      _sponsorsLoadFuture = null;
     }
   }
 
   Future<void> loadMantras() async {
+    if (_mantrasLoadFuture != null) {
+      await _mantrasLoadFuture;
+      return;
+    }
+
+    final future = _loadMantrasInternal();
+    _mantrasLoadFuture = future;
+    await future;
+  }
+
+  Future<void> _loadMantrasInternal() async {
     isLoadingMantras.value = true;
     try {
       final model = await _repository.getMantras();
@@ -51,15 +76,16 @@ class ContentController extends GetxController {
       }
     } finally {
       isLoadingMantras.value = false;
+      _mantrasLoadFuture = null;
     }
   }
 
   Future<void> ensureContentLoaded() async {
     if (StorageService.getToken()?.isNotEmpty != true) return;
-    if (sponsors.isEmpty && !isLoadingSponsors.value) {
+    if (sponsors.isEmpty) {
       await loadSponsors();
     }
-    if (mantras.isEmpty && !isLoadingMantras.value) {
+    if (mantras.isEmpty) {
       await loadMantras();
     }
   }

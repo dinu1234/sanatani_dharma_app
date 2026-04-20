@@ -44,6 +44,7 @@ class _SplashBody extends StatelessWidget {
             child: Image.asset(
               "assets/images/dharma.png",
               height: size.height * 0.20,
+              fit: BoxFit.contain,
             ),
           ),
         ),
