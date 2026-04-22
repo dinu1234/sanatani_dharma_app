@@ -232,12 +232,16 @@ class ApiService extends GetConnect {
   Future<Response<dynamic>> googleLogin({
     required String googleId,
     required String name,
+    required String email,
+    String? profileImage,
   }) {
     return postRequest(
       ApiConstants.googleLogin,
       {
         'google_id': googleId,
         'name': name,
+        'email': email,
+        'profile_image_url': profileImage ?? '',
       },
       contentType: 'application/x-www-form-urlencoded',
       showErrorToast: false,

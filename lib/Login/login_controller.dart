@@ -273,6 +273,8 @@ class LoginController extends GetxController {
       final model = await _repository.googleLogin(
         googleId: account.id,
         name: name,
+        email: account.email,
+        profileImage: account.photoUrl,
       );
 
       await _completeLogin(

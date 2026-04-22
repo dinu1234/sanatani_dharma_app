@@ -78,10 +78,14 @@ class LoginRepository {
   Future<VerifyOtpResponseModel> googleLogin({
     required String googleId,
     required String name,
+    required String email,
+    String? profileImage,
   }) async {
     final response = await _apiService.googleLogin(
       googleId: googleId,
       name: name,
+      email: email,
+      profileImage: profileImage,
     );
 
     final mapBody = ApiUtils.asMap(response.body);
