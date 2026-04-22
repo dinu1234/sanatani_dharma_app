@@ -5,6 +5,8 @@ import 'package:dharma_app/Notifications/notifications_controller.dart';
 import 'package:dharma_app/Notifications/notifications_repository.dart';
 import 'package:dharma_app/Profile/profile_controller.dart';
 import 'package:dharma_app/Profile/profile_repository.dart';
+import 'package:dharma_app/Subscription/subscription_controller.dart';
+import 'package:dharma_app/Subscription/subscription_repository.dart';
 import 'package:dharma_app/GanaMatch/gana_match_repository.dart';
 import 'package:dharma_app/Panchang/panchang_repository.dart';
 import 'package:dharma_app/content/content_controller.dart';
@@ -46,6 +48,13 @@ class AppBindings {
     if (!Get.isRegistered<LiveDarshanRepository>()) {
       Get.put(
         LiveDarshanRepository(apiService: Get.find<ApiService>()),
+        permanent: true,
+      );
+    }
+
+    if (!Get.isRegistered<SubscriptionRepository>()) {
+      Get.put(
+        SubscriptionRepository(apiService: Get.find<ApiService>()),
         permanent: true,
       );
     }
@@ -113,5 +122,11 @@ class AppBindings {
       );
     }
 
+    if (!Get.isRegistered<SubscriptionController>()) {
+      Get.put(
+        SubscriptionController(repository: Get.find<SubscriptionRepository>()),
+        permanent: true,
+      );
+    }
   }
 }

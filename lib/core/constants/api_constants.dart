@@ -17,6 +17,12 @@ class ApiConstants {
       "user/notifications/mark_notification_read.php";
   static const String listLiveDarshan =
       "user/live_darshan/list_live_darshan.php";
+  static const String listSubscriptionPlans =
+      "user/subscriptions/list_plans.php";
+  static const String createSubscriptionOrder =
+      "user/subscriptions/create_order.php";
+  static const String verifySubscriptionPayment =
+      "user/subscriptions/verify_payment.php";
   static const String getJapaStatus = "user/japa/get_japa_status.php";
   static const String saveJapaProgress = "user/japa/save_japa_progress.php";
   static const String getTodayPanchang =

@@ -19,6 +19,24 @@ class StorageService {
     await _prefs.setBool("profile_completed", value);
   }
 
+  static Future setLoginMobile(String mobile) async {
+    await _prefs.setString("login_mobile", mobile);
+    await _prefs.remove("login_email");
+  }
+
+  static String? getLoginMobile() {
+    return _prefs.getString("login_mobile");
+  }
+
+  static Future setLoginEmail(String email) async {
+    await _prefs.setString("login_email", email);
+    await _prefs.remove("login_mobile");
+  }
+
+  static String? getLoginEmail() {
+    return _prefs.getString("login_email");
+  }
+
   static bool isProfileCompleted() {
     return _prefs.getBool("profile_completed") ?? false;
   }

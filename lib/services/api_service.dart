@@ -384,6 +384,40 @@ class ApiService extends GetConnect {
     );
   }
 
+  Future<Response<dynamic>> listSubscriptionPlans() {
+    return postRequest(
+      ApiConstants.listSubscriptionPlans,
+      <String, dynamic>{},
+      contentType: 'application/x-www-form-urlencoded',
+      requireAuth: true,
+      showErrorToast: false,
+    );
+  }
+
+  Future<Response<dynamic>> createSubscriptionOrder({required int planId}) {
+    return postRequest(
+      ApiConstants.createSubscriptionOrder,
+      {
+        'plan_id': planId,
+      },
+      contentType: 'application/x-www-form-urlencoded',
+      requireAuth: true,
+      showErrorToast: false,
+    );
+  }
+
+  Future<Response<dynamic>> verifySubscriptionPayment({
+    required Map<String, dynamic> body,
+  }) {
+    return postRequest(
+      ApiConstants.verifySubscriptionPayment,
+      body,
+      contentType: 'application/x-www-form-urlencoded',
+      requireAuth: true,
+      showErrorToast: false,
+    );
+  }
+
   Future<Response<dynamic>> getTodayPanchang({
     required double lat,
     required double lng,

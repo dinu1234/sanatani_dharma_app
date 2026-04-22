@@ -5,9 +5,12 @@ import 'package:dharma_app/Chants/chants_view.dart';
 import 'package:dharma_app/GanaMatch/GanaMatch.dart';
 import 'package:dharma_app/Notifications/notifications_controller.dart';
 import 'package:dharma_app/Notifications/notifications_view.dart';
+import 'package:dharma_app/LiveDarshan/live_darshan_view.dart';
 import 'package:dharma_app/Panchang/panchang_view.dart';
 import 'package:dharma_app/Profile/profile_controller.dart';
 import 'package:dharma_app/Profile/profile_view.dart';
+import 'package:dharma_app/Subscription/premium_feature_gate.dart';
+import 'package:dharma_app/Subscription/subscription_controller.dart';
 import 'package:dharma_app/content/content_controller.dart';
 import 'package:dharma_app/content/content_model.dart';
 import 'package:dharma_app/core/constants/api_constants.dart';
@@ -44,9 +47,14 @@ class _HomeViewState extends State<HomeView> {
           Get.isRegistered<NotificationsController>()
               ? Get.find<NotificationsController>()
               : Get.put(NotificationsController(), permanent: true);
+      final subscriptionController =
+          Get.isRegistered<SubscriptionController>()
+              ? Get.find<SubscriptionController>()
+              : Get.put(SubscriptionController(), permanent: true);
       profileController.ensureProfileLoaded();
       contentController.ensureContentLoaded();
       notificationsController.loadNotifications();
+      subscriptionController.ensurePlansLoaded();
     });
   }
 
@@ -72,6 +80,13 @@ class _HomeViewState extends State<HomeView> {
     return shouldExit ?? false;
   }
 
+  Future<void> _openDarshan(BuildContext context) {
+    return PremiumFeatureGate.open(
+      context: context,
+      featureBuilder: () => const LiveDarshanView(),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final profileController =
@@ -82,6 +97,10 @@ class _HomeViewState extends State<HomeView> {
         Get.isRegistered<ContentController>()
             ? Get.find<ContentController>()
             : Get.put(ContentController(), permanent: true);
+    final subscriptionController =
+        Get.isRegistered<SubscriptionController>()
+            ? Get.find<SubscriptionController>()
+            : Get.put(SubscriptionController(), permanent: true);
     final mediaQuery = MediaQuery.of(context);
     final width = mediaQuery.size.width;
     final safeBottom = CommonBottomNav.bottomInset(mediaQuery);
@@ -114,6 +133,7 @@ class _HomeViewState extends State<HomeView> {
                   profileController.loadProfile(silent: true),
                   contentController.loadSponsors(),
                   contentController.loadMantras(),
+                  subscriptionController.refreshPlans(),
                 ]);
               },
               child: SingleChildScrollView(
@@ -128,9 +148,20 @@ class _HomeViewState extends State<HomeView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _Header(scale: scale),
-                    SizedBox(height: 20 * scale),
-                    _MembershipCard(scale: scale),
-                    SizedBox(height: 18 * scale),
+                    Obx(
+                      () => profileController.hasActiveSubscription
+                          ? SizedBox(height: 20 * scale)
+                          : Column(
+                              children: [
+                                SizedBox(height: 20 * scale),
+                                _MembershipCard(
+                                  scale: scale,
+                                  controller: subscriptionController,
+                                ),
+                                SizedBox(height: 18 * scale),
+                              ],
+                            ),
+                    ),
                     GridView.count(
                       crossAxisCount: 2,
                       shrinkWrap: true,
@@ -163,10 +194,10 @@ class _HomeViewState extends State<HomeView> {
                             );
                           },
                         ),
-                        const _FeatureCard(
+                        _FeatureCard(
                           title: 'Darshan',
                           assetName: 'assets/images/darshan.svg',
-                          badgeText: 'Coming Soon',
+                          onTap: () => _openDarshan(context),
                         ),
                         _FeatureCard(
                           title: 'Gana Match',
@@ -339,9 +370,13 @@ class _Header extends StatelessWidget {
 }
 
 class _MembershipCard extends StatelessWidget {
-  const _MembershipCard({required this.scale});
+  const _MembershipCard({
+    required this.scale,
+    required this.controller,
+  });
 
   final double scale;
+  final SubscriptionController controller;
 
   @override
   Widget build(BuildContext context) {
@@ -436,17 +471,26 @@ class _MembershipCard extends StatelessWidget {
                       color: AppColors.homePrimary,
                       fontWeight: FontWeight.w600,
                     ),
-                    child: const Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('Get FREE SRC Worth Rs 101'),
-                        SizedBox(height: 8),
-                        Text('App Launch Special Offer'),
-                        SizedBox(height: 8),
-                        Text('Get Started at Just Rs 51 Only'),
-                        SizedBox(height: 8),
-                        Text('Unlock All Premium Features of the App'),
-                      ],
+                    child: Obx(
+                      () {
+                        final plan = controller.latestPlan;
+                        final amountText = plan?.displayPrice ?? 'Rs 51';
+
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('Get FREE SRC Worth Rs 101'),
+                            const SizedBox(height: 8),
+                            const Text('App Launch Special Offer'),
+                            const SizedBox(height: 8),
+                            Text('Get Started at Just $amountText Only'),
+                            const SizedBox(height: 8),
+                            const Text(
+                              'Unlock All Premium Features of the App',
+                            ),
+                          ],
+                        );
+                      },
                     ),
                   ),
                 ),

@@ -252,17 +252,12 @@ class _IdCard extends StatelessWidget {
                       Positioned(
                         top: -10 * scale,
                         right: -10 * scale,
-                        child: Container(
-                          width: 32 * scale,
-                          height: 32 * scale,
-                          decoration: const BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: AppColors.homeBlue,
-                          ),
-                          child: Icon(
-                            Icons.check_rounded,
-                            size: 18 * scale,
-                            color: AppColors.white,
+                        child: SizedBox(
+                          width: 34 * scale,
+                          height: 34 * scale,
+                          child: AppSvgAsset(
+                            assetName: 'assets/images/verified.svg',
+                            fit: BoxFit.contain,
                           ),
                         ),
                       ),

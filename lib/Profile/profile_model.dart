@@ -72,6 +72,7 @@ class ProfileUser {
   ProfileUser({
     this.id,
     this.mobile,
+    this.email,
     this.countryCode,
     this.fullName,
     this.currentLocation,
@@ -94,6 +95,7 @@ class ProfileUser {
 
   final int? id;
   final String? mobile;
+  final String? email;
   final String? countryCode;
   final String? fullName;
   final String? currentLocation;
@@ -124,6 +126,7 @@ class ProfileUser {
     return ProfileUser(
       id: parseInt(json['id']),
       mobile: _parseString(json['mobile']),
+      email: _parseString(json['email']),
       countryCode: _parseString(json['country_code']),
       fullName: _parseString(json['full_name']),
       currentLocation: _parseString(json['current_location']),

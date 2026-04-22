@@ -246,6 +246,7 @@ class LoginController extends GetxController {
         model,
         errorMessage: "Invalid OTP",
         successMessage: "Login successful",
+        loginMobile: phone,
       );
     } finally {
       isVerifyingOtp.value = false;
@@ -281,6 +282,7 @@ class LoginController extends GetxController {
         model,
         errorMessage: "Google login failed",
         successMessage: "Google login successful",
+        loginEmail: account.email,
       );
     } catch (e) {
       ToastUtils.show(
@@ -297,6 +299,8 @@ class LoginController extends GetxController {
     VerifyOtpResponseModel model, {
     required String errorMessage,
     required String successMessage,
+    String? loginMobile,
+    String? loginEmail,
   }) async {
     if (!model.success || model.data?.token == null) {
       ToastUtils.show(
@@ -307,6 +311,15 @@ class LoginController extends GetxController {
     }
 
     await StorageService.setToken(model.data!.token!);
+    if (loginEmail != null && loginEmail.trim().isNotEmpty) {
+      await StorageService.setLoginEmail(loginEmail.trim());
+    } else if (loginMobile != null && loginMobile.trim().isNotEmpty) {
+      await StorageService.setLoginMobile(loginMobile.trim());
+    } else if (model.data!.user?.email?.trim().isNotEmpty == true) {
+      await StorageService.setLoginEmail(model.data!.user!.email!.trim());
+    } else if (model.data!.user?.mobile?.trim().isNotEmpty == true) {
+      await StorageService.setLoginMobile(model.data!.user!.mobile!.trim());
+    }
 
     ToastUtils.show(
       model.message.isEmpty ? successMessage : model.message,

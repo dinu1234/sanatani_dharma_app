@@ -73,19 +73,13 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
     'December',
   ];
 
-  static const List<String> _years = [
-    '1995',
-    '1996',
-    '1997',
-    '1998',
-    '1999',
-    '2000',
-    '2001',
-    '2002',
-    '2003',
-    '2004',
-    '2005',
-  ];
+  List<String> get _years {
+    final currentYear = DateTime.now().year;
+    return List.generate(
+      currentYear - 1950 + 1,
+      (index) => (1950 + index).toString(),
+    );
+  }
 
   @override
   void initState() {

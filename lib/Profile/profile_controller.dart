@@ -34,8 +34,9 @@ class ProfileController extends GetxController {
 
   bool get hasProfileImage => profileImageUrl != null;
   bool get hasActiveSubscription =>
-      subscription != null &&
-      (subscription!.status == null || subscription!.status == 'active');
+      user?.isSubscriptionPaid == 1 ||
+      (subscription != null &&
+          (subscription!.status == null || subscription!.status == 'active'));
 
   @override
   void onInit() {
@@ -46,8 +47,11 @@ class ProfileController extends GetxController {
   }
 
   Future<void> ensureProfileLoaded() async {
-    if (isLoading.value || profile.value != null) return;
     if (StorageService.getToken()?.isNotEmpty != true) return;
+    while (isLoading.value) {
+      await Future.delayed(const Duration(milliseconds: 50));
+    }
+    if (profile.value != null) return;
     await loadProfile(silent: true);
   }
 

@@ -19,14 +19,6 @@ class LiveDarshanController extends GetxController {
 
   int totalCount = 0;
 
-  @override
-  void onInit() {
-    super.onInit();
-    if (StorageService.getToken()?.isNotEmpty == true) {
-      loadDarshan();
-    }
-  }
-
   Future<void> loadDarshan({bool? liveOnly}) async {
     final filterValue = liveOnly ?? showLiveOnly.value;
     showLiveOnly.value = filterValue;

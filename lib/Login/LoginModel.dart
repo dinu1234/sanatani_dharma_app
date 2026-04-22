@@ -94,6 +94,7 @@ class AuthUser {
     this.id,
     this.countryCode,
     this.mobile,
+    this.email,
     this.fullName,
     this.currentLocation,
     this.gender,
@@ -108,6 +109,7 @@ class AuthUser {
   final int? id;
   final String? countryCode;
   final String? mobile;
+  final String? email;
   final String? fullName;
   final String? currentLocation;
   final String? gender;
@@ -133,6 +135,7 @@ class AuthUser {
       id: parseInt(json['id']),
       countryCode: parseString(json['country_code']),
       mobile: parseString(json['mobile']),
+      email: parseString(json['email']),
       fullName: parseString(json['full_name']),
       currentLocation: parseString(json['current_location']),
       gender: parseString(json['gender']),
