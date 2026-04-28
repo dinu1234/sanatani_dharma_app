@@ -78,6 +78,7 @@ class ProfileUser {
     this.currentLocation,
     this.gender,
     this.birthDate,
+    this.birthTime,
     this.birthPlace,
     this.googleId,
     this.profileImage,
@@ -101,6 +102,7 @@ class ProfileUser {
   final String? currentLocation;
   final String? gender;
   final String? birthDate;
+  final String? birthTime;
   final String? birthPlace;
   final String? googleId;
   final String? profileImage;
@@ -132,6 +134,7 @@ class ProfileUser {
       currentLocation: _parseString(json['current_location']),
       gender: _parseString(json['gender']),
       birthDate: _parseString(json['birth_date']),
+      birthTime: _parseString(json['birth_time']),
       birthPlace: _parseString(json['birth_place']),
       googleId: _parseString(json['google_id']),
       profileImage: _parseString(json['profile_image']),

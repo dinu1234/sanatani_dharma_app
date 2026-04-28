@@ -33,10 +33,11 @@ class ProfileController extends GetxController {
   }
 
   bool get hasProfileImage => profileImageUrl != null;
-  bool get hasActiveSubscription =>
-      user?.isSubscriptionPaid == 1 ||
-      (subscription != null &&
-          (subscription!.status == null || subscription!.status == 'active'));
+  bool get hasActiveSubscription {
+    if (user?.isSubscriptionPaid == 1) return true;
+    final status = subscription?.status?.trim().toLowerCase();
+    return status == 'active';
+  }
 
   @override
   void onInit() {
@@ -100,6 +101,7 @@ class ProfileController extends GetxController {
         currentLocation: currentUser.currentLocation,
         gender: currentUser.gender,
         birthDate: currentUser.birthDate,
+        birthTime: currentUser.birthTime,
         birthPlace: currentUser.birthPlace,
         profileImagePath: pickedFile.path,
       );

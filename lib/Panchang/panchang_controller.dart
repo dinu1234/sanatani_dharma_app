@@ -29,6 +29,10 @@ class PanchangController extends GetxController {
 
   String get locationLabel {
     final location = panchang.value?.location;
+    final city = location?.city?.trim();
+    if (city != null && city.isNotEmpty) {
+      return city;
+    }
     final lat = location?.lat ?? currentLatitude.value;
     final lng = location?.lng ?? currentLongitude.value;
     if (lat == null || lng == null) {

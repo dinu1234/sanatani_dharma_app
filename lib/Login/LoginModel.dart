@@ -99,6 +99,7 @@ class AuthUser {
     this.currentLocation,
     this.gender,
     this.birthDate,
+    this.birthTime,
     this.birthPlace,
     this.googleId,
     this.isOtpVerified,
@@ -114,6 +115,7 @@ class AuthUser {
   final String? currentLocation;
   final String? gender;
   final String? birthDate;
+  final String? birthTime;
   final String? birthPlace;
   final String? googleId;
   final int? isOtpVerified;
@@ -140,6 +142,7 @@ class AuthUser {
       currentLocation: parseString(json['current_location']),
       gender: parseString(json['gender']),
       birthDate: parseString(json['birth_date']),
+      birthTime: parseString(json['birth_time']),
       birthPlace: parseString(json['birth_place']),
       googleId: parseString(json['google_id']),
       isOtpVerified: parseInt(json['is_otp_verified']),

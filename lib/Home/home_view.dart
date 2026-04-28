@@ -2,19 +2,23 @@ import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:dharma_app/Chants/chants_view.dart';
+import 'package:dharma_app/AskPandit/ask_pandit_view.dart';
 import 'package:dharma_app/GanaMatch/GanaMatch.dart';
 import 'package:dharma_app/Notifications/notifications_controller.dart';
 import 'package:dharma_app/Notifications/notifications_view.dart';
 import 'package:dharma_app/LiveDarshan/live_darshan_view.dart';
 import 'package:dharma_app/Panchang/panchang_view.dart';
 import 'package:dharma_app/Profile/profile_controller.dart';
+import 'package:dharma_app/Profile/profile_setup_view.dart';
 import 'package:dharma_app/Profile/profile_view.dart';
 import 'package:dharma_app/Subscription/premium_feature_gate.dart';
 import 'package:dharma_app/Subscription/subscription_controller.dart';
+import 'package:dharma_app/Subscription/subscription_view.dart';
 import 'package:dharma_app/content/content_controller.dart';
 import 'package:dharma_app/content/content_model.dart';
 import 'package:dharma_app/core/constants/api_constants.dart';
 import 'package:dharma_app/core/constants/app_colors.dart';
+import 'package:dharma_app/core/utils/toast_utils.dart';
 import 'package:dharma_app/core/widgets/app_svg_asset.dart';
 import 'package:dharma_app/core/widgets/shree_svg.dart';
 import 'package:dharma_app/widgets/common_bottom_nav.dart';
@@ -87,6 +91,51 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
+  Future<void> _openAskPandit(BuildContext context) async {
+    final profileController =
+        Get.isRegistered<ProfileController>()
+            ? Get.find<ProfileController>()
+            : Get.put(ProfileController(), permanent: true);
+    await profileController.ensureProfileLoaded();
+    final user = profileController.user;
+    final isProfileComplete =
+        _hasText(user?.fullName) &&
+        _hasText(user?.birthDate) &&
+        _hasText(user?.birthTime) &&
+        _hasText(user?.birthPlace);
+
+    if (!isProfileComplete) {
+      ToastUtils.show('Please complete your profile before using Ask Pandit.');
+      if (!context.mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const ProfileSetupView()),
+      );
+      return;
+    }
+
+    if (!profileController.hasActiveSubscription) {
+      ToastUtils.show('Active subscription is required to use Ask Pandit.');
+      if (!context.mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const SubscriptionPlansView()),
+      );
+      return;
+    }
+
+    if (!context.mounted) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const AskPanditView()),
+    );
+  }
+
+  bool _hasText(String? value) {
+    final text = value?.trim();
+    return text != null && text.isNotEmpty && text.toLowerCase() != 'null';
+  }
+
   @override
   Widget build(BuildContext context) {
     final profileController =
@@ -110,9 +159,9 @@ class _HomeViewState extends State<HomeView> {
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
-        statusBarColor: AppColors.homeBackground,
-        statusBarIconBrightness: Brightness.dark,
-        statusBarBrightness: Brightness.light,
+        statusBarColor: AppColors.homePrimary,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
       ),
       child: PopScope(
         canPop: false,
@@ -148,8 +197,12 @@ class _HomeViewState extends State<HomeView> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _Header(scale: scale),
-                    Obx(
-                      () => profileController.hasActiveSubscription
+                    Obx(() {
+                      if (profileController.profile.value == null &&
+                          profileController.isLoading.value) {
+                        return SizedBox(height: 20 * scale);
+                      }
+                      return profileController.hasActiveSubscription
                           ? SizedBox(height: 20 * scale)
                           : Column(
                               children: [
@@ -160,8 +213,8 @@ class _HomeViewState extends State<HomeView> {
                                 ),
                                 SizedBox(height: 18 * scale),
                               ],
-                            ),
-                    ),
+                            );
+                    }),
                     GridView.count(
                       crossAxisCount: 2,
                       shrinkWrap: true,
@@ -198,6 +251,11 @@ class _HomeViewState extends State<HomeView> {
                           title: 'Darshan',
                           assetName: 'assets/images/darshan.svg',
                           onTap: () => _openDarshan(context),
+                        ),
+                        _FeatureCard(
+                          title: 'Ask Pandit',
+                          assetName: 'assets/images/chants.svg',
+                          onTap: () => _openAskPandit(context),
                         ),
                         _FeatureCard(
                           title: 'Gana Match',

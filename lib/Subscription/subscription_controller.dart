@@ -19,6 +19,7 @@ class SubscriptionController extends GetxController {
 
   final isLoading = false.obs;
   final isCreatingOrder = false.obs;
+  final isVerifyingPayment = false.obs;
   final processingPlanId = RxnInt();
   final errorMessage = ''.obs;
   final plans = <SubscriptionPlan>[].obs;
@@ -169,73 +170,83 @@ class SubscriptionController extends GetxController {
   }
 
   Future<void> _handlePaymentSuccess(PaymentSuccessResponse response) async {
-    final plan = _pendingPlan;
-    final order = _pendingOrder?.order;
-    if (plan?.id == null || order?.orderId == null) {
-      ToastUtils.show('Payment response invalid hai.');
+    isVerifyingPayment.value = true;
+    try {
+      final plan = _pendingPlan;
+      final order = _pendingOrder?.order;
+      if (plan?.id == null || order?.orderId == null) {
+        ToastUtils.show('Payment response invalid hai.');
+        processingPlanId.value = null;
+        return;
+      }
+
+      final verifyResponse = await _repository.verifyPayment(
+        body: {
+          'plan_id': plan!.id,
+          'razorpay_order_id': response.orderId ?? order!.orderId!,
+          'payment_status': 'captured',
+          'razorpay_payment_id': response.paymentId ?? '',
+          'transaction_id': response.paymentId ?? '',
+          'razorpay_signature': response.signature ?? '',
+        },
+      );
+
       processingPlanId.value = null;
-      return;
-    }
 
-    final verifyResponse = await _repository.verifyPayment(
-      body: {
-        'plan_id': plan!.id,
-        'razorpay_order_id': response.orderId ?? order!.orderId!,
-        'payment_status': 'captured',
-        'razorpay_payment_id': response.paymentId ?? '',
-        'transaction_id': response.paymentId ?? '',
-        'razorpay_signature': response.signature ?? '',
-      },
-    );
+      if (!verifyResponse.success) {
+        ToastUtils.show(
+          verifyResponse.message.isNotEmpty
+              ? verifyResponse.message
+              : 'Payment verify nahi ho paaya.',
+        );
+        return;
+      }
 
-    processingPlanId.value = null;
-
-    if (!verifyResponse.success) {
       ToastUtils.show(
         verifyResponse.message.isNotEmpty
             ? verifyResponse.message
-            : 'Payment verify nahi ho paaya.',
+            : 'Subscription activated successfully.',
       );
-      return;
-    }
 
-    ToastUtils.show(
-      verifyResponse.message.isNotEmpty
-          ? verifyResponse.message
-          : 'Subscription activated successfully.',
-    );
-
-    if (Get.isRegistered<ProfileController>()) {
-      await Get.find<ProfileController>().loadProfile(silent: true);
-    }
-    _pendingOrder = null;
-    _pendingPlan = null;
-    final destinationBuilder = _successDestinationBuilder;
-    if (destinationBuilder != null) {
-      Get.off(() => destinationBuilder());
-    } else {
-      Get.back();
+      if (Get.isRegistered<ProfileController>()) {
+        await Get.find<ProfileController>().loadProfile(silent: true);
+      }
+      _pendingOrder = null;
+      _pendingPlan = null;
+      final destinationBuilder = _successDestinationBuilder;
+      if (destinationBuilder != null) {
+        Get.off(() => destinationBuilder());
+      } else {
+        Get.back();
+      }
+    } finally {
+      isVerifyingPayment.value = false;
     }
   }
 
   Future<void> _handlePaymentError(PaymentFailureResponse response) async {
-    final plan = _pendingPlan;
-    final orderId = _pendingOrder?.order?.orderId;
-    if (plan?.id != null && orderId != null && orderId.isNotEmpty) {
-      await _repository.verifyPayment(
-        body: {
-          'plan_id': plan!.id,
-          'razorpay_order_id': orderId,
-          'payment_status': 'failed',
-          'razorpay_payment_id': '',
-          'error_code': response.code?.toString() ?? '',
-          'error_description': response.message ?? 'Payment failed',
-        },
-      );
-    }
+    isVerifyingPayment.value = true;
+    try {
+      final plan = _pendingPlan;
+      final orderId = _pendingOrder?.order?.orderId;
+      if (plan?.id != null && orderId != null && orderId.isNotEmpty) {
+        await _repository.verifyPayment(
+          body: {
+            'plan_id': plan!.id,
+            'razorpay_order_id': orderId,
+            'payment_status': 'failed',
+            'razorpay_payment_id': '',
+            'error_code': response.code?.toString() ?? '',
+            'error_description': response.message ?? 'Payment failed',
+          },
+        );
+      }
 
-    processingPlanId.value = null;
-    ToastUtils.show(response.message ?? 'Payment failed');
+      processingPlanId.value = null;
+      ToastUtils.show(response.message ?? 'Payment failed');
+    } finally {
+      isVerifyingPayment.value = false;
+    }
   }
 
   void _handleExternalWallet(ExternalWalletResponse response) {

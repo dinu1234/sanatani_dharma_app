@@ -16,6 +16,7 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _birthPlaceController = TextEditingController();
+  final TextEditingController _birthTimeController = TextEditingController();
   late final ProfileSetupController _controller;
   final List<Worker> _workers = [];
 
@@ -114,6 +115,14 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
           );
         }
       }),
+      ever<String>(_controller.birthTime, (value) {
+        if (_birthTimeController.text != value) {
+          _birthTimeController.value = TextEditingValue(
+            text: value,
+            selection: TextSelection.collapsed(offset: value.length),
+          );
+        }
+      }),
       ever<String?>(_controller.gender, (value) {
         if (mounted) {
           setState(() => _gender = value);
@@ -145,6 +154,7 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
     _nameController.dispose();
     _locationController.dispose();
     _birthPlaceController.dispose();
+    _birthTimeController.dispose();
     super.dispose();
   }
 
@@ -155,9 +165,9 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
-        statusBarColor: AppColors.homeBackground,
-        statusBarIconBrightness: Brightness.dark,
-        statusBarBrightness: Brightness.light,
+        statusBarColor: AppColors.homePrimary,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
       ),
       child: Scaffold(
         backgroundColor: AppColors.homeBackground,
@@ -175,7 +185,7 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      SizedBox(height: 28 * scale),
+                      SizedBox(height: 8 * scale),
                       Text(
                         'Set Up Your Profile',
                         style: TextStyle(
@@ -184,7 +194,7 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
                           color: AppColors.homePrimary,
                         ),
                       ),
-                      SizedBox(height: 22 * scale),
+                      SizedBox(height: 8 * scale),
                       Text(
                         'Birth Details (Nakshatra, Date, Time)',
                         style: TextStyle(
@@ -257,6 +267,17 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
                       ),
                       SizedBox(height: 12 * scale),
                       _buildDateSection(scale),
+                      SizedBox(height: 24 * scale),
+                      Text(
+                        'Birth Time',
+                        style: TextStyle(
+                          fontSize: 17 * scale,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.homePrimary,
+                        ),
+                      ),
+                      SizedBox(height: 12 * scale),
+                      _buildTimeField(scale),
                       SizedBox(height: 24 * scale),
                       Text(
                         'Place of Birth',
@@ -346,6 +367,7 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
     _controller
       ..updateFullName(_nameController.text)
       ..updateCurrentLocation(_locationController.text)
+      ..updateBirthTime(_birthTimeController.text)
       ..updateBirthPlace(_birthPlaceController.text)
       ..updateGender(_gender)
       ..updateDay(_day)
@@ -412,6 +434,51 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
         ),
       ],
     );
+  }
+
+  Widget _buildTimeField(double scale) {
+    return GestureDetector(
+      onTap: _pickBirthTime,
+      child: AbsorbPointer(
+        child: Container(
+          decoration: _fieldDecoration(scale),
+          child: TextField(
+            controller: _birthTimeController,
+            decoration: InputDecoration(
+              hintText: 'Select Birth Time',
+              hintStyle: TextStyle(
+                color: Colors.black54,
+                fontSize: 14 * scale,
+              ),
+              suffixIcon: Icon(
+                Icons.access_time_rounded,
+                color: AppColors.homePrimary,
+                size: 20 * scale,
+              ),
+              contentPadding: EdgeInsets.symmetric(
+                horizontal: 16 * scale,
+                vertical: 16 * scale,
+              ),
+              border: InputBorder.none,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _pickBirthTime() async {
+    final picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+    if (picked == null) return;
+
+    final formatted =
+        '${picked.hour.toString().padLeft(2, '0')}:'
+        '${picked.minute.toString().padLeft(2, '0')}:00';
+    _birthTimeController.text = formatted;
+    _controller.updateBirthTime(formatted);
   }
 }
 

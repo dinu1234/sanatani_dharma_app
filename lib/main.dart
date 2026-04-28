@@ -1,4 +1,5 @@
 import 'package:dharma_app/core/bindings/app_bindings.dart';
+import 'package:dharma_app/core/constants/app_colors.dart';
 import 'package:dharma_app/firebase_options.dart';
 import 'package:dharma_app/services/notification_service.dart';
 import 'package:dharma_app/language/translations.dart';
@@ -35,11 +36,15 @@ Future<void> main() async {
     await NotificationService.initialize();
   }
 
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+  ]);
+
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
-      statusBarColor: Color(0xFFD6EAF8),
-      statusBarIconBrightness: Brightness.dark,
-      statusBarBrightness: Brightness.light,
+      statusBarColor: AppColors.homePrimary,
+      statusBarIconBrightness: Brightness.light,
+      statusBarBrightness: Brightness.dark,
       systemNavigationBarColor: Colors.white,
       systemNavigationBarIconBrightness: Brightness.dark,
       systemNavigationBarDividerColor: Colors.white,

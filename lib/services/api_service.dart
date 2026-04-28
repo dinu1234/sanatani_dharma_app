@@ -487,6 +487,33 @@ class ApiService extends GetConnect {
     );
   }
 
+  Future<Response<dynamic>> askPandit({
+    required String question,
+    String? sessionId,
+    int stream = 0,
+    double? lat,
+    double? lng,
+  }) {
+    final body = <String, dynamic>{
+      'question': question,
+      'stream': stream,
+    };
+    if (sessionId != null && sessionId.trim().isNotEmpty) {
+      body['session_id'] = sessionId.trim();
+    }
+    if (lat != null && lng != null) {
+      body['lat'] = lat.toString();
+      body['lng'] = lng.toString();
+    }
+    return postRequest(
+      ApiConstants.askPandit,
+      body,
+      contentType: 'application/x-www-form-urlencoded',
+      requireAuth: true,
+      showErrorToast: false,
+    );
+  }
+
   void _logoutWithToast(String message) {
     _logout();
     ToastUtils.show(

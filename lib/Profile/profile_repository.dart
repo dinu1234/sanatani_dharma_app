@@ -36,6 +36,7 @@ class ProfileRepository {
     String? currentLocation,
     String? gender,
     String? birthDate,
+    String? birthTime,
     String? birthPlace,
     String? profileImagePath,
   }) async {
@@ -51,6 +52,7 @@ class ProfileRepository {
     addIfNotBlank('current_location', currentLocation);
     addIfNotBlank('gender', gender);
     addIfNotBlank('birth_date', birthDate);
+    addIfNotBlank('birth_time', birthTime);
     addIfNotBlank('birth_place', birthPlace);
 
     dynamic payload = fields;

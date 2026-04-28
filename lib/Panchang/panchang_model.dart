@@ -96,12 +96,14 @@ class PanchangLocation {
     this.lng,
     this.cacheLat,
     this.cacheLng,
+    this.city,
   });
 
   final double? lat;
   final double? lng;
   final double? cacheLat;
   final double? cacheLng;
+  final String? city;
 
   factory PanchangLocation.fromJson(Map<String, dynamic> json) {
     return PanchangLocation(
@@ -109,6 +111,7 @@ class PanchangLocation {
       lng: _parseDouble(json['lng']),
       cacheLat: _parseDouble(json['cache_lat']),
       cacheLng: _parseDouble(json['cache_lng']),
+      city: json['city']?.toString().trim(),
     );
   }
 }

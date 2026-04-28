@@ -1,4 +1,5 @@
 import 'package:country_code_picker/country_code_picker.dart';
+import 'package:dharma_app/core/constants/app_colors.dart';
 import 'package:dharma_app/core/widgets/app_loader.dart';
 import 'package:dharma_app/core/widgets/shree_svg.dart';
 import 'package:flutter/material.dart';
@@ -21,10 +22,10 @@ class LoginView extends StatelessWidget {
     final size = MediaQuery.of(context).size;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
-      value: const SystemUiOverlayStyle(
-        statusBarColor: _topBgColor,
-        statusBarIconBrightness: Brightness.dark,
-        statusBarBrightness: Brightness.light,
+      value: SystemUiOverlayStyle(
+        statusBarColor: AppColors.homePrimary,
+        statusBarIconBrightness: Brightness.light,
+        statusBarBrightness: Brightness.dark,
       ),
       child: Scaffold(
         resizeToAvoidBottomInset: false,

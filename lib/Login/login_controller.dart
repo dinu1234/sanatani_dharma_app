@@ -72,6 +72,7 @@ class LoginController extends GetxController {
       !_isBlank(user.currentLocation) &&
       !_isBlank(user.gender) &&
       !_isBlank(user.birthDate) &&
+      !_isBlank(user.birthTime) &&
       !_isBlank(user.birthPlace);
 
   String _buildSendOtpSuccessMessage(SendOtpResponseModel model) {

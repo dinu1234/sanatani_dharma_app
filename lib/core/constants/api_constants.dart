@@ -29,4 +29,5 @@ class ApiConstants {
       "user/panchang/get_today_panchang.php";
   static const String getDetailedKundliMatching =
       "user/kundli/get_detailed_kundli_matching.php";
+  static const String askPandit = "user/ask_pandit/chat.php";
 }

@@ -1,6 +1,7 @@
 import 'package:dharma_app/Subscription/subscription_controller.dart';
 import 'package:dharma_app/Subscription/subscription_model.dart';
 import 'package:dharma_app/core/constants/app_colors.dart';
+import 'package:dharma_app/core/widgets/app_loader.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
@@ -131,53 +132,14 @@ class _SubscriptionPlansViewState extends State<SubscriptionPlansView> {
               ),
             ),
             Obx(
-              () => _controller.isCreatingOrder.value
-                  ? Positioned.fill(
-                      child: Container(
-                        color: Colors.black.withOpacity(0.28),
-                        child: Center(
-                          child: Container(
-                            padding: EdgeInsets.symmetric(
-                              horizontal: 18 * scale,
-                              vertical: 16 * scale,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(18 * scale),
-                              boxShadow: const [
-                                BoxShadow(
-                                  color: Color(0x26000000),
-                                  blurRadius: 18,
-                                  offset: Offset(0, 8),
-                                ),
-                              ],
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                SizedBox(
-                                  width: 22 * scale,
-                                  height: 22 * scale,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.4,
-                                    color: AppColors.homePrimary,
-                                  ),
-                                ),
-                                SizedBox(width: 12 * scale),
-                                Text(
-                                  'Creating order',
-                                  style: TextStyle(
-                                    fontSize: 14 * scale,
-                                    fontWeight: FontWeight.w800,
-                                    color: AppColors.homePrimary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      ),
-                    )
+              () =>
+                  (_controller.isCreatingOrder.value ||
+                          _controller.isVerifyingPayment.value)
+                      ? AppLoader(
+                          message: _controller.isVerifyingPayment.value
+                              ? 'Verifying payment'
+                              : 'Creating order',
+                        )
                   : const SizedBox.shrink(),
             ),
           ],

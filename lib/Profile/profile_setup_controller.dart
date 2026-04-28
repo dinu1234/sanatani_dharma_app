@@ -22,6 +22,7 @@ class ProfileSetupController extends GetxController {
   final fullName = ''.obs;
   final currentLocation = ''.obs;
   final birthPlace = ''.obs;
+  final birthTime = ''.obs;
   final gender = RxnString();
   final day = RxnString();
   final month = RxnString();
@@ -82,6 +83,7 @@ class ProfileSetupController extends GetxController {
         currentLocation: currentLocation.value,
         gender: gender.value,
         birthDate: formattedBirthDate,
+        birthTime: birthTime.value,
         birthPlace: birthPlace.value,
       );
 
@@ -109,6 +111,7 @@ class ProfileSetupController extends GetxController {
   void updateFullName(String value) => fullName.value = value;
   void updateCurrentLocation(String value) => currentLocation.value = value;
   void updateBirthPlace(String value) => birthPlace.value = value;
+  void updateBirthTime(String value) => birthTime.value = value;
   void updateGender(String? value) => gender.value = value;
   void updateDay(String? value) => day.value = value;
   void updateMonth(String? value) => month.value = value;
@@ -120,6 +123,7 @@ class ProfileSetupController extends GetxController {
       user.currentLocation?.trim().isNotEmpty == true &&
       user.gender?.trim().isNotEmpty == true &&
       user.birthDate?.trim().isNotEmpty == true &&
+      user.birthTime?.trim().isNotEmpty == true &&
       user.birthPlace?.trim().isNotEmpty == true;
 
   String get formattedBirthDate {
@@ -144,6 +148,7 @@ class ProfileSetupController extends GetxController {
     fullName.value = user.fullName ?? '';
     currentLocation.value = user.currentLocation ?? '';
     birthPlace.value = user.birthPlace ?? '';
+    birthTime.value = user.birthTime ?? '';
     gender.value = user.gender;
 
     final birthDate = user.birthDate;
@@ -160,6 +165,7 @@ class ProfileSetupController extends GetxController {
   bool _validate() {
     if (fullName.value.trim().isEmpty ||
         currentLocation.value.trim().isEmpty ||
+        birthTime.value.trim().isEmpty ||
         birthPlace.value.trim().isEmpty ||
         gender.value == null ||
         day.value == null ||
