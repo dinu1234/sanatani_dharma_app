@@ -21,6 +21,7 @@ import 'package:dharma_app/core/constants/app_colors.dart';
 import 'package:dharma_app/core/utils/toast_utils.dart';
 import 'package:dharma_app/core/widgets/app_svg_asset.dart';
 import 'package:dharma_app/core/widgets/shree_svg.dart';
+import 'package:dharma_app/services/storage_service.dart';
 import 'package:dharma_app/widgets/common_bottom_nav.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -66,16 +67,16 @@ class _HomeViewState extends State<HomeView> {
     final shouldExit = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Exit App'),
-        content: const Text('Are you sure you want to go back?'),
+        title: Text('exit_app'.tr),
+        content: Text('exit_confirm'.tr),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('No'),
+            child: Text('no'.tr),
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            child: const Text('Yes'),
+            child: Text('yes'.tr),
           ),
         ],
       ),
@@ -97,15 +98,11 @@ class _HomeViewState extends State<HomeView> {
             ? Get.find<ProfileController>()
             : Get.put(ProfileController(), permanent: true);
     await profileController.ensureProfileLoaded();
-    final user = profileController.user;
     final isProfileComplete =
-        _hasText(user?.fullName) &&
-        _hasText(user?.birthDate) &&
-        _hasText(user?.birthTime) &&
-        _hasText(user?.birthPlace);
+        StorageService.isProfileCompleted() || profileController.isProfileComplete;
 
     if (!isProfileComplete) {
-      ToastUtils.show('Please complete your profile before using Ask Pandit.');
+      ToastUtils.show('ask_pandit_profile_required'.tr);
       if (!context.mounted) return;
       Navigator.push(
         context,
@@ -115,7 +112,7 @@ class _HomeViewState extends State<HomeView> {
     }
 
     if (!profileController.hasActiveSubscription) {
-      ToastUtils.show('Active subscription is required to use Ask Pandit.');
+      ToastUtils.show('ask_pandit_subscription_required'.tr);
       if (!context.mounted) return;
       Navigator.push(
         context,
@@ -129,11 +126,6 @@ class _HomeViewState extends State<HomeView> {
       context,
       MaterialPageRoute(builder: (_) => const AskPanditView()),
     );
-  }
-
-  bool _hasText(String? value) {
-    final text = value?.trim();
-    return text != null && text.isNotEmpty && text.toLowerCase() != 'null';
   }
 
   @override
@@ -224,7 +216,7 @@ class _HomeViewState extends State<HomeView> {
                       childAspectRatio: width < 360 ? 0.9 : 0.98,
                       children: [
                         _FeatureCard(
-                          title: 'Panchang',
+                          title: 'panchang'.tr,
                           assetName: 'assets/images/panchang.svg',
                           onTap: () {
                             Navigator.push(
@@ -236,7 +228,7 @@ class _HomeViewState extends State<HomeView> {
                           },
                         ),
                         _FeatureCard(
-                          title: 'Chants',
+                          title: 'chants'.tr,
                           assetName: 'assets/images/chants.svg',
                           onTap: () {
                             Navigator.push(
@@ -248,17 +240,17 @@ class _HomeViewState extends State<HomeView> {
                           },
                         ),
                         _FeatureCard(
-                          title: 'Darshan',
+                          title: 'darshan'.tr,
                           assetName: 'assets/images/darshan.svg',
                           onTap: () => _openDarshan(context),
                         ),
                         _FeatureCard(
-                          title: 'Ask Pandit',
+                          title: 'ask_pandit'.tr,
                           assetName: 'assets/images/chants.svg',
                           onTap: () => _openAskPandit(context),
                         ),
                         _FeatureCard(
-                          title: 'Gana Match',
+                          title: 'gana_match'.tr,
                           assetName: 'assets/images/ganamatch.svg',
                           onTap: () {
                             Navigator.push(
@@ -269,10 +261,10 @@ class _HomeViewState extends State<HomeView> {
                             );
                           },
                         ),
-                        const _FeatureCard(
-                          title: 'Nitya Karma',
+                        _FeatureCard(
+                          title: 'nitya_karma'.tr,
                           assetName: 'assets/images/dailyjapa.svg',
-                          badgeText: 'Coming Soon',
+                          badgeText: 'coming_soon'.tr,
                         ),
                       ],
                     ),
@@ -317,7 +309,7 @@ class _Header extends StatelessWidget {
         children: [
           Expanded(
             child: Text(
-              'Namaste, ${controller.fullName}',
+              'namaste_name'.tr.replaceAll('@name', controller.fullName),
               style: TextStyle(
                 fontSize: 25 * scale,
                 height: 1,
@@ -491,7 +483,7 @@ class _MembershipCard extends StatelessWidget {
                 ),
               ),
               child: Text(
-                'Activate Your Verified Lifetime Sanathan ID',
+                'activate_verified_id'.tr,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 14 * scale,
@@ -537,15 +529,18 @@ class _MembershipCard extends StatelessWidget {
                         return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text('Get FREE SRC Worth Rs 101'),
+                            Text('get_free_src'.tr),
                             const SizedBox(height: 8),
-                            const Text('App Launch Special Offer'),
+                            Text('app_launch_offer'.tr),
                             const SizedBox(height: 8),
-                            Text('Get Started at Just $amountText Only'),
-                            const SizedBox(height: 8),
-                            const Text(
-                              'Unlock All Premium Features of the App',
+                            Text(
+                              'get_started_just_amount'.tr.replaceAll(
+                                '@amount',
+                                amountText,
+                              ),
                             ),
+                            const SizedBox(height: 8),
+                            Text('unlock_all_premium'.tr),
                           ],
                         );
                       },
@@ -743,8 +738,8 @@ class _SponsoredBannerState extends State<_SponsoredBanner> {
             ),
             child: Text(
               activeSponsor?.name?.trim().isNotEmpty == true
-                  ? 'Sponsored - ${activeSponsor!.name!}'
-                  : 'Sponsored',
+                  ? 'sponsored_by'.tr.replaceAll('@name', activeSponsor!.name!)
+                  : 'sponsored'.tr,
               style: TextStyle(
                 fontSize: 12 * widget.scale,
                 color: Colors.black87,
@@ -870,7 +865,7 @@ class _SponsorFallback extends StatelessWidget {
         child: Padding(
           padding: EdgeInsets.symmetric(horizontal: 18 * scale),
           child: Text(
-            title?.trim().isNotEmpty == true ? title! : 'Sponsor',
+            title?.trim().isNotEmpty == true ? title! : 'sponsor'.tr,
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 22 * scale,

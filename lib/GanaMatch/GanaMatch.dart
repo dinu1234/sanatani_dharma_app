@@ -1,4 +1,4 @@
-import 'package:dharma_app/GanaMatch/gana_match_controller.dart';
+﻿import 'package:dharma_app/GanaMatch/gana_match_controller.dart';
 import 'package:dharma_app/core/constants/app_colors.dart';
 import 'package:dharma_app/core/utils/toast_utils.dart';
 import 'package:dharma_app/GanaMatch/gana_match_result_view.dart';
@@ -78,6 +78,7 @@ class _GanaMatchingViewState extends State<GanaMatchingView> {
         statusBarBrightness: Brightness.dark,
       ),
       child: Scaffold(
+        resizeToAvoidBottomInset: false,
         backgroundColor: AppColors.homeBackground,
         body: Stack(
           children: [
@@ -133,7 +134,7 @@ class _GanaMatchingViewState extends State<GanaMatchingView> {
                     children: [
                       SizedBox(height: 34 * scale),
                       Text(
-                        'Gana Matching',
+                        'gana_matching'.tr,
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 28 * scale,
@@ -148,7 +149,7 @@ class _GanaMatchingViewState extends State<GanaMatchingView> {
                           Expanded(
                             child: _ProfileColumn(
                               scale: scale,
-                              title: "Groom's Details (Boy)",
+                              title: 'groom_details_boy'.tr,
                               assetName: 'assets/images/Ganamale.svg',
                               nameController: _groomNameController,
                               dobController: _groomDobController,
@@ -162,7 +163,7 @@ class _GanaMatchingViewState extends State<GanaMatchingView> {
                           Expanded(
                             child: _ProfileColumn(
                               scale: scale,
-                              title: "Bride's Details (Girl)",
+                              title: 'bride_details_girl'.tr,
                               assetName: 'assets/images/Ganafemale.svg',
                               nameController: _brideNameController,
                               dobController: _brideDobController,
@@ -209,8 +210,8 @@ class _GanaMatchingViewState extends State<GanaMatchingView> {
                           ),
                           child: Text(
                             _controller.isSubmitting.value
-                                ? 'Checking...'
-                                : 'Check Compatibility',
+                                ? 'checking'.tr
+                                : 'check_compatibility'.tr,
                             style: TextStyle(
                               fontSize: 19 * scale,
                               fontWeight: FontWeight.w700,
@@ -227,7 +228,7 @@ class _GanaMatchingViewState extends State<GanaMatchingView> {
                       ],
                       SizedBox(height: 34 * scale),
                       Text(
-                        'Traditional Ashtakoot Guna Milan (Ashta Koota) system which evaluates 8 different aspects of compatibility, totaling 36 points (gunas). This includes checking for Manglik Dosha, Nadi Dosha, Bhakoot Dosha and other important factors.',
+                        'gana_info_text'.tr,
                         textAlign: TextAlign.center,
                         style: TextStyle(
                           fontSize: 15 * scale,
@@ -326,7 +327,7 @@ class _GanaMatchingViewState extends State<GanaMatchingView> {
         brideTime.isEmpty ||
         bridePlace.isEmpty) {
       ToastUtils.show(
-        'Please fill all groom and bride details.',
+        'fill_all_groom_bride_details'.tr,
         backgroundColor: const Color(0xFFD32F2F),
       );
       return;
@@ -377,8 +378,8 @@ class _LocationRequiredCard extends StatelessWidget {
         children: [
           Text(
             locationDisabled
-                ? 'Location On Chahiye'
-                : 'Location Permission Chahiye',
+                ? 'location_on_required'.tr
+                : 'location_permission_needed'.tr,
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 18 * scale,
@@ -390,7 +391,7 @@ class _LocationRequiredCard extends StatelessWidget {
           Text(
             error.isNotEmpty
                 ? error
-                : 'Gana match ke liye current location permission aur GPS on hona chahiye.',
+                : 'gana_location_message'.tr,
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 13 * scale,
@@ -412,7 +413,7 @@ class _LocationRequiredCard extends StatelessWidget {
                 ),
               ),
               child: Text(
-                locationDisabled ? 'Turn On Location' : 'Allow Location',
+                locationDisabled ? 'turn_on_location'.tr : 'allow_location'.tr,
               ),
             ),
           ),
@@ -430,7 +431,7 @@ class _LocationRequiredCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(14 * scale),
                   ),
                 ),
-                child: const Text('Open App Settings'),
+                child: Text('open_app_settings'.tr),
               ),
             ),
           ],
@@ -448,7 +449,7 @@ class _LocationRequiredCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(14 * scale),
                   ),
                 ),
-                child: const Text('Open Location Settings'),
+                child: Text('open_location_settings'.tr),
               ),
             ),
           ],
@@ -503,14 +504,14 @@ class _ProfileColumn extends StatelessWidget {
         ),
         SizedBox(height: (compact ? 14 : 18) * scale),
         _EntryField(
-          hint: 'Full Name',
+          hint: 'full_name'.tr,
           scale: scale,
           controller: nameController,
           compact: compact,
         ),
         SizedBox(height: 14 * scale),
         _EntryField(
-          hint: 'Date of Birth',
+          hint: 'birth_date'.tr,
           scale: scale,
           controller: dobController,
           readOnly: true,
@@ -520,7 +521,7 @@ class _ProfileColumn extends StatelessWidget {
         ),
         SizedBox(height: 14 * scale),
         _EntryField(
-          hint: 'Time of Birth',
+          hint: 'birth_time'.tr,
           scale: scale,
           controller: timeController,
           readOnly: true,
@@ -530,7 +531,7 @@ class _ProfileColumn extends StatelessWidget {
         ),
         SizedBox(height: 14 * scale),
         _EntryField(
-          hint: 'Place of Birth',
+          hint: 'place_of_birth'.tr,
           scale: scale,
           controller: placeController,
           compact: compact,

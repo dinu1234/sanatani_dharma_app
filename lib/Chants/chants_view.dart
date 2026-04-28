@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'dart:math' as math;
 
 import 'package:audioplayers/audioplayers.dart';
@@ -77,7 +77,7 @@ class _ChantsViewState extends State<ChantsView> with WidgetsBindingObserver {
 
   Future<void> _toggleMantraAudio(String? audioPath) async {
     if (audioPath == null || audioPath.trim().isEmpty) {
-      ToastUtils.show('Audio not available for this mantra');
+      ToastUtils.show('audio_not_available_for_mantra'.tr);
       return;
     }
 
@@ -111,14 +111,14 @@ class _ChantsViewState extends State<ChantsView> with WidgetsBindingObserver {
         _isAudioLoading = false;
         _isPlayingAudio = false;
       });
-      ToastUtils.show('Audio loading timed out. Please try again.');
+      ToastUtils.show('audio_loading_timeout'.tr);
     } catch (_) {
       if (!mounted) return;
       setState(() {
         _isAudioLoading = false;
         _isPlayingAudio = false;
       });
-      ToastUtils.show('Unable to play mantra audio');
+      ToastUtils.show('unable_to_play_audio'.tr);
     }
   }
 
@@ -230,7 +230,7 @@ class _ChantsViewState extends State<ChantsView> with WidgetsBindingObserver {
             children: [
               SizedBox(height: 24 * scale * verticalScale),
               Text(
-                'Daily Japa',
+                'daily_japa'.tr,
                 style: TextStyle(
                   fontSize: (compactLayout ? 24 : 27) * scale,
                   color: AppColors.homePrimary,
@@ -269,7 +269,7 @@ class _ChantsViewState extends State<ChantsView> with WidgetsBindingObserver {
                             children: [
                               Flexible(
                                 child: Text(
-                                  'Haptic vibration',
+                                  'haptic_vibration'.tr,
                                   overflow: TextOverflow.ellipsis,
                                   maxLines: 1,
                                   style: TextStyle(
@@ -370,8 +370,8 @@ class _ChantsViewState extends State<ChantsView> with WidgetsBindingObserver {
                   ),
                   child: Text(
                     _activeAudioUrl == audioUrl
-                        ? 'Audio ready to play'
-                        : 'Audio available',
+                        ? 'audio_ready'.tr
+                        : 'audio_available'.tr,
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: 12 * scale,
@@ -403,7 +403,7 @@ class _ChantsViewState extends State<ChantsView> with WidgetsBindingObserver {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Daily Summary',
+                      'daily_summary'.tr,
                       style: TextStyle(
                         fontSize: (compactLayout ? 16 : 17) * scale,
                         color: AppColors.homePrimary,
@@ -414,7 +414,7 @@ class _ChantsViewState extends State<ChantsView> with WidgetsBindingObserver {
                     Obx(
                       () => _SummaryRow(
                         scale: scale,
-                        title: 'Chants Today',
+                        title: 'chants_today'.tr,
                         value: '${japaController.chantsToday}',
                       ),
                     ),
@@ -425,7 +425,7 @@ class _ChantsViewState extends State<ChantsView> with WidgetsBindingObserver {
                     Obx(
                       () => _SummaryRow(
                         scale: scale,
-                        title: 'Malas Completed',
+                        title: 'malas_completed'.tr,
                         value: '${japaController.malasCompleted}/30',
                       ),
                     ),
@@ -506,7 +506,7 @@ class _JapaCounterMandala extends StatelessWidget {
                   ),
                   SizedBox(height: 12 * scale),
                   Text(
-                    'TAP TO COUNT',
+                    'tap_to_count'.tr,
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: (compactWidth ? 11.5 : 13) * scale,
@@ -579,7 +579,7 @@ class _MiniToggle extends StatelessWidget {
             if (!value)
               Expanded(
                 child: Text(
-                  'OFF',
+                  'off'.tr,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 8.8 * scale,
@@ -612,7 +612,7 @@ class _MiniToggle extends StatelessWidget {
             if (value)
               Expanded(
                 child: Text(
-                  'ON',
+                  'on'.tr,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 8.8 * scale,

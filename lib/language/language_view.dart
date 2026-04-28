@@ -14,18 +14,11 @@ class LanguageView extends StatelessWidget {
     {"name": "English", "code": "en"},
     {"name": "हिंदी", "code": "hi"},
     {"name": "मराठी", "code": "mr"},
-    {"name": "ગુજરાતી", "code": "gu"},
     {"name": "বাংলা", "code": "bn"},
-
-    {"name": "मराठी", "code": "mr"},
+    {"name": "ಕನ್ನಡ", "code": "kn"},
+    {"name": "తెలుగు", "code": "te"},
+    {"name": "தமிழ்", "code": "ta"},
     {"name": "ગુજરાતી", "code": "gu"},
-    {"name": "বাংলা", "code": "bn"},
-    {"name": "मराठी", "code": "mr"},
-    {"name": "ગુજરાતી", "code": "gu"},
-    {"name": "বাংলা", "code": "bn"},
-    {"name": "मराठी", "code": "mr"},
-    {"name": "ગુજરાતી", "code": "gu"},
-    {"name": "বাংলা", "code": "bn"},
   ];
 
   @override
@@ -37,7 +30,7 @@ class LanguageView extends StatelessWidget {
           width: double.infinity,
           height: double.infinity,
         
-          /// 🌈 Gradient
+          /// Gradient background
           decoration: const BoxDecoration(
             gradient: LinearGradient(
               colors: [Color(0xFFD6EAF8), Color(0xFFA9CCE3)],
@@ -48,13 +41,13 @@ class LanguageView extends StatelessWidget {
         
           child: Column(
             children: [
-              /// 🔝 TOP CONTENT
+              /// Top content
               Expanded(
                 child: Column(
                   children: [
                     SizedBox(height: size.height * 0.06),
         
-                    /// 🔴 LOGO
+                    /// Logo
                     Container(
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
@@ -94,7 +87,7 @@ class LanguageView extends StatelessWidget {
         
                     SizedBox(height: size.height * 0.03),
         
-                    /// 🌐 LANGUAGE LIST
+                    /// Language list
                     Expanded(
                       child: ListView.builder(
                         itemCount: languages.length,
@@ -127,7 +120,7 @@ class LanguageView extends StatelessWidget {
                 ),
               ),
         
-              /// 🔻 BOTTOM CARD (Improved)
+              /// Bottom card
               Container(
                 width: double.infinity,
                 margin: EdgeInsets.all(size.width * 0.05),
@@ -217,3 +210,4 @@ class LanguageView extends StatelessWidget {
     );
   }
 }
+

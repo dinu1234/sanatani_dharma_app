@@ -7,6 +7,7 @@ import 'package:dharma_app/core/constants/app_colors.dart';
 import 'package:dharma_app/core/widgets/app_svg_asset.dart';
 import 'package:dharma_app/core/widgets/shree_svg.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'dart:math' as math;
 
 enum AppNavItem {
@@ -93,7 +94,7 @@ class CommonBottomNav extends StatelessWidget {
                     children: [
                       Expanded(
                         child: _NavItem(
-                          label: 'Home',
+                          label: 'home'.tr,
                           assetName: 'assets/images/home.svg',
                           selected: currentItem == AppNavItem.home,
                           onTap: () => _handleTap(context, AppNavItem.home),
@@ -101,7 +102,7 @@ class CommonBottomNav extends StatelessWidget {
                       ),
                       Expanded(
                         child: _NavItem(
-                          label: 'Panchang',
+                          label: 'panchang'.tr,
                           assetName: 'assets/images/panchang.svg',
                           selected: currentItem == AppNavItem.panchang,
                           onTap: () =>
@@ -111,7 +112,7 @@ class CommonBottomNav extends StatelessWidget {
                       SizedBox(width: centerNavSize * 1.42),
                       Expanded(
                         child: _NavItem(
-                          label: 'Chants',
+                          label: 'chants'.tr,
                           assetName: 'assets/images/chants.svg',
                           selected: currentItem == AppNavItem.chants,
                           onTap: () => _handleTap(context, AppNavItem.chants),
@@ -119,7 +120,7 @@ class CommonBottomNav extends StatelessWidget {
                       ),
                       Expanded(
                         child: _NavItem(
-                          label: 'Gana Match',
+                          label: 'gana_match'.tr,
                           assetName: 'assets/images/ganamatch.svg',
                           selected: currentItem == AppNavItem.ganaMatch,
                           onTap: () =>
@@ -237,7 +238,7 @@ class _NavItem extends StatelessWidget {
             textAlign: TextAlign.center,
             maxLines: 2,
             style: TextStyle(
-              fontSize: label == 'Gana Match' ? 9.2 * scale : 10 * scale,
+              fontSize: label == 'gana_match'.tr ? 9.2 * scale : 10 * scale,
               color: color,
               fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
               height: 1.05,
@@ -288,7 +289,7 @@ class _CenterNavItem extends StatelessWidget {
                     ),
                     SizedBox(height: size * 0.10),
                     Text(
-                      'Sanathan ID',
+                      'sanathan_id'.tr,
                       style: TextStyle(
                         fontSize: 11.5 * scale,
                         color: AppColors.homePrimary,

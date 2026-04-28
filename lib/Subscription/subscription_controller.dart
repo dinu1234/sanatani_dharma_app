@@ -148,7 +148,7 @@ class SubscriptionController extends GetxController {
       'key': orderData.razorpayKeyId,
       'amount': orderData.order?.amount,
       'currency': orderData.order?.currency ?? 'INR',
-      'name': 'Dharma App',
+      'name': 'Global Sanatan Community',
       'description': plan.displayName,
       'order_id': orderData.order?.orderId,
       'prefill': prefill,

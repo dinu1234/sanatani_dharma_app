@@ -1,4 +1,4 @@
-import 'package:dharma_app/Notifications/notifications_controller.dart';
+﻿import 'package:dharma_app/Notifications/notifications_controller.dart';
 import 'package:dharma_app/Notifications/notifications_model.dart';
 import 'package:dharma_app/core/constants/app_colors.dart';
 import 'package:flutter/material.dart';
@@ -36,7 +36,7 @@ class _NotificationsBody extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.homeBackground,
       appBar: AppBar(
-        title: const Text('Notifications'),
+        title: Text('notifications'.tr),
         backgroundColor: AppColors.homeBackground,
         foregroundColor: AppColors.homePrimary,
         elevation: 0,
@@ -52,11 +52,11 @@ class _NotificationsBody extends StatelessWidget {
             onRefresh: controller.loadNotifications,
             child: ListView(
               physics: const AlwaysScrollableScrollPhysics(),
-              children: const [
+              children: [
                 SizedBox(height: 180),
                 Center(
                   child: Text(
-                    'No notifications yet',
+                    'no_notifications_yet'.tr,
                     style: TextStyle(fontSize: 16),
                   ),
                 ),
@@ -100,12 +100,12 @@ class _NotificationTile extends StatelessWidget {
         showDialog<void>(
           context: context,
           builder: (context) => AlertDialog(
-            title: Text(item.title ?? 'Notification'),
-            content: Text(item.body ?? 'No message available'),
+            title: Text(item.title ?? 'notification'.tr),
+            content: Text(item.body ?? 'no_message_available'.tr),
             actions: [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Close'),
+                child: Text('close'.tr),
               ),
             ],
           ),
@@ -156,7 +156,7 @@ class _NotificationTile extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          item.title ?? 'Notification',
+                          item.title ?? 'notification'.tr,
                           style: TextStyle(
                             fontSize: 15,
                             fontWeight:

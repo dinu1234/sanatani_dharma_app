@@ -187,7 +187,7 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
                     children: [
                       SizedBox(height: 8 * scale),
                       Text(
-                        'Set Up Your Profile',
+                        'set_up_profile'.tr,
                         style: TextStyle(
                           fontSize: 26 * scale,
                           fontWeight: FontWeight.w700,
@@ -196,7 +196,7 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
                       ),
                       SizedBox(height: 8 * scale),
                       Text(
-                        'Birth Details (Nakshatra, Date, Time)',
+                        'birth_details_subtitle'.tr,
                         style: TextStyle(
                           fontSize: 17 * scale,
                           fontWeight: FontWeight.w600,
@@ -206,20 +206,20 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
                       SizedBox(height: 14 * scale),
                       _buildInputField(
                         controller: _nameController,
-                        hint: 'Full Name',
+                        hint: 'full_name'.tr,
                         scale: scale,
                         onChanged: _controller.updateFullName,
                       ),
                       SizedBox(height: 18 * scale),
                       _buildInputField(
                         controller: _locationController,
-                        hint: 'Current Location',
+                        hint: 'current_location'.tr,
                         scale: scale,
                         onChanged: _controller.updateCurrentLocation,
                       ),
                       SizedBox(height: 24 * scale),
                       Text(
-                        'Gender',
+                        'gender'.tr,
                         style: TextStyle(
                           fontSize: 17 * scale,
                           fontWeight: FontWeight.w600,
@@ -231,7 +231,7 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
                         children: [
                           Expanded(
                             child: _GenderChip(
-                              label: 'Male',
+                              label: 'male'.tr,
                               icon: Icons.male,
                               selected: _gender == 'Male',
                               scale: scale,
@@ -244,7 +244,7 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
                           SizedBox(width: 12 * scale),
                           Expanded(
                             child: _GenderChip(
-                              label: 'Female',
+                              label: 'female'.tr,
                               icon: Icons.female,
                               selected: _gender == 'Female',
                               scale: scale,
@@ -258,7 +258,7 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
                       ),
                       SizedBox(height: 24 * scale),
                       Text(
-                        'Birth Date',
+                        'birth_date'.tr,
                         style: TextStyle(
                           fontSize: 17 * scale,
                           fontWeight: FontWeight.w600,
@@ -269,7 +269,7 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
                       _buildDateSection(scale),
                       SizedBox(height: 24 * scale),
                       Text(
-                        'Birth Time',
+                        'birth_time'.tr,
                         style: TextStyle(
                           fontSize: 17 * scale,
                           fontWeight: FontWeight.w600,
@@ -280,7 +280,7 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
                       _buildTimeField(scale),
                       SizedBox(height: 24 * scale),
                       Text(
-                        'Place of Birth',
+                        'place_of_birth'.tr,
                         style: TextStyle(
                           fontSize: 17 * scale,
                           fontWeight: FontWeight.w600,
@@ -290,7 +290,7 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
                       SizedBox(height: 12 * scale),
                       _buildInputField(
                         controller: _birthPlaceController,
-                        hint: 'Enter Place Name...',
+                        hint: 'enter_place_name'.tr,
                         scale: scale,
                         onChanged: _controller.updateBirthPlace,
                       ),
@@ -312,7 +312,7 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
                             ),
                             onPressed: _onContinuePressed,
                             child: Text(
-                              'Continue',
+                              'continue'.tr,
                               style: TextStyle(
                                 fontSize: 16 * scale,
                                 fontWeight: FontWeight.w700,
@@ -397,7 +397,7 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
           child: _DateTile(
             value: _day,
             items: _days,
-            hint: 'Day',
+            hint: 'day'.tr,
             scale: scale,
             onChanged: (value) => setState(() {
               _day = value!;
@@ -411,7 +411,7 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
           child: _DateTile(
             value: _month,
             items: _months,
-            hint: 'Month',
+            hint: 'month'.tr,
             scale: scale,
             onChanged: (value) => setState(() {
               _month = value!;
@@ -424,7 +424,7 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
           child: _DateTile(
             value: _year,
             items: _years,
-            hint: 'Year',
+            hint: 'year'.tr,
             scale: scale,
             onChanged: (value) => setState(() {
               _year = value!;
@@ -445,7 +445,7 @@ class _ProfileSetupViewState extends State<ProfileSetupView> {
           child: TextField(
             controller: _birthTimeController,
             decoration: InputDecoration(
-              hintText: 'Select Birth Time',
+              hintText: 'select_birth_time'.tr,
               hintStyle: TextStyle(
                 color: Colors.black54,
                 fontSize: 14 * scale,

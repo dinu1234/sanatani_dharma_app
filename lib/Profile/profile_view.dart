@@ -1,4 +1,5 @@
 import 'package:dharma_app/Profile/profile_controller.dart';
+import 'package:dharma_app/language/language_controller.dart';
 import 'package:dharma_app/core/constants/app_colors.dart';
 import 'package:dharma_app/core/widgets/app_svg_asset.dart';
 import 'package:dharma_app/core/widgets/app_loader.dart';
@@ -56,6 +57,8 @@ class ProfileView extends StatelessWidget {
                             SizedBox(height: 18 * scale),
                             _ActionRow(scale: scale),
                             SizedBox(height: 18 * scale),
+                            _LanguageCard(scale: scale),
+                            SizedBox(height: 18 * scale),
                             _TransactionCard(scale: scale),
                           ],
                         ),
@@ -68,8 +71,8 @@ class ProfileView extends StatelessWidget {
                 AppLoader(
                   message:
                       controller.isUpdatingImage.value
-                          ? 'Updating profile image'
-                          : 'Loading profile',
+                          ? 'updating_profile_image'.tr
+                          : 'loading_profile'.tr,
                 ),
             ],
           ),
@@ -113,7 +116,7 @@ class _ProfileHeader extends StatelessWidget {
         children: [
           Expanded(
             child: Text(
-              'Namaste, ${controller.fullName}',
+              'namaste_name'.tr.replaceAll('@name', controller.fullName),
               style: TextStyle(
                 fontSize: 28 * scale,
                 height: 1,
@@ -209,7 +212,7 @@ class _IdCard extends StatelessWidget {
                 ),
               ),
               child: Text(
-                'Sanathan ID Card',
+                'sanathan_id_card'.tr,
                 style: TextStyle(
                   fontSize: 16.5 * scale,
                   color: AppColors.homePrimary,
@@ -297,7 +300,7 @@ class _IdCard extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text('Name'),
+                        Text('name'.tr),
                         SizedBox(height: 2 * scale),
                         Text(
                           controller.fullName,
@@ -308,7 +311,9 @@ class _IdCard extends StatelessWidget {
                         ),
                         SizedBox(height: 14 * scale),
                         Text(
-                          'Sanathan ID ${controller.user?.sanatanId ?? '-'}',
+                          'sanathan_id_value'
+                              .tr
+                              .replaceAll('@id', controller.user?.sanatanId ?? '-'),
                           style: TextStyle(
                             fontSize: 14 * scale,
                             fontWeight: FontWeight.w700,
@@ -316,7 +321,9 @@ class _IdCard extends StatelessWidget {
                         ),
                         SizedBox(height: 14 * scale),
                         Text(
-                          'Member from ${_memberSinceText()}',
+                          'member_from'
+                              .tr
+                              .replaceAll('@date', _memberSinceText()),
                           style: TextStyle(
                             fontSize: 14 * scale,
                             fontWeight: FontWeight.w700,
@@ -324,7 +331,10 @@ class _IdCard extends StatelessWidget {
                         ),
                         SizedBox(height: 14 * scale),
                         Text(
-                          'SRC Holdings\n${controller.user?.coin?.toStringAsFixed(0) ?? '0'}',
+                          'src_holdings_value'.tr.replaceAll(
+                            '@value',
+                            controller.user?.coin?.toStringAsFixed(0) ?? '0',
+                          ),
                           style: TextStyle(
                             fontSize: 14 * scale,
                             fontWeight: FontWeight.w700,
@@ -413,7 +423,7 @@ class _BalanceCard extends StatelessWidget {
           SizedBox(width: 14 * scale),
           Expanded(
             child: Text(
-              'Sri Ram Coin',
+              'sri_ram_coin'.tr,
               style: TextStyle(
                 fontSize: 17 * scale,
                 height: 1.15,
@@ -426,7 +436,7 @@ class _BalanceCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               Text(
-                'Total Balance',
+                'total_balance'.tr,
                 style: TextStyle(
                   fontSize: 16 * scale,
                   color: AppColors.profileHeaderText,
@@ -462,7 +472,7 @@ class _ActionRow extends StatelessWidget {
           child: _ActionBox(
             scale: scale,
             assetName: 'assets/images/Send.svg',
-            title: 'Send',
+            title: 'send'.tr,
           ),
         ),
         SizedBox(width: 12 * scale),
@@ -470,7 +480,7 @@ class _ActionRow extends StatelessWidget {
           child: _ActionBox(
             scale: scale,
             assetName: 'assets/images/Recieve.svg',
-            title: 'Recieve',
+            title: 'receive'.tr,
           ),
         ),
         SizedBox(width: 12 * scale),
@@ -478,7 +488,7 @@ class _ActionRow extends StatelessWidget {
           child: _ActionBox(
             scale: scale,
             assetName: 'assets/images/add.svg',
-            title: 'Add SRC',
+            title: 'add_src'.tr,
           ),
         ),
       ],
@@ -538,6 +548,114 @@ class _ActionBox extends StatelessWidget {
   }
 }
 
+class _LanguageCard extends StatelessWidget {
+  const _LanguageCard({required this.scale});
+
+  final double scale;
+
+  static const List<Map<String, String>> _languages = [
+    {"name": "English", "code": "en"},
+    {"name": "हिंदी", "code": "hi"},
+    {"name": "मराठी", "code": "mr"},
+    {"name": "বাংলা", "code": "bn"},
+    {"name": "ಕನ್ನಡ", "code": "kn"},
+    {"name": "తెలుగు", "code": "te"},
+    {"name": "தமிழ்", "code": "ta"},
+    {"name": "ગુજરાતી", "code": "gu"},
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    final languageController =
+        Get.isRegistered<LanguageController>()
+            ? Get.find<LanguageController>()
+            : Get.put(LanguageController(), permanent: true);
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(16 * scale),
+      decoration: BoxDecoration(
+        color: AppColors.profileCardBackground,
+        borderRadius: BorderRadius.circular(22 * scale),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.profileShadow,
+            blurRadius: 14,
+            offset: Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.language_rounded, color: AppColors.homePrimary, size: 24 * scale),
+          SizedBox(width: 12 * scale),
+          Expanded(
+            child: Text(
+              'change_language'.tr,
+              style: TextStyle(
+                fontSize: 16 * scale,
+                fontWeight: FontWeight.w700,
+                color: AppColors.homePrimary,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () {
+              showModalBottomSheet<void>(
+                context: context,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(
+                    top: Radius.circular(18 * scale),
+                  ),
+                ),
+                builder: (_) {
+                  return SafeArea(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Padding(
+                          padding: EdgeInsets.fromLTRB(
+                            16 * scale,
+                            14 * scale,
+                            16 * scale,
+                            8 * scale,
+                          ),
+                          child: Text(
+                            'select_language'.tr,
+                            style: TextStyle(
+                              fontSize: 17 * scale,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.homePrimary,
+                            ),
+                          ),
+                        ),
+                        ..._languages.map((lang) {
+                          final code = lang['code']!;
+                          return ListTile(
+                            title: Text(lang['name']!),
+                            trailing: languageController.selectedLang.value == code
+                                ? const Icon(Icons.check_rounded, color: AppColors.homePrimary)
+                                : null,
+                            onTap: () {
+                              languageController.changeLanguage(code);
+                              Navigator.of(context).pop();
+                            },
+                          );
+                        }),
+                      ],
+                    ),
+                  );
+                },
+              );
+            },
+            child: Text('change'.tr),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _TransactionCard extends StatelessWidget {
   const _TransactionCard({required this.scale});
 
@@ -563,7 +681,7 @@ class _TransactionCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Transaction History',
+            'transaction_history'.tr,
             style: TextStyle(
               fontSize: 18 * scale,
               color: AppColors.profileHeader,
@@ -573,7 +691,7 @@ class _TransactionCard extends StatelessWidget {
           SizedBox(height: 18 * scale),
           _TransactionItem(
             scale: scale,
-            title: 'Added SRC',
+            title: 'added_src'.tr,
             date: '1 March, 2026',
             amount: '100',
           ),
@@ -583,7 +701,7 @@ class _TransactionCard extends StatelessWidget {
           ),
           _TransactionItem(
             scale: scale,
-            title: 'Donated to Temple',
+            title: 'donated_to_temple'.tr,
             date: '10 February, 2026',
             amount: '5',
           ),

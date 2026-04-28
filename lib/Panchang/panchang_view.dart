@@ -139,7 +139,7 @@ class _HeaderCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final subtitle = data?.displayDate ?? 'Location permission is required';
+    final subtitle = data?.displayDate ?? 'location_permission_required'.tr;
 
     return Container(
       padding: EdgeInsets.fromLTRB(
@@ -159,7 +159,7 @@ class _HeaderCard extends StatelessWidget {
         children: [
           SizedBox(height: 10 * scale),
           Text(
-            "Today's Panchang",
+            "todays_panchang".tr,
             style: TextStyle(
               fontSize: 17 * scale,
               color: AppColors.white,
@@ -224,8 +224,8 @@ class _PermissionOrErrorCard extends StatelessWidget {
         children: [
           Text(
             locationDisabled
-                ? 'Location On Chahiye'
-                : 'Location Permission Chahiye',
+                ? 'location_on_required'.tr
+                : 'location_permission_needed'.tr,
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 18 * scale,
@@ -237,7 +237,7 @@ class _PermissionOrErrorCard extends StatelessWidget {
           Text(
             error.isNotEmpty
                 ? error
-                : 'Panchang dekhne ke liye location permission aur GPS on hona chahiye.',
+                : 'panchang_location_message'.tr,
             textAlign: TextAlign.center,
             style: TextStyle(
               fontSize: 13 * scale,
@@ -259,7 +259,7 @@ class _PermissionOrErrorCard extends StatelessWidget {
                 ),
               ),
               child: Text(
-                locationDisabled ? 'Turn On Location' : 'Allow Location',
+                locationDisabled ? 'turn_on_location'.tr : 'allow_location'.tr,
               ),
             ),
           ),
@@ -277,7 +277,7 @@ class _PermissionOrErrorCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(14 * scale),
                   ),
                 ),
-                child: const Text('Open App Settings'),
+                child: Text('open_app_settings'.tr),
               ),
             ),
           ],
@@ -295,7 +295,7 @@ class _PermissionOrErrorCard extends StatelessWidget {
                     borderRadius: BorderRadius.circular(14 * scale),
                   ),
                 ),
-                child: const Text('Open Location Settings'),
+                child: Text('open_location_settings'.tr),
               ),
             ),
           ],
@@ -318,33 +318,33 @@ class _PanchangContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final elements = <Map<String, String>>[
       {
-        'title': 'Tithi',
+        'title': 'tithi'.tr,
         'value': _formatElement(data.elements?.tithi, fallback: data.tithi?.name),
       },
       {
-        'title': 'Nakshatra',
+        'title': 'nakshatra'.tr,
         'value': _formatElement(
           data.elements?.nakshatra,
           fallback: data.nakshatra?.name,
         ),
       },
       {
-        'title': 'Yoga',
+        'title': 'yoga'.tr,
         'value': _formatElement(data.elements?.yoga, fallback: data.yoga?.name),
       },
       {
-        'title': 'Karana',
+        'title': 'karana'.tr,
         'value': _formatElement(
           data.elements?.karana,
           fallback: data.karana?.name,
         ),
       },
       {
-        'title': 'Vishti',
+        'title': 'vishti'.tr,
         'value': _formatVishti(data.elements?.vishti),
       },
       {
-        'title': 'Weekday',
+        'title': 'weekday'.tr,
         'value': _formatWeekday(data.elements?.weekday, data.vara),
       },
     ];
@@ -352,7 +352,7 @@ class _PanchangContent extends StatelessWidget {
     final timings = <_TimingItem>[
       _TimingItem(
         label: _formatRangeLabel(
-          'Amrit Kaal',
+          'amrit_kaal'.tr,
           data.auspiciousInauspiciousTimings?.amritKaal,
         ),
         color: const Color(0xFF0AA533),
@@ -360,13 +360,13 @@ class _PanchangContent extends StatelessWidget {
       ),
       _TimingItem(
         label:
-            '${_formatRangeLabel('Rahu Kaal', data.auspiciousInauspiciousTimings?.rahuKaal)} (Inauspicious)',
+            '${_formatRangeLabel('rahu_kaal'.tr, data.auspiciousInauspiciousTimings?.rahuKaal)} (${ 'inauspicious'.tr })',
         color: const Color(0xFF2A2327),
         textColor: Colors.white,
       ),
       _TimingItem(
         label: _formatRangeLabel(
-          'Gulika Kaal',
+          'gulika_kaal'.tr,
           data.auspiciousInauspiciousTimings?.gulikaKaal,
         ),
         color: const Color(0xFF2A2327),
@@ -374,7 +374,7 @@ class _PanchangContent extends StatelessWidget {
       ),
       _TimingItem(
         label: _formatRangeLabel(
-          'Yamaganda',
+          'yamaganda'.tr,
           data.auspiciousInauspiciousTimings?.yamaganda,
         ),
         color: const Color(0xFF2A2327),
@@ -392,7 +392,7 @@ class _PanchangContent extends StatelessWidget {
     return Column(
       children: [
         Text(
-          'Panchang Elements',
+          'panchang_elements'.tr,
           style: TextStyle(
             fontSize: 16 * scale,
             color: AppColors.homePrimary,
@@ -433,7 +433,7 @@ class _PanchangContent extends StatelessWidget {
         ),
         SizedBox(height: 14 * scale),
         Text(
-          'Auspicious & Inauspicious Timings',
+          'auspicious_inauspicious_timings'.tr,
           textAlign: TextAlign.center,
           style: TextStyle(
             fontSize: 15.5 * scale,
@@ -461,11 +461,11 @@ class _PanchangContent extends StatelessWidget {
     final label = info?.label?.trim();
     final until = _formatDateTime(info?.until);
     if (label != null && label.isNotEmpty && until != null) {
-      return '$label until $until';
+      return '$label ${'until'.tr} $until';
     }
     if (label != null && label.isNotEmpty) return label;
     if (fallback != null && fallback.trim().isNotEmpty) return fallback.trim();
-    return 'Not available';
+    return 'not_available'.tr;
   }
 
   String _formatVishti(TimeRangeLabel? info) {
@@ -476,7 +476,7 @@ class _PanchangContent extends StatelessWidget {
       return '$label: $start to $end';
     }
     if (label != null && label.isNotEmpty) return label;
-    return 'Not available';
+    return 'not_available'.tr;
   }
 
   String _formatWeekday(WeekdayInfo? weekday, VaraData? vara) {
@@ -487,26 +487,26 @@ class _PanchangContent extends StatelessWidget {
     final parts = <String>[
       if (sanskrit != null && sanskrit.isNotEmpty) sanskrit,
       if (english != null && english.isNotEmpty) english,
-      if (lord != null && lord.isNotEmpty) 'Lord: $lord',
+      if (lord != null && lord.isNotEmpty) '${'lord'.tr}: $lord',
     ];
-    return parts.isEmpty ? 'Not available' : parts.join(' - ');
+    return parts.isEmpty ? 'not_available'.tr : parts.join(' - ');
   }
 
   String _formatRangeLabel(String title, TimeRange? range) {
     final start = _formatTimeOnly(range?.start);
     final end = _formatTimeOnly(range?.end);
     if (start != null && end != null) {
-      return '$title: $start to $end';
+      return '$title: $start ${'to'.tr} $end';
     }
-    return '$title: Not available';
+    return '$title: ${'not_available'.tr}';
   }
 
   String _formatAbhijit(AbhijitMuhurta? muhurta) {
-    if (muhurta == null) return 'Abhijit Muhurta: Not available';
+    if (muhurta == null) return '${'abhijit_muhurta'.tr}: ${'not_available'.tr}';
     if (!muhurta.available) {
-      return 'Abhijit Muhurta: Not available';
+      return '${'abhijit_muhurta'.tr}: ${'not_available'.tr}';
     }
-    return _formatRangeLabel('Abhijit Muhurta', muhurta);
+    return _formatRangeLabel('abhijit_muhurta'.tr, muhurta);
   }
 
   String? _formatDateTime(String? value) {

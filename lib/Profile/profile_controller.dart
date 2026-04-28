@@ -33,6 +33,20 @@ class ProfileController extends GetxController {
   }
 
   bool get hasProfileImage => profileImageUrl != null;
+  bool get isProfileComplete {
+    final data = user;
+    if (data == null) return false;
+
+    final hasName = data.fullName?.trim().isNotEmpty == true;
+    final hasBirthDate = data.birthDate?.trim().isNotEmpty == true;
+    final hasBirthTime = data.birthTime?.trim().isNotEmpty == true;
+    final hasPlace =
+        data.birthPlace?.trim().isNotEmpty == true ||
+        data.currentLocation?.trim().isNotEmpty == true;
+
+    return hasName && hasBirthDate && hasBirthTime && hasPlace;
+  }
+
   bool get hasActiveSubscription {
     if (user?.isSubscriptionPaid == 1) return true;
     final status = subscription?.status?.trim().toLowerCase();

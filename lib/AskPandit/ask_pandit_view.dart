@@ -1,4 +1,4 @@
-import 'package:dharma_app/AskPandit/ask_pandit_controller.dart';
+﻿import 'package:dharma_app/AskPandit/ask_pandit_controller.dart';
 import 'package:dharma_app/AskPandit/ask_pandit_model.dart';
 import 'package:dharma_app/Profile/profile_setup_view.dart';
 import 'package:dharma_app/Subscription/subscription_view.dart';
@@ -61,7 +61,7 @@ class _AskPanditViewState extends State<AskPanditView> {
         appBar: AppBar(
           backgroundColor: AppColors.homePrimary,
           foregroundColor: Colors.white,
-          title: const Text('Ask Pandit'),
+          title: Text('ask_pandit'.tr),
         ),
         body: Obx(() {
           final blocked = _controller.canAsk != true;
@@ -85,7 +85,7 @@ class _AskPanditViewState extends State<AskPanditView> {
                     ),
                     Expanded(
                       child: Text(
-                        'Use current lat/lng for Panchang context',
+                        'use_current_location_panchang'.tr,
                         style: TextStyle(
                           fontSize: 12.5 * scale,
                           color: AppColors.homePrimary,
@@ -132,7 +132,7 @@ class _AskPanditViewState extends State<AskPanditView> {
                           maxLines: 4,
                           decoration: InputDecoration(
                             counterText: '',
-                            hintText: 'Type your question...',
+                            hintText: 'type_your_question'.tr,
                             filled: true,
                             fillColor: Colors.white,
                             border: OutlineInputBorder(
@@ -203,7 +203,7 @@ class _AccessCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Profile completion and active subscription are required to use Ask Pandit.',
+            'ask_pandit_access_required'.tr,
             style: TextStyle(
               fontSize: 13 * scale,
               color: AppColors.homePrimary,
@@ -222,7 +222,7 @@ class _AccessCard extends StatelessWidget {
                     MaterialPageRoute(builder: (_) => const ProfileSetupView()),
                   );
                 },
-                child: const Text('Complete Profile'),
+                child: Text('complete_profile'.tr),
               ),
               ElevatedButton(
                 onPressed: () {
@@ -236,7 +236,7 @@ class _AccessCard extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.homePrimary,
                 ),
-                child: const Text('Take Subscription'),
+                child: Text('take_subscription'.tr),
               ),
             ],
           ),

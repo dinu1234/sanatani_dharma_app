@@ -1,4 +1,4 @@
-import 'dart:io';
+﻿import 'dart:io';
 import 'dart:math' as math;
 import 'dart:typed_data';
 import 'dart:ui' as ui;
@@ -11,6 +11,7 @@ import 'package:dharma_app/widgets/common_bottom_nav.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
+import 'package:get/get.dart';
 
 class GanaMatchResultView extends StatefulWidget {
   const GanaMatchResultView({
@@ -114,7 +115,7 @@ class _GanaMatchResultViewState extends State<GanaMatchResultView> {
                 children: [
                   SizedBox(height: 4 * scale * verticalScale),
                   Text(
-                    'Gana Matching',
+                    'gana_matching'.tr,
                     style: TextStyle(
                       fontSize: (compactLayout ? 20 : 22) * scale,
                       color: AppColors.homePrimary,
@@ -156,8 +157,8 @@ class _GanaMatchResultViewState extends State<GanaMatchResultView> {
                             scale: scale,
                             compactLayout: compactLayout,
                             compactWidth: compactWidth,
-                            groomName: widget.result.couple?.boy?.name ?? 'Boy',
-                            brideName: widget.result.couple?.girl?.name ?? 'Girl',
+                            groomName: widget.result.couple?.boy?.name ?? 'boy'.tr,
+                            brideName: widget.result.couple?.girl?.name ?? 'girl'.tr,
                           ),
                           SizedBox(height: 2 * scale * verticalScale),
                           Container(
@@ -189,7 +190,7 @@ class _GanaMatchResultViewState extends State<GanaMatchResultView> {
                             child: Column(
                               children: [
                                 Text(
-                                  'BREAKDOWN',
+                                  'breakdown'.tr,
                                   style: TextStyle(
                                     fontSize: (compactLayout ? 15 : 16.5) * scale,
                                     fontWeight: FontWeight.w700,
@@ -262,7 +263,7 @@ class _GanaMatchResultViewState extends State<GanaMatchResultView> {
                         ),
                       ),
                       child: Text(
-                        'Share on Whatsapp',
+                        'share_on_whatsapp'.tr,
                         style: TextStyle(
                           fontSize: (compactLayout ? 14.8 : 15.5) * scale,
                           fontWeight: FontWeight.w700,
@@ -291,7 +292,7 @@ class _GanaMatchResultViewState extends State<GanaMatchResultView> {
     if (summary != null && summary.isNotEmpty) {
       return summary;
     }
-    return 'Compatibility result is available.';
+    return 'compatibility_result_available'.tr;
   }
 
   String? _buildSubtitle(KundliBreakdownItem item) {
@@ -332,7 +333,7 @@ class _GanaMatchResultViewState extends State<GanaMatchResultView> {
       );
 
       if (shared != true) {
-        ToastUtils.show('WhatsApp is not available on this device.');
+        ToastUtils.show('whatsapp_not_available'.tr);
       }
     } catch (exception) {
       ToastUtils.show('WhatsApp image share failed: $exception');
@@ -352,7 +353,7 @@ class _GanaMatchResultViewState extends State<GanaMatchResultView> {
     final boundary =
         _captureKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
     if (boundary == null) {
-      throw StateError('Capture boundary is not ready');
+      throw StateError('capture_boundary_not_ready'.tr);
     }
 
     final pixelRatio = MediaQuery.of(context).devicePixelRatio.clamp(2.0, 3.0);
@@ -388,7 +389,7 @@ class _GanaMatchResultViewState extends State<GanaMatchResultView> {
     image.dispose();
     composedImage.dispose();
     if (byteData == null) {
-      throw StateError('Unable to encode image');
+      throw StateError('unable_to_encode_image'.tr);
     }
 
     final bytes = byteData.buffer.asUint8List();
@@ -458,7 +459,7 @@ class _MandalaScore extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
-                    'OBTAINED POINTS',
+                    'obtained_points'.tr,
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       fontSize: (12.2 + (verticalScale - 0.74) * 2.2) * scale,

@@ -57,7 +57,7 @@ class LoginView extends StatelessWidget {
                               ShreeSvg(height: size.height * 0.12),
                               const SizedBox(width: 10),
                               Text(
-                                "Global Sanathan\nCommunity",
+                                "global_sanathan_community".tr,
                                 style: TextStyle(
                                   fontSize: size.width * 0.08,
                                   fontWeight: FontWeight.bold,
@@ -128,7 +128,7 @@ class LoginView extends StatelessWidget {
                                         decoration: InputDecoration(
                                           filled: true,
                                           fillColor: Colors.grey.shade200,
-                                          hintText: "Enter mobile number",
+                                          hintText: "enter_mobile_number".tr,
                                           border: OutlineInputBorder(
                                             borderRadius: BorderRadius.circular(
                                               20,
@@ -165,7 +165,7 @@ class LoginView extends StatelessWidget {
                                     decoration: InputDecoration(
                                       filled: true,
                                       fillColor: Colors.grey.shade200,
-                                      hintText: "Enter OTP",
+                                      hintText: "enter_otp".tr,
                                       border: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(20),
                                         borderSide: BorderSide.none,
@@ -187,8 +187,11 @@ class LoginView extends StatelessWidget {
                                     children: [
                                       Text(
                                         controller.resendSecondsLeft.value > 0
-                                            ? "Resend OTP in ${controller.resendSecondsLeft.value}s"
-                                            : "Didn't receive OTP?",
+                                            ? "resend_otp_in".tr.replaceAll(
+                                                '@seconds',
+                                                '${controller.resendSecondsLeft.value}',
+                                              )
+                                            : "didnt_receive_otp".tr,
                                         style: TextStyle(
                                           fontSize: 13,
                                           color: Colors.grey.shade700,
@@ -209,8 +212,8 @@ class LoginView extends StatelessWidget {
                                           tapTargetSize:
                                               MaterialTapTargetSize.shrinkWrap,
                                         ),
-                                        child: const Text(
-                                          "Resend OTP",
+                                        child: Text(
+                                          "resend_otp".tr,
                                           style: TextStyle(
                                             fontWeight: FontWeight.w700,
                                           ),
@@ -245,8 +248,8 @@ class LoginView extends StatelessWidget {
                                     },
                                     child: Text(
                                       controller.isOtpSent.value
-                                          ? "Verify OTP"
-                                          : "Send OTP",
+                                          ? "verify_otp".tr
+                                          : "send_otp".tr,
                                       style: const TextStyle(
                                         fontSize: 18,
                                         color: Colors.white,
@@ -259,7 +262,7 @@ class LoginView extends StatelessWidget {
                           ),
                           SizedBox(height: size.height * 0.11),
                           Text(
-                            "Continue with Google",
+                            "continue_with_google".tr,
                             style: TextStyle(
                               fontSize: size.width * 0.045,
                               color: Colors.black54,

@@ -1,4 +1,4 @@
-import 'package:dharma_app/LiveDarshan/live_darshan_controller.dart';
+﻿import 'package:dharma_app/LiveDarshan/live_darshan_controller.dart';
 import 'package:dharma_app/LiveDarshan/live_darshan_model.dart';
 import 'package:dharma_app/core/constants/api_constants.dart';
 import 'package:dharma_app/core/constants/app_colors.dart';
@@ -204,7 +204,7 @@ class _DarshanHeader extends StatelessWidget {
               SizedBox(width: 12 * scale),
               Expanded(
                 child: Text(
-                  'Live Darshan',
+                  'live_darshan'.tr,
                   style: TextStyle(
                     fontSize: 24 * scale,
                     fontWeight: FontWeight.w700,
@@ -809,7 +809,7 @@ class _EmptyDarshanState extends StatelessWidget {
               ),
               SizedBox(height: 14 * scale),
               Text(
-                'Abhi koi live darshan available nahi mila.',
+                'live_unavailable'.tr,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 18 * scale,
@@ -821,7 +821,7 @@ class _EmptyDarshanState extends StatelessWidget {
               Text(
                 message.trim().isNotEmpty
                     ? message.trim()
-                    : 'Thodi der baad refresh karke dubara check kijiye.',
+                    : 'retry_later_refresh'.tr,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 13 * scale,
@@ -842,7 +842,7 @@ class _EmptyDarshanState extends StatelessWidget {
                       borderRadius: BorderRadius.circular(14 * scale),
                     ),
                   ),
-                  child: const Text('Refresh'),
+                  child: Text('refresh'.tr),
                 ),
               ),
             ],
@@ -912,7 +912,7 @@ class _LiveBadge extends StatelessWidget {
           ),
           SizedBox(width: 6 * scale),
           Text(
-            isLive ? 'LIVE' : 'RECORDED',
+            isLive ? 'live'.tr : 'recorded'.tr,
             style: TextStyle(
               fontSize: 11 * scale,
               fontWeight: FontWeight.w700,

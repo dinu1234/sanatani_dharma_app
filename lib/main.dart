@@ -26,6 +26,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await StorageService.init();
+  final appTranslations = await AppTranslations.loadFromAssets();
   AppBindings.init();
 
   if (NotificationService.isSupportedPlatform) {
@@ -50,18 +51,20 @@ Future<void> main() async {
       systemNavigationBarDividerColor: Colors.white,
     ),
   );
-  runApp(const DharmaApp());
+  runApp(DharmaApp(translations: appTranslations));
 }
 
 class DharmaApp extends StatelessWidget {
-  const DharmaApp({super.key});
+  const DharmaApp({super.key, required this.translations});
+
+  final AppTranslations translations;
 
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
-      title: "Dharma App",
-      translations: AppTranslations(),
+      title: "Global Sanatan Community",
+      translations: translations,
       locale: _getSavedLocale(),
       fallbackLocale: const Locale('en'),
       theme: ThemeData(

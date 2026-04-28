@@ -1,4 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 class NoInternetView extends StatelessWidget {
   const NoInternetView({
@@ -35,8 +36,8 @@ class NoInternetView extends StatelessWidget {
                   color: Color(0xFF8B0000),
                 ),
                 const SizedBox(height: 24),
-                const Text(
-                  'No Internet Connection',
+                Text(
+                  'no_internet_connection'.tr,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 28,
@@ -45,8 +46,8 @@ class NoInternetView extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 12),
-                const Text(
-                  'Please check your network and try again.',
+                Text(
+                  'check_network_try_again'.tr,
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 16,
@@ -76,8 +77,8 @@ class NoInternetView extends StatelessWidget {
                                   AlwaysStoppedAnimation<Color>(Colors.white),
                             ),
                           )
-                        : const Text(
-                            'Retry',
+                        : Text(
+                            'retry'.tr,
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.w600,

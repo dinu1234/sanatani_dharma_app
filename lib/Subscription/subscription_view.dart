@@ -1,4 +1,4 @@
-import 'package:dharma_app/Subscription/subscription_controller.dart';
+﻿import 'package:dharma_app/Subscription/subscription_controller.dart';
 import 'package:dharma_app/Subscription/subscription_model.dart';
 import 'package:dharma_app/core/constants/app_colors.dart';
 import 'package:dharma_app/core/widgets/app_loader.dart';
@@ -137,8 +137,8 @@ class _SubscriptionPlansViewState extends State<SubscriptionPlansView> {
                           _controller.isVerifyingPayment.value)
                       ? AppLoader(
                           message: _controller.isVerifyingPayment.value
-                              ? 'Verifying payment'
-                              : 'Creating order',
+                              ? 'verifying_payment'.tr
+                              : 'creating_order'.tr,
                         )
                   : const SizedBox.shrink(),
             ),
@@ -202,7 +202,7 @@ class _SubscriptionHeader extends StatelessWidget {
               SizedBox(width: 12 * scale),
               Expanded(
                 child: Text(
-                  'Subscription',
+                  'subscription'.tr,
                   style: TextStyle(
                     fontSize: 24 * scale,
                     fontWeight: FontWeight.w800,
@@ -245,7 +245,7 @@ class _SubscriptionHeader extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Unlock Live Darshan',
+                        'unlock_live_darshan'.tr,
                         style: TextStyle(
                           fontSize: 18 * scale,
                           fontWeight: FontWeight.w800,
@@ -254,7 +254,7 @@ class _SubscriptionHeader extends StatelessWidget {
                       ),
                       SizedBox(height: 4 * scale),
                       Text(
-                        'Active subscription ke baad Live Darshan access milega.',
+                        'live_darshan_after_subscription'.tr,
                         style: TextStyle(
                           fontSize: 12.5 * scale,
                           height: 1.35,
@@ -342,7 +342,7 @@ class _PlanCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(999),
                     ),
                     child: Text(
-                      'Best Value',
+                      'best_value'.tr,
                       style: TextStyle(
                         fontSize: 11 * scale,
                         fontWeight: FontWeight.w800,
@@ -429,7 +429,7 @@ class _PlanCard extends StatelessWidget {
                           ),
                         )
                       : Text(
-                          'Choose Plan',
+                          'choose_plan'.tr,
                           style: TextStyle(
                             fontSize: 13 * scale,
                             fontWeight: FontWeight.w800,
@@ -523,7 +523,7 @@ class _EmptyPlansState extends StatelessWidget {
               ),
               SizedBox(height: 14 * scale),
               Text(
-                'Plans abhi available nahi mile.',
+                'plans_unavailable'.tr,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 18 * scale,
@@ -535,7 +535,7 @@ class _EmptyPlansState extends StatelessWidget {
               Text(
                 message.trim().isNotEmpty
                     ? message.trim()
-                    : 'Thodi der baad refresh karke dubara check kijiye.',
+                    : 'retry_later_refresh'.tr,
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 13 * scale,
@@ -556,7 +556,7 @@ class _EmptyPlansState extends StatelessWidget {
                       borderRadius: BorderRadius.circular(14 * scale),
                     ),
                   ),
-                  child: const Text('Refresh'),
+                  child: Text('refresh'.tr),
                 ),
               ),
             ],
