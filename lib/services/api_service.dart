@@ -112,16 +112,8 @@ class ApiService extends GetConnect {
     }
 
     try {
-      final response = await post(
-        endpoint,
-        body,
-        contentType: contentType,
-      );
-      _logResponse(
-        method: 'POST',
-        endpoint: endpoint,
-        response: response,
-      );
+      final response = await post(endpoint, body, contentType: contentType);
+      _logResponse(method: 'POST', endpoint: endpoint, response: response);
 
       if (requireAuth &&
           (response.statusCode == 400 ||
@@ -188,10 +180,7 @@ class ApiService extends GetConnect {
   }) {
     return postRequest(
       ApiConstants.sendOtp,
-      {
-        'country_code': countryCode,
-        'mobile': mobile,
-      },
+      {'country_code': countryCode, 'mobile': mobile},
       contentType: 'application/x-www-form-urlencoded',
       showErrorToast: false,
     );
@@ -203,10 +192,7 @@ class ApiService extends GetConnect {
   }) {
     return postRequest(
       'resend_otp.php',
-      {
-        'country_code': countryCode,
-        'mobile': mobile,
-      },
+      {'country_code': countryCode, 'mobile': mobile},
       contentType: 'application/x-www-form-urlencoded',
       showErrorToast: false,
     );
@@ -219,11 +205,7 @@ class ApiService extends GetConnect {
   }) {
     return postRequest(
       ApiConstants.verifyOtp,
-      {
-        'country_code': countryCode,
-        'mobile': mobile,
-        'otp': otp,
-      },
+      {'country_code': countryCode, 'mobile': mobile, 'otp': otp},
       contentType: 'application/x-www-form-urlencoded',
       showErrorToast: false,
     );
@@ -254,10 +236,7 @@ class ApiService extends GetConnect {
   }) {
     return postRequest(
       ApiConstants.updateFirebaseToken,
-      {
-        'device_token': deviceToken,
-        'device_platform': devicePlatform,
-      },
+      {'device_token': deviceToken, 'device_platform': devicePlatform},
       contentType: 'application/x-www-form-urlencoded',
       requireAuth: true,
       showErrorToast: false,
@@ -305,9 +284,7 @@ class ApiService extends GetConnect {
     int? chantCount,
     int? targetCount,
   }) {
-    final body = <String, dynamic>{
-      'mantra_id': mantraId,
-    };
+    final body = <String, dynamic>{'mantra_id': mantraId};
     if (incrementBy != null) body['increment_by'] = incrementBy;
     if (currentCount != null) body['current_count'] = currentCount;
     if (chantCount != null) body['chant_count'] = chantCount;
@@ -332,16 +309,10 @@ class ApiService extends GetConnect {
     );
   }
 
-  Future<Response<dynamic>> listNotifications({
-    int page = 1,
-    int limit = 20,
-  }) {
+  Future<Response<dynamic>> listNotifications({int page = 1, int limit = 20}) {
     return postRequest(
       ApiConstants.notifications,
-      {
-        'page': page,
-        'limit': limit.clamp(1, 100),
-      },
+      {'page': page, 'limit': limit.clamp(1, 100)},
       contentType: 'application/x-www-form-urlencoded',
       requireAuth: true,
       showErrorToast: false,
@@ -353,9 +324,7 @@ class ApiService extends GetConnect {
   }) {
     return postRequest(
       ApiConstants.markNotificationRead,
-      {
-        'notification_id': notificationId,
-      },
+      {'notification_id': notificationId},
       contentType: 'application/x-www-form-urlencoded',
       requireAuth: true,
       showErrorToast: false,
@@ -397,9 +366,7 @@ class ApiService extends GetConnect {
   Future<Response<dynamic>> createSubscriptionOrder({required int planId}) {
     return postRequest(
       ApiConstants.createSubscriptionOrder,
-      {
-        'plan_id': planId,
-      },
+      {'plan_id': planId},
       contentType: 'application/x-www-form-urlencoded',
       requireAuth: true,
       showErrorToast: false,
@@ -494,10 +461,7 @@ class ApiService extends GetConnect {
     double? lat,
     double? lng,
   }) {
-    final body = <String, dynamic>{
-      'question': question,
-      'stream': stream,
-    };
+    final body = <String, dynamic>{'question': question, 'stream': stream};
     if (sessionId != null && sessionId.trim().isNotEmpty) {
       body['session_id'] = sessionId.trim();
     }
@@ -514,12 +478,63 @@ class ApiService extends GetConnect {
     );
   }
 
+  Future<Response<dynamic>> getAskPanditWelcomeMessage({String? sessionId}) {
+    final body = <String, dynamic>{};
+    if (sessionId != null && sessionId.trim().isNotEmpty) {
+      body['session_id'] = sessionId.trim();
+    }
+    return postRequest(
+      ApiConstants.askPanditWelcome,
+      body,
+      contentType: 'application/x-www-form-urlencoded',
+      requireAuth: true,
+      showErrorToast: false,
+    );
+  }
+
+  Future<Response<dynamic>> getTodayNityaKarmaChecklist({String? date}) {
+    final body = <String, dynamic>{};
+    if (date != null && date.isNotEmpty) {
+      body['date'] = date;
+    }
+    return postRequest(
+      ApiConstants.getTodayNityaKarmaChecklist,
+      body,
+      contentType: 'application/x-www-form-urlencoded',
+      requireAuth: true,
+      showErrorToast: false,
+    );
+  }
+
+  Future<Response<dynamic>> toggleNityaKarmaCompletion({
+    int? scheduleId,
+    int? habitId,
+    required int isCompleted,
+    String? date,
+  }) {
+    final body = <String, dynamic>{'is_completed': isCompleted};
+    if (scheduleId != null) {
+      body['schedule_id'] = scheduleId;
+    }
+    if (habitId != null) {
+      body['habit_id'] = habitId;
+    }
+    if (date != null && date.isNotEmpty) {
+      body['date'] = date;
+    }
+
+    return postRequest(
+      ApiConstants.toggleNityaKarmaCompletion,
+      body,
+      contentType: 'application/x-www-form-urlencoded',
+      requireAuth: true,
+      showErrorToast: false,
+    );
+  }
+
   void _logoutWithToast(String message) {
     _logout();
-    ToastUtils.show(
-      message,
-      backgroundColor: const Color(0xFFD32F2F),
-    );
+    ToastUtils.show(message, backgroundColor: const Color(0xFFD32F2F));
   }
 
   void _logout() {

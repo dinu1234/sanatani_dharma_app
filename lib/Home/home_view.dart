@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import 'package:dharma_app/Chants/chants_view.dart';
 import 'package:dharma_app/AskPandit/ask_pandit_view.dart';
 import 'package:dharma_app/GanaMatch/GanaMatch.dart';
+import 'package:dharma_app/NityaKarma/nitya_karma_view.dart';
 import 'package:dharma_app/Notifications/notifications_controller.dart';
 import 'package:dharma_app/Notifications/notifications_view.dart';
 import 'package:dharma_app/LiveDarshan/live_darshan_view.dart';
@@ -35,27 +36,26 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
+  static const String _pilotAccessMobile = '7894561231';
+
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      final profileController =
-          Get.isRegistered<ProfileController>()
-              ? Get.find<ProfileController>()
-              : Get.put(ProfileController(), permanent: true);
-      final contentController =
-          Get.isRegistered<ContentController>()
-              ? Get.find<ContentController>()
-              : Get.put(ContentController(), permanent: true);
+      final profileController = Get.isRegistered<ProfileController>()
+          ? Get.find<ProfileController>()
+          : Get.put(ProfileController(), permanent: true);
+      final contentController = Get.isRegistered<ContentController>()
+          ? Get.find<ContentController>()
+          : Get.put(ContentController(), permanent: true);
       final notificationsController =
           Get.isRegistered<NotificationsController>()
-              ? Get.find<NotificationsController>()
-              : Get.put(NotificationsController(), permanent: true);
-      final subscriptionController =
-          Get.isRegistered<SubscriptionController>()
-              ? Get.find<SubscriptionController>()
-              : Get.put(SubscriptionController(), permanent: true);
+          ? Get.find<NotificationsController>()
+          : Get.put(NotificationsController(), permanent: true);
+      final subscriptionController = Get.isRegistered<SubscriptionController>()
+          ? Get.find<SubscriptionController>()
+          : Get.put(SubscriptionController(), permanent: true);
       profileController.ensureProfileLoaded();
       contentController.ensureContentLoaded();
       notificationsController.loadNotifications();
@@ -85,21 +85,44 @@ class _HomeViewState extends State<HomeView> {
     return shouldExit ?? false;
   }
 
-  Future<void> _openDarshan(BuildContext context) {
-    return PremiumFeatureGate.open(
+  bool _hasPilotAccess() {
+    final storedMobile = StorageService.getLoginMobile()?.trim();
+    if (storedMobile == _pilotAccessMobile) {
+      return true;
+    }
+
+    final profileController = Get.isRegistered<ProfileController>()
+        ? Get.find<ProfileController>()
+        : Get.put(ProfileController(), permanent: true);
+    final profileMobile = profileController.user?.mobile?.trim();
+    return profileMobile == _pilotAccessMobile;
+  }
+
+  Future<void> _openDarshan(BuildContext context) async {
+    if (!_hasPilotAccess()) {
+      ToastUtils.show('Coming soon');
+      return;
+    }
+
+    await PremiumFeatureGate.open(
       context: context,
       featureBuilder: () => const LiveDarshanView(),
     );
   }
 
   Future<void> _openAskPandit(BuildContext context) async {
-    final profileController =
-        Get.isRegistered<ProfileController>()
-            ? Get.find<ProfileController>()
-            : Get.put(ProfileController(), permanent: true);
+    if (!_hasPilotAccess()) {
+      ToastUtils.show('Coming soon');
+      return;
+    }
+
+    final profileController = Get.isRegistered<ProfileController>()
+        ? Get.find<ProfileController>()
+        : Get.put(ProfileController(), permanent: true);
     await profileController.ensureProfileLoaded();
     final isProfileComplete =
-        StorageService.isProfileCompleted() || profileController.isProfileComplete;
+        StorageService.isProfileCompleted() ||
+        profileController.isProfileComplete;
 
     if (!isProfileComplete) {
       ToastUtils.show('ask_pandit_profile_required'.tr);
@@ -128,22 +151,32 @@ class _HomeViewState extends State<HomeView> {
     );
   }
 
+  Future<void> _openNityaKarma(BuildContext context) async {
+    if (!_hasPilotAccess()) {
+      ToastUtils.show('Coming soon');
+      return;
+    }
+
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (_) => const NityaKarmaView()),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
-    final profileController =
-        Get.isRegistered<ProfileController>()
-            ? Get.find<ProfileController>()
-            : Get.put(ProfileController(), permanent: true);
-    final contentController =
-        Get.isRegistered<ContentController>()
-            ? Get.find<ContentController>()
-            : Get.put(ContentController(), permanent: true);
-    final subscriptionController =
-        Get.isRegistered<SubscriptionController>()
-            ? Get.find<SubscriptionController>()
-            : Get.put(SubscriptionController(), permanent: true);
+    final profileController = Get.isRegistered<ProfileController>()
+        ? Get.find<ProfileController>()
+        : Get.put(ProfileController(), permanent: true);
+    final contentController = Get.isRegistered<ContentController>()
+        ? Get.find<ContentController>()
+        : Get.put(ContentController(), permanent: true);
+    final subscriptionController = Get.isRegistered<SubscriptionController>()
+        ? Get.find<SubscriptionController>()
+        : Get.put(SubscriptionController(), permanent: true);
     final mediaQuery = MediaQuery.of(context);
     final width = mediaQuery.size.width;
+    final hasPilotAccess = _hasPilotAccess();
     final safeBottom = CommonBottomNav.bottomInset(mediaQuery);
     final scale = (width / 390).clamp(0.84, 1.08);
     final navHeight = CommonBottomNav.navHeight(safeBottom);
@@ -242,11 +275,13 @@ class _HomeViewState extends State<HomeView> {
                         _FeatureCard(
                           title: 'darshan'.tr,
                           assetName: 'assets/images/darshan.svg',
+                          badgeText: hasPilotAccess ? null : 'coming_soon'.tr,
                           onTap: () => _openDarshan(context),
                         ),
                         _FeatureCard(
                           title: 'ask_pandit'.tr,
                           assetName: 'assets/images/chants.svg',
+                          badgeText: hasPilotAccess ? null : 'coming_soon'.tr,
                           onTap: () => _openAskPandit(context),
                         ),
                         _FeatureCard(
@@ -264,7 +299,8 @@ class _HomeViewState extends State<HomeView> {
                         _FeatureCard(
                           title: 'nitya_karma'.tr,
                           assetName: 'assets/images/dailyjapa.svg',
-                          badgeText: 'coming_soon'.tr,
+                          badgeText: hasPilotAccess ? null : 'coming_soon'.tr,
+                          onTap: () => _openNityaKarma(context),
                         ),
                       ],
                     ),
@@ -295,14 +331,12 @@ class _Header extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final controller =
-        Get.isRegistered<ProfileController>()
-            ? Get.find<ProfileController>()
-            : Get.put(ProfileController(), permanent: true);
-    final notificationsController =
-        Get.isRegistered<NotificationsController>()
-            ? Get.find<NotificationsController>()
-            : Get.put(NotificationsController(), permanent: true);
+    final controller = Get.isRegistered<ProfileController>()
+        ? Get.find<ProfileController>()
+        : Get.put(ProfileController(), permanent: true);
+    final notificationsController = Get.isRegistered<NotificationsController>()
+        ? Get.find<NotificationsController>()
+        : Get.put(NotificationsController(), permanent: true);
 
     return Obx(
       () => Row(
@@ -420,10 +454,7 @@ class _Header extends StatelessWidget {
 }
 
 class _MembershipCard extends StatelessWidget {
-  const _MembershipCard({
-    required this.scale,
-    required this.controller,
-  });
+  const _MembershipCard({required this.scale, required this.controller});
 
   final double scale;
   final SubscriptionController controller;
@@ -498,9 +529,7 @@ class _MembershipCard extends StatelessWidget {
                 Container(
                   width: badgeSize,
                   height: badgeSize,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                  ),
+                  decoration: const BoxDecoration(shape: BoxShape.circle),
                   child: Center(
                     child: SizedBox(
                       width: badgeSize * 0.72,
@@ -521,30 +550,28 @@ class _MembershipCard extends StatelessWidget {
                       color: AppColors.homePrimary,
                       fontWeight: FontWeight.w600,
                     ),
-                    child: Obx(
-                      () {
-                        final plan = controller.latestPlan;
-                        final amountText = plan?.displayPrice ?? 'Rs 51';
+                    child: Obx(() {
+                      final plan = controller.latestPlan;
+                      final amountText = plan?.displayPrice ?? 'Rs 51';
 
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('get_free_src'.tr),
-                            const SizedBox(height: 8),
-                            Text('app_launch_offer'.tr),
-                            const SizedBox(height: 8),
-                            Text(
-                              'get_started_just_amount'.tr.replaceAll(
-                                '@amount',
-                                amountText,
-                              ),
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('get_free_src'.tr),
+                          const SizedBox(height: 8),
+                          Text('app_launch_offer'.tr),
+                          const SizedBox(height: 8),
+                          Text(
+                            'get_started_just_amount'.tr.replaceAll(
+                              '@amount',
+                              amountText,
                             ),
-                            const SizedBox(height: 8),
-                            Text('unlock_all_premium'.tr),
-                          ],
-                        );
-                      },
-                    ),
+                          ),
+                          const SizedBox(height: 8),
+                          Text('unlock_all_premium'.tr),
+                        ],
+                      );
+                    }),
                   ),
                 ),
               ],
@@ -679,10 +706,9 @@ class _SponsoredBannerState extends State<_SponsoredBanner> {
     super.initState();
     _pageController = PageController(viewportFraction: 0.96);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      final controller =
-          Get.isRegistered<ContentController>()
-              ? Get.find<ContentController>()
-              : Get.put(ContentController(), permanent: true);
+      final controller = Get.isRegistered<ContentController>()
+          ? Get.find<ContentController>()
+          : Get.put(ContentController(), permanent: true);
       controller.ensureContentLoaded();
     });
     _startAutoScroll();
@@ -691,10 +717,9 @@ class _SponsoredBannerState extends State<_SponsoredBanner> {
   void _startAutoScroll() {
     _autoScrollTimer?.cancel();
     _autoScrollTimer = Timer.periodic(const Duration(seconds: 3), (_) {
-      final controller =
-          Get.isRegistered<ContentController>()
-              ? Get.find<ContentController>()
-              : Get.put(ContentController(), permanent: true);
+      final controller = Get.isRegistered<ContentController>()
+          ? Get.find<ContentController>()
+          : Get.put(ContentController(), permanent: true);
       final sponsors = controller.sponsors;
       if (!_pageController.hasClients || sponsors.length <= 1) return;
 
@@ -716,17 +741,16 @@ class _SponsoredBannerState extends State<_SponsoredBanner> {
 
   @override
   Widget build(BuildContext context) {
-    final controller =
-        Get.isRegistered<ContentController>()
-            ? Get.find<ContentController>()
-            : Get.put(ContentController(), permanent: true);
+    final controller = Get.isRegistered<ContentController>()
+        ? Get.find<ContentController>()
+        : Get.put(ContentController(), permanent: true);
 
     return Obx(() {
       final sponsors = controller.sponsors;
-      final safeIndex =
-          sponsors.isEmpty ? 0 : _currentIndex.clamp(0, sponsors.length - 1);
-      final activeSponsor =
-          sponsors.isNotEmpty ? sponsors[safeIndex] : null;
+      final safeIndex = sponsors.isEmpty
+          ? 0
+          : _currentIndex.clamp(0, sponsors.length - 1);
+      final activeSponsor = sponsors.isNotEmpty ? sponsors[safeIndex] : null;
 
       return Column(
         crossAxisAlignment: CrossAxisAlignment.end,
@@ -749,10 +773,7 @@ class _SponsoredBannerState extends State<_SponsoredBanner> {
           SizedBox(
             height: 200 * widget.scale,
             child: sponsors.isEmpty
-                ? _SponsorCard(
-                    scale: widget.scale,
-                    sponsor: null,
-                  )
+                ? _SponsorCard(scale: widget.scale, sponsor: null)
                 : PageView.builder(
                     controller: _pageController,
                     itemCount: sponsors.length,
@@ -780,8 +801,9 @@ class _SponsoredBannerState extends State<_SponsoredBanner> {
                 sponsors.length,
                 (index) => AnimatedContainer(
                   duration: const Duration(milliseconds: 180),
-                  width:
-                      index == safeIndex ? 18 * widget.scale : 8 * widget.scale,
+                  width: index == safeIndex
+                      ? 18 * widget.scale
+                      : 8 * widget.scale,
                   height: 8 * widget.scale,
                   margin: EdgeInsets.symmetric(horizontal: 3 * widget.scale),
                   decoration: BoxDecoration(
@@ -800,10 +822,7 @@ class _SponsoredBannerState extends State<_SponsoredBanner> {
 }
 
 class _SponsorCard extends StatelessWidget {
-  const _SponsorCard({
-    required this.scale,
-    required this.sponsor,
-  });
+  const _SponsorCard({required this.scale, required this.sponsor});
 
   final double scale;
   final SponsorItem? sponsor;
@@ -811,10 +830,9 @@ class _SponsorCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final imagePath = sponsor?.imagePath;
-    final imageUrl =
-        imagePath != null && imagePath.isNotEmpty
-            ? '${ApiConstants.baseUrl}$imagePath'
-            : null;
+    final imageUrl = imagePath != null && imagePath.isNotEmpty
+        ? '${ApiConstants.baseUrl}$imagePath'
+        : null;
 
     return Container(
       width: double.infinity,
@@ -828,25 +846,17 @@ class _SponsorCard extends StatelessWidget {
             ? Image.network(
                 imageUrl,
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => _SponsorFallback(
-                  scale: scale,
-                  title: sponsor?.name,
-                ),
+                errorBuilder: (_, __, ___) =>
+                    _SponsorFallback(scale: scale, title: sponsor?.name),
               )
-            : _SponsorFallback(
-                scale: scale,
-                title: sponsor?.name,
-              ),
+            : _SponsorFallback(scale: scale, title: sponsor?.name),
       ),
     );
   }
 }
 
 class _SponsorFallback extends StatelessWidget {
-  const _SponsorFallback({
-    required this.scale,
-    this.title,
-  });
+  const _SponsorFallback({required this.scale, this.title});
 
   final double scale;
   final String? title;

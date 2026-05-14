@@ -75,12 +75,31 @@ class LoginController extends GetxController {
       !_isBlank(user.birthTime) &&
       !_isBlank(user.birthPlace);
 
-  String _buildSendOtpSuccessMessage(SendOtpResponseModel model) {
+  static const String _debugOtpVisibleMobile = '7894561231';
+
+  String? _extractDebugOtp(
+    SendOtpResponseModel model, {
+    required String mobile,
+  }) {
+    final debugOtp = model.data?.debugOtp?.trim();
+    if (mobile != _debugOtpVisibleMobile ||
+        debugOtp == null ||
+        debugOtp.isEmpty) {
+      return null;
+    }
+
+    return debugOtp;
+  }
+
+  String _buildSendOtpSuccessMessage(
+    SendOtpResponseModel model, {
+    required String mobile,
+  }) {
     final baseMessage =
         model.message.isEmpty ? "OTP Sent Successfully" : model.message;
-    final debugOtp = model.data?.debugOtp?.trim();
+    final debugOtp = _extractDebugOtp(model, mobile: mobile);
 
-    if (debugOtp == null || debugOtp.isEmpty) {
+    if (debugOtp == null) {
       return baseMessage;
     }
 
@@ -135,10 +154,10 @@ class LoginController extends GetxController {
       }
 
       isOtpSent.value = true;
-      otpController.clear();
+      otpController.text = _extractDebugOtp(model, mobile: phone) ?? '';
       _startResendCooldown();
       ToastUtils.show(
-        _buildSendOtpSuccessMessage(model),
+        _buildSendOtpSuccessMessage(model, mobile: phone),
         backgroundColor: const Color(0xFF2E7D32),
         toastLength: Toast.LENGTH_LONG,
       );
@@ -190,10 +209,10 @@ class LoginController extends GetxController {
         return;
       }
 
-      otpController.clear();
+      otpController.text = _extractDebugOtp(model, mobile: phone) ?? '';
       _startResendCooldown();
       ToastUtils.show(
-        _buildSendOtpSuccessMessage(model),
+        _buildSendOtpSuccessMessage(model, mobile: phone),
         backgroundColor: const Color(0xFF2E7D32),
         toastLength: Toast.LENGTH_LONG,
       );
@@ -338,6 +357,11 @@ class LoginController extends GetxController {
 
     await NotificationService.syncTokenIfEligible();
     Get.offAll(() => const HomeView());
+  }
+
+  @override
+  void onInit() {
+    super.onInit();
   }
 
   @override

@@ -36,4 +36,19 @@ class AskPanditRepository {
       message: response.statusText ?? 'Unable to fetch Ask Pandit response',
     );
   }
+
+  Future<AskPanditResponseModel> getWelcomeMessage({String? sessionId}) async {
+    final response = await _apiService.getAskPanditWelcomeMessage(
+      sessionId: sessionId,
+    );
+    final mapBody = ApiUtils.asMap(response.body);
+    if (mapBody != null) {
+      return AskPanditResponseModel.fromJson(mapBody);
+    }
+    return AskPanditResponseModel(
+      success: false,
+      message:
+          response.statusText ?? 'Unable to fetch Ask Pandit welcome message',
+    );
+  }
 }

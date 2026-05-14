@@ -55,24 +55,33 @@ class ProfileView extends StatelessWidget {
                                   '${controller.user?.coin?.toStringAsFixed(0) ?? '0'} SRC',
                             ),
                             SizedBox(height: 18 * scale),
-                            _ActionRow(scale: scale),
-                            SizedBox(height: 18 * scale),
-                            _LanguageCard(scale: scale),
-                            SizedBox(height: 18 * scale),
-                            _TransactionCard(scale: scale),
-                          ],
-                        ),
+                             _ActionRow(scale: scale),
+                             SizedBox(height: 18 * scale),
+                             _LanguageCard(scale: scale),
+                             SizedBox(height: 18 * scale),
+                             _LogoutCard(
+                               scale: scale,
+                               controller: controller,
+                             ),
+                             SizedBox(height: 18 * scale),
+                             _TransactionCard(scale: scale),
+                           ],
+                         ),
                       ),
                     ),
                   ],
                 ),
               ),
-              if (controller.isLoading.value || controller.isUpdatingImage.value)
+              if (controller.isLoading.value ||
+                  controller.isUpdatingImage.value ||
+                  controller.isLoggingOut.value)
                 AppLoader(
                   message:
-                      controller.isUpdatingImage.value
-                          ? 'updating_profile_image'.tr
-                          : 'loading_profile'.tr,
+                      controller.isLoggingOut.value
+                          ? 'Logging out'
+                          : controller.isUpdatingImage.value
+                           ? 'updating_profile_image'.tr
+                           : 'loading_profile'.tr,
                 ),
             ],
           ),
@@ -651,6 +660,86 @@ class _LanguageCard extends StatelessWidget {
             child: Text('change'.tr),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _LogoutCard extends StatelessWidget {
+  const _LogoutCard({required this.scale, required this.controller});
+
+  final double scale;
+  final ProfileController controller;
+
+  Future<void> _confirmLogout(BuildContext context) async {
+    final shouldLogout = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Logout'),
+          content: const Text('Are you sure you want to logout?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(false),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(dialogContext).pop(true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.profileHeader,
+                foregroundColor: AppColors.profileHeaderText,
+              ),
+              child: const Text('Logout'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldLogout == true) {
+      await controller.logout();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        color: AppColors.profileCardBackground,
+        borderRadius: BorderRadius.circular(22 * scale),
+        boxShadow: const [
+          BoxShadow(
+            color: AppColors.profileShadow,
+            blurRadius: 14,
+            offset: Offset(0, 6),
+          ),
+        ],
+      ),
+      child: ListTile(
+        contentPadding: EdgeInsets.symmetric(
+          horizontal: 16 * scale,
+          vertical: 4 * scale,
+        ),
+        leading: Icon(
+          Icons.logout_rounded,
+          color: Colors.red.shade700,
+          size: 24 * scale,
+        ),
+        title: Text(
+          'Logout',
+          style: TextStyle(
+            fontSize: 16 * scale,
+            fontWeight: FontWeight.w700,
+            color: Colors.red.shade700,
+          ),
+        ),
+        trailing: Icon(
+          Icons.chevron_right_rounded,
+          color: Colors.red.shade700,
+          size: 24 * scale,
+        ),
+        onTap: () => _confirmLogout(context),
       ),
     );
   }

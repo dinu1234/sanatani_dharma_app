@@ -109,17 +109,18 @@ class NotificationService {
     if (!isSupportedPlatform) return;
 
     final notification = message.notification;
+    final title =
+        notification?.title ??
+        message.data['title']?.toString() ??
+        'Notification';
+    final body = notification?.body ?? message.data['body']?.toString() ?? '';
 
     if (notification == null && message.data.isEmpty) return;
 
     await _localNotifications.show(
       id: notification.hashCode,
-      title:
-          notification?.title ??
-          message.data['title']?.toString() ??
-          'Notification',
-      body:
-          notification?.body ?? message.data['body']?.toString() ?? '',
+      title: title,
+      body: body,
       notificationDetails: NotificationDetails(
         android: AndroidNotificationDetails(
           _channel.id,
@@ -128,6 +129,11 @@ class NotificationService {
           importance: Importance.high,
           priority: Priority.high,
           icon: '@mipmap/ic_launcher',
+          styleInformation: BigTextStyleInformation(
+            body,
+            contentTitle: title,
+            summaryText: message.data['summary']?.toString(),
+          ),
         ),
       ),
       payload: message.data.toString(),

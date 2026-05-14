@@ -70,7 +70,9 @@ dev_dependencies:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/images/logo_launcher.png"
+  image_path: "assets/images/logo_launcher_legacy.png"
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/images/logo_launcher_foreground.png"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -83,6 +85,7 @@ flutter:
   # the material Icons class.
   uses-material-design: true
   assets:
+    - assets/adi-registration.properties
     - assets/images/
     - assets/lang/
     - assets/font/

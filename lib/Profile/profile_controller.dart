@@ -1,9 +1,11 @@
 import 'package:dharma_app/Profile/profile_model.dart';
 import 'package:dharma_app/Profile/profile_repository.dart';
+import 'package:dharma_app/Login/LoginView.dart';
 import 'package:dharma_app/core/constants/api_constants.dart';
 import 'package:dharma_app/core/utils/toast_utils.dart';
 import 'package:dharma_app/services/storage_service.dart';
 import 'package:get/get.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:image_picker/image_picker.dart';
 
 class ProfileController extends GetxController {
@@ -16,9 +18,11 @@ class ProfileController extends GetxController {
 
   final ProfileRepository _repository;
   final ImagePicker _imagePicker = ImagePicker();
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   final isLoading = false.obs;
   final isUpdatingImage = false.obs;
+  final isLoggingOut = false.obs;
   final profile = Rxn<ProfileResponseData>();
 
   ProfileUser? get user => profile.value?.user;
@@ -143,6 +147,23 @@ class ProfileController extends GetxController {
       );
     } finally {
       isUpdatingImage.value = false;
+    }
+  }
+
+  Future<void> logout() async {
+    if (isLoggingOut.value) return;
+
+    isLoggingOut.value = true;
+    try {
+      try {
+        await _googleSignIn.signOut();
+      } catch (_) {}
+
+      profile.value = null;
+      await StorageService.clear();
+      Get.offAll(() => LoginView());
+    } finally {
+      isLoggingOut.value = false;
     }
   }
 }

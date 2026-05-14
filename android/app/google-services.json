@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "373902869954-f6vuipiv27k0dkr716a81g767c29saek.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.dharma.sanatan",
+            "certificate_hash": "2e6e0137fed20d87942fe06ac5b9ec20144165f2"
+          }
+        },
+        {
           "client_id": "373902869954-qf87cmddok05s35pglaj5qsnbj4g16e9.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {

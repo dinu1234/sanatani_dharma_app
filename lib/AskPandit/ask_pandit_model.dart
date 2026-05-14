@@ -13,11 +13,12 @@ class AskPanditResponseModel {
 
   factory AskPanditResponseModel.fromJson(Map<String, dynamic> json) {
     final dataMap = json['data'];
-    final required = dataMap is Map<String, dynamic> && dataMap['required_fields'] is List
+    final required =
+        dataMap is Map<String, dynamic> && dataMap['required_fields'] is List
         ? (dataMap['required_fields'] as List)
-            .map((e) => e.toString().trim())
-            .where((e) => e.isNotEmpty)
-            .toList()
+              .map((e) => e.toString().trim())
+              .where((e) => e.isNotEmpty)
+              .toList()
         : const <String>[];
     return AskPanditResponseModel(
       success: json['success'] == true,
@@ -35,6 +36,10 @@ class AskPanditData {
     this.question,
     this.answer,
     this.sessionId,
+    this.welcomeMessage,
+    this.isFirstTime,
+    this.profileComplete,
+    this.hasActiveSubscription,
     this.cacheHit,
     this.model,
   });
@@ -42,6 +47,10 @@ class AskPanditData {
   final String? question;
   final String? answer;
   final String? sessionId;
+  final String? welcomeMessage;
+  final bool? isFirstTime;
+  final bool? profileComplete;
+  final bool? hasActiveSubscription;
   final bool? cacheHit;
   final String? model;
 
@@ -50,6 +59,10 @@ class AskPanditData {
       question: json['question']?.toString(),
       answer: json['answer']?.toString(),
       sessionId: json['session_id']?.toString(),
+      welcomeMessage: json['welcome_message']?.toString(),
+      isFirstTime: json['is_first_time'] == true,
+      profileComplete: json['profile_complete'] == true,
+      hasActiveSubscription: json['has_active_subscription'] == true,
       cacheHit: json['cache_hit'] == true,
       model: json['model']?.toString(),
     );

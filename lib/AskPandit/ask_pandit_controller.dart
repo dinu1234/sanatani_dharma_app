@@ -18,6 +18,7 @@ class AskPanditController extends GetxController {
   final location.Location _location = location.Location();
 
   final isSending = false.obs;
+  final isLoadingWelcome = false.obs;
   final includeCurrentLocation = true.obs;
   final sessionId = RxnString();
   final chat = <AskPanditMessage>[].obs;
@@ -26,10 +27,9 @@ class AskPanditController extends GetxController {
 
   bool get canAsk {
     try {
-      final profileController =
-          Get.isRegistered<ProfileController>()
-              ? Get.find<ProfileController>()
-              : Get.put(ProfileController(), permanent: true);
+      final profileController = Get.isRegistered<ProfileController>()
+          ? Get.find<ProfileController>()
+          : Get.put(ProfileController(), permanent: true);
       final user = profileController.user;
       final hasProfile =
           _hasText(user?.fullName) &&
@@ -47,6 +47,39 @@ class AskPanditController extends GetxController {
   void onInit() {
     super.onInit();
     _prefetchLocation();
+    fetchWelcomeMessage();
+  }
+
+  Future<void> fetchWelcomeMessage() async {
+    if (isLoadingWelcome.value || chat.isNotEmpty) return;
+
+    isLoadingWelcome.value = true;
+    try {
+      final response = await _repository.getWelcomeMessage(
+        sessionId: sessionId.value,
+      );
+
+      if (_hasText(response.data?.sessionId)) {
+        sessionId.value = response.data!.sessionId!.trim();
+      }
+
+      final welcomeMessage = response.data?.welcomeMessage?.trim();
+      if (response.success &&
+          welcomeMessage != null &&
+          welcomeMessage.isNotEmpty) {
+        chat.add(
+          AskPanditMessage(
+            text: welcomeMessage,
+            isUser: false,
+            time: DateTime.now(),
+          ),
+        );
+      }
+    } catch (_) {
+      // Keep the screen usable even if the welcome API fails.
+    } finally {
+      isLoadingWelcome.value = false;
+    }
   }
 
   Future<void> sendQuestion(String question) async {
@@ -60,20 +93,18 @@ class AskPanditController extends GetxController {
       return;
     }
 
-    final profileController =
-        Get.isRegistered<ProfileController>()
-            ? Get.find<ProfileController>()
-            : Get.put(ProfileController(), permanent: true);
+    final profileController = Get.isRegistered<ProfileController>()
+        ? Get.find<ProfileController>()
+        : Get.put(ProfileController(), permanent: true);
     await profileController.ensureProfileLoaded();
     if (!_isProfileComplete()) {
       ToastUtils.show('Please complete your profile birth details first.');
       return;
     }
 
-    final subscriptionController =
-        Get.isRegistered<SubscriptionController>()
-            ? Get.find<SubscriptionController>()
-            : Get.put(SubscriptionController(), permanent: true);
+    final subscriptionController = Get.isRegistered<SubscriptionController>()
+        ? Get.find<SubscriptionController>()
+        : Get.put(SubscriptionController(), permanent: true);
     await subscriptionController.ensurePlansLoaded();
     if (!profileController.hasActiveSubscription) {
       ToastUtils.show('Active subscription is required to use Ask Pandit.');
@@ -91,10 +122,12 @@ class AskPanditController extends GetxController {
     );
     isSending.value = true;
     try {
-      final lat =
-          includeCurrentLocation.value == true ? currentLat.value : null;
-      final lng =
-          includeCurrentLocation.value == true ? currentLng.value : null;
+      final lat = includeCurrentLocation.value == true
+          ? currentLat.value
+          : null;
+      final lng = includeCurrentLocation.value == true
+          ? currentLng.value
+          : null;
 
       final response = await _repository.askQuestion(
         question: text,
@@ -108,7 +141,7 @@ class AskPanditController extends GetxController {
         _replaceTypingBubble(
           response.message.isNotEmpty
               ? response.message
-              : 'Unable to get a response from Pandit ji right now.',
+              : 'Unable to get a response from Ask Pandit right now.',
         );
         return;
       }
@@ -121,7 +154,7 @@ class AskPanditController extends GetxController {
       _replaceTypingBubble(
         (answer != null && answer.isNotEmpty)
             ? answer
-            : 'Pandit ji has not sent a response yet.',
+            : 'Ask Pandit has not sent a response yet.',
       );
     } catch (_) {
       _replaceTypingBubble('Something went wrong. Please try again.');
@@ -145,10 +178,9 @@ class AskPanditController extends GetxController {
   }
 
   bool _isProfileComplete() {
-    final profileController =
-        Get.isRegistered<ProfileController>()
-            ? Get.find<ProfileController>()
-            : Get.put(ProfileController(), permanent: true);
+    final profileController = Get.isRegistered<ProfileController>()
+        ? Get.find<ProfileController>()
+        : Get.put(ProfileController(), permanent: true);
     final user = profileController.user;
     return _hasText(user?.fullName) &&
         _hasText(user?.birthDate) &&

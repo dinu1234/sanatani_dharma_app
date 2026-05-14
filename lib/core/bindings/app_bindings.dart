@@ -1,6 +1,8 @@
 import 'package:dharma_app/Login/login_repository.dart';
 import 'package:dharma_app/LiveDarshan/live_darshan_controller.dart';
 import 'package:dharma_app/LiveDarshan/live_darshan_repository.dart';
+import 'package:dharma_app/NityaKarma/nitya_karma_controller.dart';
+import 'package:dharma_app/NityaKarma/nitya_karma_repository.dart';
 import 'package:dharma_app/Notifications/notifications_controller.dart';
 import 'package:dharma_app/Notifications/notifications_repository.dart';
 import 'package:dharma_app/Profile/profile_controller.dart';
@@ -80,6 +82,13 @@ class AppBindings {
       );
     }
 
+    if (!Get.isRegistered<NityaKarmaRepository>()) {
+      Get.put(
+        NityaKarmaRepository(apiService: Get.find<ApiService>()),
+        permanent: true,
+      );
+    }
+
     if (!Get.isRegistered<GanaMatchRepository>()) {
       Get.put(
         GanaMatchRepository(apiService: Get.find<ApiService>()),
@@ -110,7 +119,9 @@ class AppBindings {
 
     if (!Get.isRegistered<NotificationsController>()) {
       Get.put(
-        NotificationsController(repository: Get.find<NotificationsRepository>()),
+        NotificationsController(
+          repository: Get.find<NotificationsRepository>(),
+        ),
         permanent: true,
       );
     }
@@ -125,6 +136,13 @@ class AppBindings {
     if (!Get.isRegistered<SubscriptionController>()) {
       Get.put(
         SubscriptionController(repository: Get.find<SubscriptionRepository>()),
+        permanent: true,
+      );
+    }
+
+    if (!Get.isRegistered<NityaKarmaController>()) {
+      Get.put(
+        NityaKarmaController(repository: Get.find<NityaKarmaRepository>()),
         permanent: true,
       );
     }

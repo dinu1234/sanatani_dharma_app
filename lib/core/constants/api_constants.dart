@@ -12,7 +12,8 @@ class ApiConstants {
   static const String updateFirebaseToken = "update_firebase_token.php";
   static const String sponsors = "user/sponsors/list_sponsors.php";
   static const String mantras = "user/mantras/list_mantras.php";
-  static const String notifications = "user/notifications/list_notifications.php";
+  static const String notifications =
+      "user/notifications/list_notifications.php";
   static const String markNotificationRead =
       "user/notifications/mark_notification_read.php";
   static const String listLiveDarshan =
@@ -25,9 +26,14 @@ class ApiConstants {
       "user/subscriptions/verify_payment.php";
   static const String getJapaStatus = "user/japa/get_japa_status.php";
   static const String saveJapaProgress = "user/japa/save_japa_progress.php";
-  static const String getTodayPanchang =
-      "user/panchang/get_today_panchang.php";
+  static const String getTodayPanchang = "user/panchang/get_today_panchang.php";
   static const String getDetailedKundliMatching =
       "user/kundli/get_detailed_kundli_matching.php";
   static const String askPandit = "user/ask_pandit/chat.php";
+  static const String askPanditWelcome =
+      "user/ask_pandit/get_welcome_message.php";
+  static const String getTodayNityaKarmaChecklist =
+      "user/nitya_karma/get_today_checklist.php";
+  static const String toggleNityaKarmaCompletion =
+      "user/nitya_karma/toggle_completion.php";
 }
