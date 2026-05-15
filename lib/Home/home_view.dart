@@ -36,8 +36,6 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> {
-  static const String _pilotAccessMobile = '7894561231';
-
   @override
   void initState() {
     super.initState();
@@ -85,25 +83,7 @@ class _HomeViewState extends State<HomeView> {
     return shouldExit ?? false;
   }
 
-  bool _hasPilotAccess() {
-    final storedMobile = StorageService.getLoginMobile()?.trim();
-    if (storedMobile == _pilotAccessMobile) {
-      return true;
-    }
-
-    final profileController = Get.isRegistered<ProfileController>()
-        ? Get.find<ProfileController>()
-        : Get.put(ProfileController(), permanent: true);
-    final profileMobile = profileController.user?.mobile?.trim();
-    return profileMobile == _pilotAccessMobile;
-  }
-
   Future<void> _openDarshan(BuildContext context) async {
-    if (!_hasPilotAccess()) {
-      ToastUtils.show('Coming soon');
-      return;
-    }
-
     await PremiumFeatureGate.open(
       context: context,
       featureBuilder: () => const LiveDarshanView(),
@@ -111,11 +91,6 @@ class _HomeViewState extends State<HomeView> {
   }
 
   Future<void> _openAskPandit(BuildContext context) async {
-    if (!_hasPilotAccess()) {
-      ToastUtils.show('Coming soon');
-      return;
-    }
-
     final profileController = Get.isRegistered<ProfileController>()
         ? Get.find<ProfileController>()
         : Get.put(ProfileController(), permanent: true);
@@ -152,11 +127,6 @@ class _HomeViewState extends State<HomeView> {
   }
 
   Future<void> _openNityaKarma(BuildContext context) async {
-    if (!_hasPilotAccess()) {
-      ToastUtils.show('Coming soon');
-      return;
-    }
-
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const NityaKarmaView()),
@@ -176,7 +146,6 @@ class _HomeViewState extends State<HomeView> {
         : Get.put(SubscriptionController(), permanent: true);
     final mediaQuery = MediaQuery.of(context);
     final width = mediaQuery.size.width;
-    final hasPilotAccess = _hasPilotAccess();
     final safeBottom = CommonBottomNav.bottomInset(mediaQuery);
     final scale = (width / 390).clamp(0.84, 1.08);
     final navHeight = CommonBottomNav.navHeight(safeBottom);
@@ -275,13 +244,11 @@ class _HomeViewState extends State<HomeView> {
                         _FeatureCard(
                           title: 'darshan'.tr,
                           assetName: 'assets/images/darshan.svg',
-                          badgeText: hasPilotAccess ? null : 'coming_soon'.tr,
                           onTap: () => _openDarshan(context),
                         ),
                         _FeatureCard(
                           title: 'ask_pandit'.tr,
                           assetName: 'assets/images/chants.svg',
-                          badgeText: hasPilotAccess ? null : 'coming_soon'.tr,
                           onTap: () => _openAskPandit(context),
                         ),
                         _FeatureCard(
@@ -298,8 +265,7 @@ class _HomeViewState extends State<HomeView> {
                         ),
                         _FeatureCard(
                           title: 'nitya_karma'.tr,
-                          assetName: 'assets/images/dailyjapa.svg',
-                          badgeText: hasPilotAccess ? null : 'coming_soon'.tr,
+                          assetName: 'assets/images/nityakarma.svg',
                           onTap: () => _openNityaKarma(context),
                         ),
                       ],
@@ -588,13 +554,11 @@ class _FeatureCard extends StatelessWidget {
     required this.title,
     required this.assetName,
     this.onTap,
-    this.badgeText,
   });
 
   final String title;
   final String assetName;
   final VoidCallback? onTap;
-  final String? badgeText;
 
   @override
   Widget build(BuildContext context) {
@@ -656,28 +620,6 @@ class _FeatureCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                if (badgeText != null) ...[
-                  SizedBox(height: 8 * scale),
-                  Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 10 * scale,
-                      vertical: 4 * scale,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.homePrimary.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: Text(
-                      badgeText!,
-                      style: TextStyle(
-                        fontSize: 11 * scale,
-                        color: AppColors.homePrimary,
-                        fontWeight: FontWeight.w600,
-                        letterSpacing: 0.2,
-                      ),
-                    ),
-                  ),
-                ],
               ],
             ),
           ),

@@ -85,11 +85,11 @@ class AskPanditController extends GetxController {
   Future<void> sendQuestion(String question) async {
     final text = question.trim();
     if (text.isEmpty) {
-      ToastUtils.show('Question is required.');
+      ToastUtils.show('ask_pandit_question_required'.tr);
       return;
     }
     if (text.length > 2000) {
-      ToastUtils.show('Question max 2000 characters allowed.');
+      ToastUtils.show('ask_pandit_question_limit'.tr);
       return;
     }
 
@@ -98,7 +98,7 @@ class AskPanditController extends GetxController {
         : Get.put(ProfileController(), permanent: true);
     await profileController.ensureProfileLoaded();
     if (!_isProfileComplete()) {
-      ToastUtils.show('Please complete your profile birth details first.');
+      ToastUtils.show('ask_pandit_profile_required'.tr);
       return;
     }
 
@@ -107,7 +107,7 @@ class AskPanditController extends GetxController {
         : Get.put(SubscriptionController(), permanent: true);
     await subscriptionController.ensurePlansLoaded();
     if (!profileController.hasActiveSubscription) {
-      ToastUtils.show('Active subscription is required to use Ask Pandit.');
+      ToastUtils.show('ask_pandit_subscription_required'.tr);
       return;
     }
 
@@ -141,7 +141,7 @@ class AskPanditController extends GetxController {
         _replaceTypingBubble(
           response.message.isNotEmpty
               ? response.message
-              : 'Unable to get a response from Ask Pandit right now.',
+              : 'ask_pandit_response_unavailable'.tr,
         );
         return;
       }
@@ -154,10 +154,10 @@ class AskPanditController extends GetxController {
       _replaceTypingBubble(
         (answer != null && answer.isNotEmpty)
             ? answer
-            : 'Ask Pandit has not sent a response yet.',
+            : 'ask_pandit_no_response_yet'.tr,
       );
     } catch (_) {
-      _replaceTypingBubble('Something went wrong. Please try again.');
+      _replaceTypingBubble('something_went_wrong_try_again'.tr);
     } finally {
       isSending.value = false;
     }

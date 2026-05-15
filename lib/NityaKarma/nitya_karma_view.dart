@@ -97,7 +97,7 @@ class _PinnedHeader extends StatelessWidget {
           _TopBar(scale: scale, profileController: profileController),
           SizedBox(height: 10 * scale),
           Text(
-            'Nitya Karma',
+            'nitya_karma'.tr,
             style: theme.textTheme.displaySmall?.copyWith(
               color: const Color(0xFF861015),
               fontSize: 33 * scale,
@@ -128,30 +128,7 @@ class _PinnedHeader extends StatelessWidget {
   }
 
   String _formatLongDate(DateTime date) {
-    const months = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ];
-    const days = [
-      'Monday',
-      'Tuesday',
-      'Wednesday',
-      'Thursday',
-      'Friday',
-      'Saturday',
-      'Sunday',
-    ];
-    return '${days[date.weekday - 1]}, ${date.day} ${months[date.month - 1]}';
+    return '${_weekdayLabel(date.weekday)}, ${date.day} ${_monthLabel(date.month)}';
   }
 }
 
@@ -188,7 +165,7 @@ class _ScrollableBody extends StatelessWidget {
           else ...[
             Center(
               child: Text(
-                'Sacred Routine',
+                'nitya_karma_sacred_routine'.tr,
                 textAlign: TextAlign.center,
                 style: theme.textTheme.displaySmall?.copyWith(
                   color: const Color(0xFF861015),
@@ -229,7 +206,7 @@ class _ScrollableBody extends StatelessWidget {
               if (schedules.isNotEmpty) ...[
                 Center(
                   child: Text(
-                    'Today\'s Checklist',
+                    'nitya_karma_todays_checklist'.tr,
                     textAlign: TextAlign.center,
                     style: theme.textTheme.displaySmall?.copyWith(
                       color: const Color(0xFF861015),
@@ -263,30 +240,7 @@ class _ScrollableBody extends StatelessWidget {
   }
 
   String _formatLongDate(DateTime date) {
-    const months = [
-      'January',
-      'February',
-      'March',
-      'April',
-      'May',
-      'June',
-      'July',
-      'August',
-      'September',
-      'October',
-      'November',
-      'December',
-    ];
-    const days = [
-      'Monday',
-      'Tuesday',
-      'Wednesday',
-      'Thursday',
-      'Friday',
-      'Saturday',
-      'Sunday',
-    ];
-    return '${days[date.weekday - 1]}, ${date.day} ${months[date.month - 1]}';
+    return '${_weekdayLabel(date.weekday)}, ${date.day} ${_monthLabel(date.month)}';
   }
 
   String _buildSectionHeading(NityaKarmaSection section) {
@@ -372,7 +326,7 @@ class _DaySelector extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final safeLabels = labels.isEmpty
-        ? const ['M', 'T', 'W', 'T', 'F', 'S', 'S']
+        ? _fallbackDayStrip()
         : labels;
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -434,19 +388,20 @@ class _SummaryPill extends StatelessWidget {
       alignment: WrapAlignment.center,
       children: [
         _MetricChip(
-          label: '${summary!.completedHabits ?? 0} done',
+          label: '${summary!.completedHabits ?? 0} ${'nitya_karma_done'.tr}',
           background: const Color(0xFFE7F6E8),
           color: const Color(0xFF2D8A42),
           scale: scale,
         ),
         _MetricChip(
-          label: '${summary!.pendingHabits ?? 0} pending',
+          label: '${summary!.pendingHabits ?? 0} ${'nitya_karma_pending'.tr}',
           background: const Color(0xFFFFEFE8),
           color: const Color(0xFFB55034),
           scale: scale,
         ),
         _MetricChip(
-          label: '${summary!.completionPercentage ?? 0}% complete',
+          label:
+              '${summary!.completionPercentage ?? 0}% ${'nitya_karma_complete'.tr}',
           background: const Color(0xFFF6E7CF),
           color: const Color(0xFF8D5E11),
           scale: scale,
@@ -520,7 +475,7 @@ class _ProgressInsights extends StatelessWidget {
     if (streak?.currentStreak != null) {
       chips.add(
         _MetricChip(
-          label: '${streak!.currentStreak} day streak',
+          label: '${streak!.currentStreak} ${'nitya_karma_day_streak'.tr}',
           background: const Color(0xFFFFEFE0),
           color: const Color(0xFFB45620),
           scale: scale,
@@ -530,7 +485,8 @@ class _ProgressInsights extends StatelessWidget {
     if (streak?.longestStreak != null) {
       chips.add(
         _MetricChip(
-          label: 'Best ${streak!.longestStreak} days',
+          label:
+              '${'nitya_karma_best'.tr} ${streak!.longestStreak} ${'nitya_karma_days'.tr}',
           background: const Color(0xFFF2E9FF),
           color: const Color(0xFF7443B6),
           scale: scale,
@@ -540,7 +496,8 @@ class _ProgressInsights extends StatelessWidget {
     if (weeklySummary?.completedDays != null) {
       chips.add(
         _MetricChip(
-          label: 'Week ${weeklySummary!.completedDays}/7 days',
+          label:
+              '${'nitya_karma_week'.tr} ${weeklySummary!.completedDays}/7 ${'nitya_karma_days'.tr}',
           background: const Color(0xFFE8F1FF),
           color: const Color(0xFF2F68B1),
           scale: scale,
@@ -658,7 +615,7 @@ class _RoutineCard extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            item.title ?? 'Untitled',
+                            item.title ?? 'untitled'.tr,
                             style: TextStyle(
                               color: const Color(0xFF861015),
                               fontSize: 15.8 * scale,
@@ -775,7 +732,7 @@ class _DeityFocusSection extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              item.title ?? 'Untitled',
+                              item.title ?? 'untitled'.tr,
                               style: TextStyle(
                                 color: const Color(0xFF861015),
                                 fontSize: 15 * scale,
@@ -1078,7 +1035,7 @@ class _EmptyState extends StatelessWidget {
           ),
           SizedBox(height: 14 * scale),
           Text(
-            'No Nitya Karma scheduled',
+            'nitya_karma_empty_title'.tr,
             textAlign: TextAlign.center,
             style: TextStyle(
               color: const Color(0xFF861015),
@@ -1088,7 +1045,7 @@ class _EmptyState extends StatelessWidget {
           ),
           SizedBox(height: 10 * scale),
           Text(
-            'No checklist items were found for $selectedDate from the user API.',
+            'nitya_karma_empty_message'.trParams({'date': selectedDate}),
             textAlign: TextAlign.center,
             style: TextStyle(
               color: const Color(0xFF9A4A44),
@@ -1100,4 +1057,47 @@ class _EmptyState extends StatelessWidget {
       ),
     );
   }
+}
+
+List<String> _fallbackDayStrip() => [
+  'weekday_short_mon'.tr,
+  'weekday_short_tue'.tr,
+  'weekday_short_wed'.tr,
+  'weekday_short_thu'.tr,
+  'weekday_short_fri'.tr,
+  'weekday_short_sat'.tr,
+  'weekday_short_sun'.tr,
+];
+
+String _monthLabel(int month) {
+  const keys = [
+    'month_january',
+    'month_february',
+    'month_march',
+    'month_april',
+    'month_may',
+    'month_june',
+    'month_july',
+    'month_august',
+    'month_september',
+    'month_october',
+    'month_november',
+    'month_december',
+  ];
+  if (month < 1 || month > 12) return '';
+  return keys[month - 1].tr;
+}
+
+String _weekdayLabel(int weekday) {
+  const keys = [
+    'weekday_monday',
+    'weekday_tuesday',
+    'weekday_wednesday',
+    'weekday_thursday',
+    'weekday_friday',
+    'weekday_saturday',
+    'weekday_sunday',
+  ];
+  if (weekday < 1 || weekday > 7) return '';
+  return keys[weekday - 1].tr;
 }

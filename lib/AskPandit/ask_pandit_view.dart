@@ -231,7 +231,7 @@ class _HeroPanel extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Ask a Pandit',
+          'ask_pandit'.tr,
           style: TextStyle(
             color: const Color(0xFF861015),
             fontSize: 34 * scale,
@@ -255,7 +255,7 @@ class _HeroPanel extends StatelessWidget {
             SizedBox(width: 10 * scale),
             Expanded(
               child: Text(
-                'A.I Pandit is online and meditating on your queries.',
+                'ask_pandit_online'.tr,
                 style: TextStyle(
                   color: const Color(0xFF861015),
                   fontSize: 13.8 * scale,
@@ -303,7 +303,7 @@ class _HeroPanel extends StatelessWidget {
         SizedBox(height: 18 * scale),
         Center(
           child: Text(
-            'Pranam!',
+            'pranam'.tr,
             style: TextStyle(
               color: const Color(0xFF861015),
               fontSize: 30 * scale,
@@ -316,7 +316,7 @@ class _HeroPanel extends StatelessWidget {
           child: ConstrainedBox(
             constraints: BoxConstraints(maxWidth: 290 * scale),
             child: Text(
-              'I am your A.I digital Pandit.\nHow may I assist you in your spiritual journey today?',
+              'ask_pandit_intro'.tr,
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: const Color(0xFF861015),
@@ -373,7 +373,7 @@ class _LocationToggle extends StatelessWidget {
           SizedBox(width: 8 * scale),
           Expanded(
             child: Text(
-              'Use current location for Panchang context',
+              'ask_pandit_use_location'.tr,
               style: TextStyle(
                 color: const Color(0xFF7A332B),
                 fontSize: 11.8 * scale,
@@ -428,7 +428,7 @@ class _AccessCard extends StatelessWidget {
               SizedBox(width: 12 * scale),
               Expanded(
                 child: Text(
-                  'You need both complete profile details and an active subscription to unlock Ask Pandit.',
+                  'ask_pandit_access_required'.tr,
                   style: TextStyle(
                     fontSize: 13.5 * scale,
                     color: const Color(0xFF7A332B),
@@ -637,7 +637,7 @@ class _ComposerBar extends StatelessWidget {
                   },
                   decoration: InputDecoration(
                     counterText: '',
-                    hintText: 'Ask about rituals, shlokas...',
+                    hintText: 'ask_pandit_hint'.tr,
                     hintStyle: TextStyle(
                       color: const Color(0xFF8B8B8B),
                       fontSize: 16 * scale,

@@ -12,6 +12,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class ApiService extends GetConnect {
+  String _requestLanguageCode() {
+    final code = StorageService.getLanguage()?.trim();
+    return (code == null || code.isEmpty) ? 'en' : code;
+  }
+
   void _logRequest({
     required String method,
     required String endpoint,
@@ -461,7 +466,11 @@ class ApiService extends GetConnect {
     double? lat,
     double? lng,
   }) {
-    final body = <String, dynamic>{'question': question, 'stream': stream};
+    final body = <String, dynamic>{
+      'question': question,
+      'stream': stream,
+      'language': _requestLanguageCode(),
+    };
     if (sessionId != null && sessionId.trim().isNotEmpty) {
       body['session_id'] = sessionId.trim();
     }
@@ -479,7 +488,7 @@ class ApiService extends GetConnect {
   }
 
   Future<Response<dynamic>> getAskPanditWelcomeMessage({String? sessionId}) {
-    final body = <String, dynamic>{};
+    final body = <String, dynamic>{'language': _requestLanguageCode()};
     if (sessionId != null && sessionId.trim().isNotEmpty) {
       body['session_id'] = sessionId.trim();
     }
@@ -493,7 +502,7 @@ class ApiService extends GetConnect {
   }
 
   Future<Response<dynamic>> getTodayNityaKarmaChecklist({String? date}) {
-    final body = <String, dynamic>{};
+    final body = <String, dynamic>{'language': _requestLanguageCode()};
     if (date != null && date.isNotEmpty) {
       body['date'] = date;
     }
@@ -512,7 +521,10 @@ class ApiService extends GetConnect {
     required int isCompleted,
     String? date,
   }) {
-    final body = <String, dynamic>{'is_completed': isCompleted};
+    final body = <String, dynamic>{
+      'is_completed': isCompleted,
+      'language': _requestLanguageCode(),
+    };
     if (scheduleId != null) {
       body['schedule_id'] = scheduleId;
     }

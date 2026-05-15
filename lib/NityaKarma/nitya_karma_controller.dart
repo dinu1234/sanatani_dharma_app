@@ -93,7 +93,7 @@ class NityaKarmaController extends GetxController {
     final requestId = item.toggleRequestId;
     if (requestId == null || togglingItemKeys.contains(requestId)) {
       if (requestId == null) {
-        ToastUtils.show('Unable to update this habit right now.');
+        ToastUtils.show('nitya_karma_update_unavailable'.tr);
       }
       return;
     }
