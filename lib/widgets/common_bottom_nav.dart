@@ -187,15 +187,15 @@ class CommonBottomNav extends StatelessWidget {
   String _labelFor(AppNavItem item) {
     switch (item) {
       case AppNavItem.home:
-        return 'Home';
+        return 'home'.tr;
       case AppNavItem.panchang:
-        return 'Panchang';
+        return 'panchang'.tr;
       case AppNavItem.sanathanId:
-        return 'Sanathan ID';
+        return 'sanathan_id'.tr;
       case AppNavItem.chants:
-        return 'Chants';
+        return 'chants'.tr;
       case AppNavItem.ganaMatch:
-        return 'Gana Match';
+        return 'gana_match'.tr;
     }
   }
 }

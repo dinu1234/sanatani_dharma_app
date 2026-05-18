@@ -24,9 +24,11 @@ class ProfileController extends GetxController {
   final isUpdatingImage = false.obs;
   final isLoggingOut = false.obs;
   final profile = Rxn<ProfileResponseData>();
+  Future<void>? _loadProfileFuture;
 
   ProfileUser? get user => profile.value?.user;
   ProfileSubscription? get subscription => profile.value?.subscription;
+  double get srcBalance => user?.coin ?? 0;
   String get fullName => user?.fullName?.trim().isNotEmpty == true
       ? user!.fullName!
       : 'User';
@@ -57,6 +59,9 @@ class ProfileController extends GetxController {
     return status == 'active';
   }
 
+  String? get subscriptionExpiryAt =>
+      user?.subscriptionExpiryAt ?? subscription?.endDate;
+
   @override
   void onInit() {
     super.onInit();
@@ -67,33 +72,44 @@ class ProfileController extends GetxController {
 
   Future<void> ensureProfileLoaded() async {
     if (StorageService.getToken()?.isNotEmpty != true) return;
-    while (isLoading.value) {
-      await Future.delayed(const Duration(milliseconds: 50));
+    while (_loadProfileFuture != null) {
+      await _loadProfileFuture;
     }
     if (profile.value != null) return;
     await loadProfile(silent: true);
   }
 
   Future<void> loadProfile({bool silent = false}) async {
+    if (_loadProfileFuture != null) {
+      await _loadProfileFuture;
+      return;
+    }
+
     if (!silent) {
       isLoading.value = true;
     }
 
-    try {
-      final model = await _repository.getProfile();
-      if (!model.success) {
-        if (model.message.isNotEmpty && !silent) {
-          ToastUtils.show(model.message);
+    final future = () async {
+      try {
+        final model = await _repository.getProfile();
+        if (!model.success) {
+          if (model.message.isNotEmpty && !silent) {
+            ToastUtils.show(model.message);
+          }
+          return;
         }
-        return;
-      }
 
-      profile.value = model.data;
-    } finally {
-      if (!silent) {
-        isLoading.value = false;
+        profile.value = model.data;
+      } finally {
+        if (!silent) {
+          isLoading.value = false;
+        }
+        _loadProfileFuture = null;
       }
-    }
+    }();
+
+    _loadProfileFuture = future;
+    await future;
   }
 
   Future<void> pickAndUploadProfileImage() async {

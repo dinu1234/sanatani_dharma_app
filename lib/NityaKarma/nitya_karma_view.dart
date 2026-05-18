@@ -8,18 +8,39 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 
-class NityaKarmaView extends StatelessWidget {
+class NityaKarmaView extends StatefulWidget {
   const NityaKarmaView({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final controller = Get.isRegistered<NityaKarmaController>()
+  State<NityaKarmaView> createState() => _NityaKarmaViewState();
+}
+
+class _NityaKarmaViewState extends State<NityaKarmaView> {
+  late final NityaKarmaController controller;
+  late final ProfileController profileController;
+
+  @override
+  void initState() {
+    super.initState();
+    controller = Get.isRegistered<NityaKarmaController>()
         ? Get.find<NityaKarmaController>()
         : Get.put(NityaKarmaController(), permanent: true);
-    final profileController = Get.isRegistered<ProfileController>()
+    profileController = Get.isRegistered<ProfileController>()
         ? Get.find<ProfileController>()
         : Get.put(ProfileController(), permanent: true);
 
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (!controller.isLoading.value &&
+          !controller.isRefreshing.value &&
+          !controller.hasData) {
+        controller.loadChecklist(showFailureToast: false);
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final scale = (width / 390).clamp(0.92, 1.12);
     final topInset = MediaQuery.of(context).padding.top;

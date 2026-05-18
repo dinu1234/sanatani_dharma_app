@@ -18,10 +18,21 @@ class ContentController extends GetxController {
   final isLoadingMantras = false.obs;
   final sponsors = <SponsorItem>[].obs;
   final mantras = <MantraItem>[].obs;
+  final selectedMantraId = RxnInt();
 
   SponsorItem? get featuredSponsor =>
       sponsors.isNotEmpty ? sponsors.first : null;
-  MantraItem? get featuredMantra => mantras.isNotEmpty ? mantras.first : null;
+  MantraItem? get featuredMantra {
+    final selectedId = selectedMantraId.value;
+    if (selectedId != null) {
+      for (final mantra in mantras) {
+        if (mantra.id == selectedId) {
+          return mantra;
+        }
+      }
+    }
+    return mantras.isNotEmpty ? mantras.first : null;
+  }
 
   @override
   void onInit() {
@@ -73,6 +84,11 @@ class ContentController extends GetxController {
       final model = await _repository.getMantras();
       if (model.success) {
         mantras.assignAll(model.data?.mantras ?? const []);
+        if (mantras.isEmpty) {
+          selectedMantraId.value = null;
+        } else if (!mantras.any((item) => item.id == selectedMantraId.value)) {
+          selectedMantraId.value = mantras.first.id;
+        }
       }
     } finally {
       isLoadingMantras.value = false;
@@ -88,5 +104,11 @@ class ContentController extends GetxController {
     if (mantras.isEmpty) {
       await loadMantras();
     }
+  }
+
+  void selectMantra(MantraItem mantra) {
+    final mantraId = mantra.id;
+    if (mantraId == null) return;
+    selectedMantraId.value = mantraId;
   }
 }

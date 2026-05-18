@@ -88,6 +88,21 @@ class _NotificationTile extends StatelessWidget {
 
   final AppNotificationItem item;
 
+  String _formatNotificationDate(String? value) {
+    if (value == null || value.trim().isEmpty) return '';
+    final parsed = DateTime.tryParse(value.trim());
+    if (parsed == null) return value;
+
+    final hour = parsed.hour % 12 == 0 ? 12 : parsed.hour % 12;
+    final minute = parsed.minute.toString().padLeft(2, '0');
+    final suffix = parsed.hour >= 12 ? 'PM' : 'AM';
+    final day = parsed.day.toString().padLeft(2, '0');
+    final month = parsed.month.toString().padLeft(2, '0');
+    final year = parsed.year.toString();
+
+    return '$day/$month/$year, $hour:$minute $suffix';
+  }
+
   @override
   Widget build(BuildContext context) {
     final controller = Get.find<NotificationsController>();
@@ -187,7 +202,7 @@ class _NotificationTile extends StatelessWidget {
                   ),
                   const SizedBox(height: 10),
                   Text(
-                    item.createdAt ?? '',
+                    _formatNotificationDate(item.createdAt),
                     style: const TextStyle(
                       fontSize: 12,
                       color: Color(0xFF7B7B7B),

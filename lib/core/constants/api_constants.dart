@@ -24,6 +24,9 @@ class ApiConstants {
       "user/subscriptions/create_order.php";
   static const String verifySubscriptionPayment =
       "user/subscriptions/verify_payment.php";
+  static const String createSrcOrder = "user/src/create_src_order.php";
+  static const String verifySrcPayment = "user/src/verify_src_payment.php";
+  static const String srcHistory = "user/src/src_history.php";
   static const String getJapaStatus = "user/japa/get_japa_status.php";
   static const String saveJapaProgress = "user/japa/save_japa_progress.php";
   static const String getTodayPanchang = "user/panchang/get_today_panchang.php";

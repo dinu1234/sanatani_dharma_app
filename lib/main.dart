@@ -3,6 +3,7 @@ import 'package:dharma_app/core/constants/app_colors.dart';
 import 'package:dharma_app/firebase_options.dart';
 import 'package:dharma_app/services/notification_service.dart';
 import 'package:dharma_app/language/translations.dart';
+import 'package:dharma_app/services/app_info_service.dart';
 import 'package:dharma_app/services/storage_service.dart';
 import 'package:dharma_app/splash_view.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -26,6 +27,7 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await StorageService.init();
+  await AppInfoService.init();
   final appTranslations = await AppTranslations.loadFromAssets();
   AppBindings.init();
 
@@ -78,6 +80,6 @@ class DharmaApp extends StatelessWidget {
 
   Locale _getSavedLocale() {
     final langCode = StorageService.getLanguage();
-    return Locale(langCode ?? 'en');
+    return Locale(langCode);
   }
 }

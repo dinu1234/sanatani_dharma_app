@@ -5,6 +5,7 @@ import 'package:dharma_app/Login/LoginModel.dart';
 import 'package:dharma_app/Login/login_repository.dart';
 import 'package:dharma_app/core/utils/toast_utils.dart';
 import 'package:dharma_app/Profile/profile_setup_view.dart';
+import 'package:dharma_app/services/api_service.dart';
 import 'package:dharma_app/services/notification_service.dart';
 import 'package:dharma_app/services/storage_service.dart';
 import 'package:flutter/material.dart';
@@ -331,6 +332,7 @@ class LoginController extends GetxController {
     }
 
     await StorageService.setToken(model.data!.token!);
+    ApiService.resetAuthFailureGuard();
     if (loginEmail != null && loginEmail.trim().isNotEmpty) {
       await StorageService.setLoginEmail(loginEmail.trim());
     } else if (loginMobile != null && loginMobile.trim().isNotEmpty) {

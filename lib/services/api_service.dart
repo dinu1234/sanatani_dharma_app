@@ -12,9 +12,15 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
 class ApiService extends GetConnect {
+  static bool _isAuthFailureHandled = false;
+
+  static void resetAuthFailureGuard() {
+    _isAuthFailureHandled = false;
+  }
+
   String _requestLanguageCode() {
-    final code = StorageService.getLanguage()?.trim();
-    return (code == null || code.isEmpty) ? 'en' : code;
+    final code = StorageService.getLanguage().trim();
+    return code.isEmpty ? 'en' : code;
   }
 
   void _logRequest({
@@ -78,6 +84,7 @@ class ApiService extends GetConnect {
     String contentType = 'application/json',
     bool requireAuth = false,
     bool showErrorToast = true,
+    Duration? timeout,
   }) async {
     _logRequest(
       method: 'POST',
@@ -108,25 +115,38 @@ class ApiService extends GetConnect {
           endpoint: endpoint,
           error: 'Unauthorized: token missing',
         );
-        if (showErrorToast) {
-          ToastUtils.show("Please login again");
-        }
-        _logout();
+        _handleAuthFailure("Please login again", showToast: showErrorToast);
         return Response(statusCode: 401, statusText: "Unauthorized");
       }
     }
 
     try {
-      final response = await post(endpoint, body, contentType: contentType);
+      final response = await post(
+        endpoint,
+        body,
+        contentType: contentType,
+      ).timeout(timeout ?? httpClient.timeout);
       _logResponse(method: 'POST', endpoint: endpoint, response: response);
+
+      if (_isTimeoutResponse(response)) {
+        if (showErrorToast) {
+          ToastUtils.show("Request timed out. Please try again.");
+        }
+        return Response(
+          statusCode: 408,
+          statusText: "Request timeout",
+          body: response.body,
+        );
+      }
 
       if (requireAuth &&
           (response.statusCode == 400 ||
               response.statusCode == 401 ||
               response.statusCode == 402)) {
-        _logoutWithToast(
+        _handleAuthFailure(
           ApiUtils.message(response.body) ??
               "Session expired. Please login again.",
+          showToast: true,
         );
         return response;
       }
@@ -311,6 +331,7 @@ class ApiService extends GetConnect {
       contentType: 'application/x-www-form-urlencoded',
       requireAuth: true,
       showErrorToast: false,
+      timeout: const Duration(seconds: 60),
     );
   }
 
@@ -387,6 +408,40 @@ class ApiService extends GetConnect {
       contentType: 'application/x-www-form-urlencoded',
       requireAuth: true,
       showErrorToast: false,
+    );
+  }
+
+  Future<Response<dynamic>> createSrcOrder({required int srcQuantity}) {
+    return postRequest(
+      ApiConstants.createSrcOrder,
+      {'src_quantity': srcQuantity},
+      contentType: 'application/x-www-form-urlencoded',
+      requireAuth: true,
+      showErrorToast: false,
+    );
+  }
+
+  Future<Response<dynamic>> verifySrcPayment({
+    required Map<String, dynamic> body,
+  }) {
+    return postRequest(
+      ApiConstants.verifySrcPayment,
+      body,
+      contentType: 'application/x-www-form-urlencoded',
+      requireAuth: true,
+      showErrorToast: false,
+      timeout: const Duration(seconds: 60),
+    );
+  }
+
+  Future<Response<dynamic>> getSrcHistory() {
+    return postRequest(
+      ApiConstants.srcHistory,
+      <String, dynamic>{},
+      contentType: 'application/x-www-form-urlencoded',
+      requireAuth: true,
+      showErrorToast: false,
+      timeout: const Duration(seconds: 60),
     );
   }
 
@@ -544,9 +599,19 @@ class ApiService extends GetConnect {
     );
   }
 
-  void _logoutWithToast(String message) {
+  void _handleAuthFailure(String message, {required bool showToast}) {
+    if (_isAuthFailureHandled) return;
+    _isAuthFailureHandled = true;
+
+    if (showToast) {
+      ToastUtils.show(message, backgroundColor: const Color(0xFFD32F2F));
+    }
     _logout();
-    ToastUtils.show(message, backgroundColor: const Color(0xFFD32F2F));
+  }
+
+  bool _isTimeoutResponse(Response<dynamic> response) {
+    final text = response.statusText?.trim();
+    return text != null && text.startsWith('TimeoutException');
   }
 
   void _logout() {

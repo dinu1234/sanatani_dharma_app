@@ -1,3 +1,5 @@
+import 'package:get/get.dart';
+
 class SubscriptionPlansResponseModel {
   SubscriptionPlansResponseModel({
     required this.success,
@@ -66,11 +68,11 @@ class SubscriptionPlan {
   final double? effectivePrice;
 
   String get displayName =>
-      planName?.trim().isNotEmpty == true ? planName!.trim() : 'Premium Plan';
+      planName?.trim().isNotEmpty == true ? planName!.trim() : 'premium_plan'.tr;
 
   String get displayDescription => description?.trim().isNotEmpty == true
       ? description!.trim()
-      : 'Unlock premium access for Live Darshan.';
+      : 'unlock_premium_access_live_darshan'.tr;
 
   String get displayPrice =>
       'Rs ${(effectivePrice ?? offerPrice ?? price ?? 0).toStringAsFixed(0)}';
@@ -86,15 +88,15 @@ class SubscriptionPlan {
 
   String get durationLabel {
     final days = durationDays;
-    if (days == null || days <= 0) return 'Premium access';
-    return '$days days access';
+    if (days == null || days <= 0) return 'premium_access'.tr;
+    return 'days_access'.trParams({'days': '$days'});
   }
 
   String get coinRewardLabel {
     final coins = coinReward;
-    if (coins == null || coins <= 0) return 'Premium benefits';
+    if (coins == null || coins <= 0) return 'premium_benefits'.tr;
     final rounded = coins % 1 == 0 ? coins.toStringAsFixed(0) : '$coins';
-    return '$rounded SRC reward';
+    return 'src_reward'.trParams({'amount': rounded});
   }
 
   factory SubscriptionPlan.fromJson(Map<String, dynamic> json) {

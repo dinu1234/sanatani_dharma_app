@@ -3,6 +3,7 @@ import 'dart:math' as math;
 
 import 'package:audioplayers/audioplayers.dart';
 import 'package:dharma_app/content/content_controller.dart';
+import 'package:dharma_app/content/content_model.dart';
 import 'package:dharma_app/core/constants/api_constants.dart';
 import 'package:dharma_app/core/constants/app_colors.dart';
 import 'package:dharma_app/core/utils/toast_utils.dart';
@@ -27,6 +28,7 @@ class _ChantsViewState extends State<ChantsView> with WidgetsBindingObserver {
   bool _hapticsOn = false;
   bool _isAudioLoading = false;
   bool _isPlayingAudio = false;
+  bool _isMantraSelectorOpen = false;
   bool _allowPop = false;
   String? _activeAudioUrl;
   int? _boundMantraId;
@@ -145,6 +147,25 @@ class _ChantsViewState extends State<ChantsView> with WidgetsBindingObserver {
     if (!mounted) return;
     setState(() => _allowPop = true);
     Navigator.of(context).pop();
+  }
+
+  Future<void> _selectMantra(
+    ContentController contentController,
+    JapaController japaController,
+    MantraItem mantra,
+  ) async {
+    await japaController.saveNow();
+    await _audioPlayer.stop();
+    if (!mounted) return;
+
+    setState(() {
+      _isPlayingAudio = false;
+      _isAudioLoading = false;
+      _activeAudioUrl = null;
+      _isMantraSelectorOpen = false;
+    });
+
+    contentController.selectMantra(mantra);
   }
 
   @override
@@ -308,50 +329,152 @@ class _ChantsViewState extends State<ChantsView> with WidgetsBindingObserver {
               }),
               SizedBox(height: 14 * scale * verticalScale),
               Obx(() {
+                final selectedMantra = contentController.featuredMantra;
+                final mantras = contentController.mantras;
                 final mantraName = japaController.mantraName.trim().isNotEmpty
                     ? japaController.mantraName
-                    : contentController.featuredMantra?.name?.trim().isNotEmpty ==
+                    : selectedMantra?.name?.trim().isNotEmpty ==
                             true
-                        ? contentController.featuredMantra!.name!
+                        ? selectedMantra!.name!
                         : 'Om Shreem Maha\nLakshmiyei Namaha';
 
-                return Container(
-                  width: double.infinity,
-                  padding: EdgeInsets.symmetric(
-                    horizontal: (compactWidth ? 14 : 18) * scale,
-                    vertical: 16 * scale * verticalScale,
-                  ),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(18 * scale),
-                    gradient: const LinearGradient(
-                      colors: [
-                        Color(0xFFD49A42),
-                        Color(0xFFF9E788),
-                        Color(0xFFF8E977),
-                      ],
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                    ),
-                    boxShadow: const [
-                      BoxShadow(
-                        color: Color(0x1C000000),
-                        blurRadius: 12,
-                        offset: Offset(0, 5),
+                return Column(
+                  children: [
+                    GestureDetector(
+                      onTap: mantras.length <= 1
+                          ? null
+                          : () {
+                              setState(() {
+                                _isMantraSelectorOpen = !_isMantraSelectorOpen;
+                              });
+                            },
+                      child: Container(
+                        width: double.infinity,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: (compactWidth ? 14 : 18) * scale,
+                          vertical: 16 * scale * verticalScale,
+                        ),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(18 * scale),
+                          gradient: const LinearGradient(
+                            colors: [
+                              Color(0xFFD49A42),
+                              Color(0xFFF9E788),
+                              Color(0xFFF8E977),
+                            ],
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                          ),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Color(0x1C000000),
+                              blurRadius: 12,
+                              offset: Offset(0, 5),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                mantraName,
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize:
+                                      (compactWidth
+                                                  ? 16.8
+                                                  : compactLayout
+                                                  ? 18
+                                                  : 20) *
+                                          scale,
+                                  height: 1.15,
+                                  color: AppColors.homePrimary,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ),
+                            if (mantras.length > 1) ...[
+                              SizedBox(width: 8 * scale),
+                              Icon(
+                                _isMantraSelectorOpen
+                                    ? Icons.keyboard_arrow_up_rounded
+                                    : Icons.keyboard_arrow_down_rounded,
+                                color: AppColors.homePrimary,
+                                size: 24 * scale,
+                              ),
+                            ],
+                          ],
+                        ),
                       ),
-                    ],
-                  ),
-                  child: Text(
-                    mantraName,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize:
-                          (compactWidth ? 16.8 : compactLayout ? 18 : 20) *
-                              scale,
-                      height: 1.15,
-                      color: AppColors.homePrimary,
-                      fontWeight: FontWeight.w700,
                     ),
-                  ),
+                    if (_isMantraSelectorOpen && mantras.length > 1)
+                      Container(
+                        width: double.infinity,
+                        margin: EdgeInsets.only(top: 10 * scale),
+                        padding: EdgeInsets.symmetric(vertical: 8 * scale),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFFFBF0),
+                          borderRadius: BorderRadius.circular(18 * scale),
+                          border: Border.all(color: const Color(0xFFE0C46C)),
+                          boxShadow: const [
+                            BoxShadow(
+                              color: Color(0x12000000),
+                              blurRadius: 10,
+                              offset: Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          children: List.generate(mantras.length, (index) {
+                            final mantra = mantras[index];
+                            final isSelected = mantra.id == selectedMantra?.id;
+                            return InkWell(
+                              onTap: isSelected
+                                  ? () {
+                                      setState(() {
+                                        _isMantraSelectorOpen = false;
+                                      });
+                                    }
+                                  : () => _selectMantra(
+                                      contentController,
+                                      japaController,
+                                      mantra,
+                                    ),
+                              child: Padding(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 14 * scale,
+                                  vertical: 10 * scale,
+                                ),
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        mantra.name?.trim().isNotEmpty == true
+                                            ? mantra.name!
+                                            : '-',
+                                        style: TextStyle(
+                                          fontSize: 15 * scale,
+                                          color: AppColors.homePrimary,
+                                          fontWeight: isSelected
+                                              ? FontWeight.w700
+                                              : FontWeight.w500,
+                                        ),
+                                      ),
+                                    ),
+                                    if (isSelected)
+                                      Icon(
+                                        Icons.check_circle_rounded,
+                                        color: AppColors.homePrimary,
+                                        size: 20 * scale,
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }),
+                        ),
+                      ),
+                  ],
                 );
               }),
               Obx(() {
