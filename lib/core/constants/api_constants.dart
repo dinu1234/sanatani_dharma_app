@@ -39,4 +39,5 @@ class ApiConstants {
       "user/nitya_karma/get_today_checklist.php";
   static const String toggleNityaKarmaCompletion =
       "user/nitya_karma/toggle_completion.php";
+  static const String publicSettings = "user/settings/get_settings.php";
 }

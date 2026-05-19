@@ -3,6 +3,7 @@ import 'package:dharma_app/language/language_view.dart';
 import 'package:dharma_app/no_internet_view.dart';
 import 'package:dharma_app/Profile/profile_setup_view.dart';
 import 'package:dharma_app/services/app_update_service.dart';
+import 'package:dharma_app/services/app_settings_service.dart';
 import 'package:dharma_app/services/network_service.dart';
 import 'package:dharma_app/services/storage_service.dart';
 import 'package:get/get.dart';
@@ -33,6 +34,11 @@ class SplashController extends GetxController {
     if (hasInternet) {
       final canProceed = await AppUpdateService.checkForForcedUpdate();
       if (!canProceed) return;
+
+      final settingsService = Get.isRegistered<AppSettingsService>()
+          ? Get.find<AppSettingsService>()
+          : Get.put(AppSettingsService(), permanent: true);
+      await settingsService.preloadPublicSettings();
 
       final token = StorageService.getToken();
       if (token != null && token.isNotEmpty) {

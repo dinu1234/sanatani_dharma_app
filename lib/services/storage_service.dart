@@ -73,6 +73,14 @@ class StorageService {
     return _prefs.getInt("japa_pending_increment") ?? 0;
   }
 
+  static Future setPublicSettings(String value) async {
+    await _prefs.setString("public_settings", value);
+  }
+
+  static String? getPublicSettings() {
+    return _prefs.getString("public_settings");
+  }
+
   static Future clear() async {
     await _prefs.clear();
   }

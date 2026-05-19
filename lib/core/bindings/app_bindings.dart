@@ -18,6 +18,8 @@ import 'package:dharma_app/content/content_repository.dart';
 import 'package:dharma_app/japa/japa_controller.dart';
 import 'package:dharma_app/japa/japa_repository.dart';
 import 'package:dharma_app/services/api_service.dart';
+import 'package:dharma_app/services/app_settings_service.dart';
+import 'package:dharma_app/settings/app_settings_repository.dart';
 import 'package:get/get.dart';
 
 class AppBindings {
@@ -38,6 +40,20 @@ class AppBindings {
     if (!Get.isRegistered<ProfileRepository>()) {
       Get.put(
         ProfileRepository(apiService: Get.find<ApiService>()),
+        permanent: true,
+      );
+    }
+
+    if (!Get.isRegistered<AppSettingsRepository>()) {
+      Get.put(
+        AppSettingsRepository(apiService: Get.find<ApiService>()),
+        permanent: true,
+      );
+    }
+
+    if (!Get.isRegistered<AppSettingsService>()) {
+      Get.put(
+        AppSettingsService(repository: Get.find<AppSettingsRepository>()),
         permanent: true,
       );
     }

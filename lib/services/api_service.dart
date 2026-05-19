@@ -66,8 +66,11 @@ class ApiService extends GetConnect {
     httpClient.timeout = const Duration(seconds: 30);
 
     httpClient.addRequestModifier<dynamic>((request) {
+      final skipAuth = request.headers['X-Skip-Auth'] == 'true';
+      request.headers.remove('X-Skip-Auth');
+
       final token = StorageService.getToken();
-      if (token != null && token.isNotEmpty) {
+      if (!skipAuth && token != null && token.isNotEmpty) {
         request.headers['Authorization'] = "Bearer $token";
       }
 
@@ -83,6 +86,7 @@ class ApiService extends GetConnect {
     dynamic body, {
     String contentType = 'application/json',
     bool requireAuth = false,
+    bool includeAuthHeader = true,
     bool showErrorToast = true,
     Duration? timeout,
   }) async {
@@ -121,10 +125,16 @@ class ApiService extends GetConnect {
     }
 
     try {
+      final headers = <String, String>{};
+      if (!includeAuthHeader) {
+        headers['X-Skip-Auth'] = 'true';
+      }
+
       final response = await post(
         endpoint,
         body,
         contentType: contentType,
+        headers: headers,
       ).timeout(timeout ?? httpClient.timeout);
       _logResponse(method: 'POST', endpoint: endpoint, response: response);
 
@@ -595,6 +605,21 @@ class ApiService extends GetConnect {
       body,
       contentType: 'application/x-www-form-urlencoded',
       requireAuth: true,
+      showErrorToast: false,
+    );
+  }
+
+  Future<Response<dynamic>> getPublicSettings({String? settingKey}) {
+    final body = <String, dynamic>{};
+    if (settingKey != null && settingKey.trim().isNotEmpty) {
+      body['setting_key'] = settingKey.trim();
+    }
+
+    return postRequest(
+      ApiConstants.publicSettings,
+      body,
+      contentType: 'application/x-www-form-urlencoded',
+      includeAuthHeader: false,
       showErrorToast: false,
     );
   }

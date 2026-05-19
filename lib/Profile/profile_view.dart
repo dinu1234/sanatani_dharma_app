@@ -7,6 +7,7 @@ import 'package:dharma_app/core/widgets/app_loader.dart';
 import 'package:dharma_app/core/widgets/app_svg_asset.dart';
 import 'package:dharma_app/core/widgets/shree_svg.dart';
 import 'package:dharma_app/language/language_controller.dart';
+import 'package:dharma_app/services/app_settings_service.dart';
 import 'package:dharma_app/services/app_info_service.dart';
 import 'package:dharma_app/widgets/common_bottom_nav.dart';
 import 'package:flutter/material.dart';
@@ -76,10 +77,7 @@ class ProfileView extends StatelessWidget {
                             SizedBox(height: 18 * scale),
                             _LanguageCard(scale: scale),
                             SizedBox(height: 18 * scale),
-                            _LogoutCard(
-                              scale: scale,
-                              controller: controller,
-                            ),
+                            _LogoutCard(scale: scale, controller: controller),
                             SizedBox(height: 18 * scale),
                             _TransactionCard(
                               scale: scale,
@@ -134,6 +132,9 @@ class ProfileView extends StatelessWidget {
   }) async {
     final textController = TextEditingController();
     final formKey = GlobalKey<FormState>();
+    final appSettingsService = Get.isRegistered<AppSettingsService>()
+        ? Get.find<AppSettingsService>()
+        : Get.put(AppSettingsService(), permanent: true);
 
     await showModalBottomSheet<void>(
       context: context,
@@ -170,6 +171,15 @@ class ProfileView extends StatelessWidget {
                     fontSize: 13 * scale,
                     height: 1.4,
                     color: const Color(0xFF6A6A6A),
+                  ),
+                ),
+                SizedBox(height: 6 * scale),
+                Text(
+                  appSettingsService.srcUnitPriceLabel,
+                  style: TextStyle(
+                    fontSize: 12.5 * scale,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.profileHeader,
                   ),
                 ),
                 SizedBox(height: 18 * scale),
@@ -567,9 +577,7 @@ class _IdInfoBlock extends StatelessWidget {
         vertical: 9 * scale,
       ),
       decoration: BoxDecoration(
-        color: highlighted
-            ? const Color(0xFFFFF4D6)
-            : const Color(0xFFF8F4EA),
+        color: highlighted ? const Color(0xFFFFF4D6) : const Color(0xFFF8F4EA),
         borderRadius: BorderRadius.circular(14 * scale),
         border: Border.all(
           color: AppColors.homeGoldDark.withValues(alpha: 0.22),
@@ -850,10 +858,7 @@ class _ActionBox extends StatelessWidget {
               SizedBox(
                 width: 68 * scale,
                 height: 68 * scale,
-                child: AppSvgAsset(
-                  assetName: assetName,
-                  fit: BoxFit.contain,
-                ),
+                child: AppSvgAsset(assetName: assetName, fit: BoxFit.contain),
               ),
               Text(
                 title,
@@ -981,12 +986,12 @@ class _LanguageCard extends StatelessWidget {
                                   title: Text(lang['name']!),
                                   trailing:
                                       languageController.selectedLang.value ==
-                                              code
-                                          ? const Icon(
-                                              Icons.check_rounded,
-                                              color: AppColors.homePrimary,
-                                            )
-                                          : null,
+                                          code
+                                      ? const Icon(
+                                          Icons.check_rounded,
+                                          color: AppColors.homePrimary,
+                                        )
+                                      : null,
                                   onTap: () {
                                     languageController.changeLanguage(code);
                                     Navigator.of(context).pop();
@@ -1163,10 +1168,7 @@ class _TransactionCard extends StatelessWidget {
                 ),
                 child: Column(
                   children: [
-                    _TransactionItem(
-                      scale: scale,
-                      transaction: transaction,
-                    ),
+                    _TransactionItem(scale: scale, transaction: transaction),
                     if (index != srcController.transactions.length - 1)
                       Divider(
                         height: 26 * scale,
@@ -1210,10 +1212,7 @@ class _AppVersionFooter extends StatelessWidget {
 }
 
 class _TransactionEmptyState extends StatelessWidget {
-  const _TransactionEmptyState({
-    required this.scale,
-    required this.message,
-  });
+  const _TransactionEmptyState({required this.scale, required this.message});
 
   final double scale;
   final String message;
@@ -1238,10 +1237,7 @@ class _TransactionEmptyState extends StatelessWidget {
 }
 
 class _TransactionItem extends StatelessWidget {
-  const _TransactionItem({
-    required this.scale,
-    required this.transaction,
-  });
+  const _TransactionItem({required this.scale, required this.transaction});
 
   final double scale;
   final SrcHistoryTransaction transaction;
@@ -1280,7 +1276,9 @@ class _TransactionItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final quantity = transaction.srcQuantity ?? 0;
-    final amountText = transaction.isSuccess ? '+$quantity SRC' : '$quantity SRC';
+    final amountText = transaction.isSuccess
+        ? '+$quantity SRC'
+        : '$quantity SRC';
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
