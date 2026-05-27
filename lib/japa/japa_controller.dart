@@ -9,6 +9,8 @@ import 'package:dharma_app/services/storage_service.dart';
 import 'package:get/get.dart';
 
 class JapaController extends GetxController {
+  static const Duration _autoSaveDelay = Duration(seconds: 2);
+
   JapaController({JapaRepository? repository})
       : _repository = repository ??
             (Get.isRegistered<JapaRepository>()
@@ -24,6 +26,7 @@ class JapaController extends GetxController {
   int? _activeMantraId;
   int _pendingIncrement = 0;
   bool _isFetchingRemote = false;
+  Timer? _autoSaveTimer;
 
   bool get isReady => progress.value != null;
   int get count {
@@ -120,6 +123,7 @@ class JapaController extends GetxController {
     _pendingIncrement += 1;
     await _cacheProgress();
     await _cachePendingIncrement();
+    _scheduleAutoSave();
   }
 
   Future<void> saveNow() async {
@@ -205,8 +209,16 @@ class JapaController extends GetxController {
     await StorageService.setJapaPendingIncrement(_pendingIncrement);
   }
 
+  void _scheduleAutoSave() {
+    _autoSaveTimer?.cancel();
+    _autoSaveTimer = Timer(_autoSaveDelay, () {
+      unawaited(saveNow());
+    });
+  }
+
   @override
   void onClose() {
+    _autoSaveTimer?.cancel();
     unawaited(saveNow());
     super.onClose();
   }

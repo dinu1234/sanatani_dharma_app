@@ -166,6 +166,9 @@ class _ChantsViewState extends State<ChantsView> with WidgetsBindingObserver {
     });
 
     contentController.selectMantra(mantra);
+    _boundMantraId = mantra.id;
+    await japaController.ensureLoaded(mantra);
+    unawaited(japaController.refreshFromServer(mantra));
   }
 
   @override

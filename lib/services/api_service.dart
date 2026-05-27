@@ -18,6 +18,8 @@ class ApiService extends GetConnect {
     _isAuthFailureHandled = false;
   }
 
+  static bool get isAuthFailureHandled => _isAuthFailureHandled;
+
   String _requestLanguageCode() {
     final code = StorageService.getLanguage().trim();
     return code.isEmpty ? 'en' : code;
@@ -631,7 +633,7 @@ class ApiService extends GetConnect {
     if (showToast) {
       ToastUtils.show(message, backgroundColor: const Color(0xFFD32F2F));
     }
-    _logout();
+    unawaited(_logout());
   }
 
   bool _isTimeoutResponse(Response<dynamic> response) {
@@ -639,8 +641,8 @@ class ApiService extends GetConnect {
     return text != null && text.startsWith('TimeoutException');
   }
 
-  void _logout() {
-    StorageService.clear();
+  Future<void> _logout() async {
+    await StorageService.clearSession();
     Get.offAll(() => LoginView());
   }
 }

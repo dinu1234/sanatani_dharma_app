@@ -1,4 +1,5 @@
 import 'package:dharma_app/Home/home_view.dart';
+import 'package:dharma_app/Login/LoginView.dart';
 import 'package:dharma_app/language/language_view.dart';
 import 'package:dharma_app/no_internet_view.dart';
 import 'package:dharma_app/Profile/profile_setup_view.dart';
@@ -48,6 +49,11 @@ class SplashController extends GetxController {
         }
 
         Get.offAll(() => const ProfileSetupView());
+        return;
+      }
+
+      if (StorageService.hasSavedLanguage()) {
+        Get.offAll(() => LoginView());
         return;
       }
 

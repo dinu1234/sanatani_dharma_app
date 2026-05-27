@@ -3,6 +3,7 @@ import 'package:dharma_app/Profile/profile_controller.dart';
 import 'package:dharma_app/Profile/profile_model.dart';
 import 'package:dharma_app/Profile/profile_repository.dart';
 import 'package:dharma_app/core/utils/toast_utils.dart';
+import 'package:dharma_app/services/api_service.dart';
 import 'package:dharma_app/services/notification_service.dart';
 import 'package:dharma_app/services/storage_service.dart';
 import 'package:get/get.dart';
@@ -58,7 +59,7 @@ class ProfileSetupController extends GetxController {
     try {
       final model = await _repository.getProfile();
       if (!model.success) {
-        if (model.message.isNotEmpty) {
+        if (model.message.isNotEmpty && !ApiService.isAuthFailureHandled) {
           ToastUtils.show(model.message);
         }
         return;
@@ -88,9 +89,11 @@ class ProfileSetupController extends GetxController {
       );
 
       if (!model.success) {
-        ToastUtils.show(
-          model.message.isEmpty ? 'Failed to update profile' : model.message,
-        );
+        if (!ApiService.isAuthFailureHandled) {
+          ToastUtils.show(
+            model.message.isEmpty ? 'Failed to update profile' : model.message,
+          );
+        }
         return;
       }
 

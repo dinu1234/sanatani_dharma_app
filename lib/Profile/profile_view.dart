@@ -14,8 +14,38 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 
-class ProfileView extends StatelessWidget {
+class ProfileView extends StatefulWidget {
   const ProfileView({super.key});
+
+  @override
+  State<ProfileView> createState() => _ProfileViewState();
+}
+
+class _ProfileViewState extends State<ProfileView> {
+  late final ProfileController _controller;
+  late final SrcController _srcController;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = Get.isRegistered<ProfileController>()
+        ? Get.find<ProfileController>()
+        : Get.put(ProfileController(), permanent: true);
+    _srcController = Get.isRegistered<SrcController>()
+        ? Get.find<SrcController>()
+        : Get.put(SrcController(), permanent: true);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _refreshProfileData(silent: true);
+    });
+  }
+
+  Future<void> _refreshProfileData({bool silent = false}) async {
+    await Future.wait([
+      _controller.loadProfile(silent: silent),
+      _srcController.loadHistory(silent: silent),
+    ]);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,12 +55,6 @@ class ProfileView extends StatelessWidget {
     final scale = (width / 390).clamp(0.84, 1.08);
     final navHeight = CommonBottomNav.navHeight(safeBottom);
     final centerNavSize = CommonBottomNav.centerSize(scale);
-    final controller = Get.isRegistered<ProfileController>()
-        ? Get.find<ProfileController>()
-        : Get.put(ProfileController(), permanent: true);
-    final srcController = Get.isRegistered<SrcController>()
-        ? Get.find<SrcController>()
-        : Get.put(SrcController(), permanent: true);
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
@@ -43,71 +67,76 @@ class ProfileView extends StatelessWidget {
         body: Obx(
           () => Stack(
             children: [
-              SingleChildScrollView(
-                padding: EdgeInsets.only(bottom: centerNavSize * 0.1),
-                child: Column(
-                  children: [
-                    _ProfileHeader(scale: scale, controller: controller),
-                    Transform.translate(
-                      offset: Offset(0, -28 * scale),
-                      child: Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 16 * scale),
-                        child: Column(
-                          children: [
-                            _IdCard(scale: scale, controller: controller),
-                            SizedBox(height: 18 * scale),
-                            _BalanceCard(
-                              scale: scale,
-                              coinText:
-                                  '${srcController.currentBalance.toStringAsFixed(0)} SRC',
-                            ),
-                            SizedBox(height: 18 * scale),
-                            _ActionRow(
-                              scale: scale,
-                              onSendTap: () =>
-                                  ToastUtils.show('send_src_coming_soon'.tr),
-                              onReceiveTap: () =>
-                                  ToastUtils.show('receive_src_coming_soon'.tr),
-                              onAddTap: () => _showAddSrcSheet(
-                                context: context,
+              RefreshIndicator(
+                onRefresh: _refreshProfileData,
+                color: AppColors.profileHeader,
+                child: SingleChildScrollView(
+                  physics: const AlwaysScrollableScrollPhysics(),
+                  padding: EdgeInsets.only(bottom: centerNavSize * 0.1),
+                  child: Column(
+                    children: [
+                      _ProfileHeader(scale: scale, controller: _controller),
+                      Transform.translate(
+                        offset: Offset(0, -28 * scale),
+                        child: Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 16 * scale),
+                          child: Column(
+                            children: [
+                              _IdCard(scale: scale, controller: _controller),
+                              SizedBox(height: 18 * scale),
+                              _BalanceCard(
                                 scale: scale,
-                                srcController: srcController,
+                                coinText:
+                                    '${_srcController.currentBalance.toStringAsFixed(0)} SRC',
                               ),
-                            ),
-                            SizedBox(height: 18 * scale),
-                            _LanguageCard(scale: scale),
-                            SizedBox(height: 18 * scale),
-                            _LogoutCard(scale: scale, controller: controller),
-                            SizedBox(height: 18 * scale),
-                            _TransactionCard(
-                              scale: scale,
-                              srcController: srcController,
-                            ),
-                            SizedBox(height: 16 * scale),
-                            _AppVersionFooter(scale: scale),
-                          ],
+                              SizedBox(height: 18 * scale),
+                              _ActionRow(
+                                scale: scale,
+                                onSendTap: () =>
+                                    ToastUtils.show('send_src_coming_soon'.tr),
+                                onReceiveTap: () =>
+                                    ToastUtils.show('receive_src_coming_soon'.tr),
+                                onAddTap: () => _showAddSrcSheet(
+                                  context: context,
+                                  scale: scale,
+                                  srcController: _srcController,
+                                ),
+                              ),
+                              SizedBox(height: 18 * scale),
+                              _LanguageCard(scale: scale),
+                              SizedBox(height: 18 * scale),
+                              _LogoutCard(scale: scale, controller: _controller),
+                              SizedBox(height: 18 * scale),
+                              _TransactionCard(
+                                scale: scale,
+                                srcController: _srcController,
+                              ),
+                              SizedBox(height: 16 * scale),
+                              _AppVersionFooter(scale: scale),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-              if (controller.isLoading.value ||
-                  controller.isUpdatingImage.value ||
-                  controller.isLoggingOut.value ||
-                  srcController.isCreatingOrder.value ||
-                  srcController.isOpeningCheckout.value ||
-                  srcController.isVerifyingPayment.value)
+              if (_controller.isLoading.value ||
+                  _controller.isUpdatingImage.value ||
+                  _controller.isLoggingOut.value ||
+                  _srcController.isCreatingOrder.value ||
+                  _srcController.isOpeningCheckout.value ||
+                  _srcController.isVerifyingPayment.value)
                 AppLoader(
-                  message: srcController.isOpeningCheckout.value
+                  message: _srcController.isOpeningCheckout.value
                       ? 'opening_payment_gateway'.tr
-                      : srcController.isVerifyingPayment.value
+                      : _srcController.isVerifyingPayment.value
                       ? 'verifying_src_payment'.tr
-                      : srcController.isCreatingOrder.value
+                      : _srcController.isCreatingOrder.value
                       ? 'creating_src_order'.tr
-                      : controller.isLoggingOut.value
+                      : _controller.isLoggingOut.value
                       ? 'logging_out'.tr
-                      : controller.isUpdatingImage.value
+                      : _controller.isUpdatingImage.value
                       ? 'updating_profile_image'.tr
                       : 'loading_profile'.tr,
                 ),

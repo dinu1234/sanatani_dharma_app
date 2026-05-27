@@ -1,6 +1,7 @@
 import 'package:dharma_app/Notifications/notifications_model.dart';
 import 'package:dharma_app/Notifications/notifications_repository.dart';
 import 'package:dharma_app/core/utils/toast_utils.dart';
+import 'package:dharma_app/services/api_service.dart';
 import 'package:dharma_app/services/storage_service.dart';
 import 'package:get/get.dart';
 
@@ -36,7 +37,7 @@ class NotificationsController extends GetxController {
     try {
       final model = await _repository.listNotifications(page: page, limit: limit);
       if (!model.success) {
-        if (model.message.isNotEmpty) {
+        if (model.message.isNotEmpty && !ApiService.isAuthFailureHandled) {
           ToastUtils.show(model.message);
         }
         return;
@@ -60,7 +61,7 @@ class NotificationsController extends GetxController {
         notificationId: notificationId,
       );
       if (!model.success) {
-        if (model.message.isNotEmpty) {
+        if (model.message.isNotEmpty && !ApiService.isAuthFailureHandled) {
           ToastUtils.show(model.message);
         }
         return;

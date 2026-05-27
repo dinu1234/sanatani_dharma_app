@@ -57,6 +57,10 @@ class StorageService {
     return _prefs.getString("language") ?? "en";
   }
 
+  static bool hasSavedLanguage() {
+    return _prefs.containsKey("language");
+  }
+
   static Future setJapaProgress(String value) async {
     await _prefs.setString("japa_progress", value);
   }
@@ -83,5 +87,19 @@ class StorageService {
 
   static Future clear() async {
     await _prefs.clear();
+  }
+
+  static Future clearSession() async {
+    final savedLanguage = _prefs.getString("language");
+    final savedPublicSettings = _prefs.getString("public_settings");
+
+    await _prefs.clear();
+
+    if (savedLanguage != null && savedLanguage.isNotEmpty) {
+      await _prefs.setString("language", savedLanguage);
+    }
+    if (savedPublicSettings != null && savedPublicSettings.isNotEmpty) {
+      await _prefs.setString("public_settings", savedPublicSettings);
+    }
   }
 }

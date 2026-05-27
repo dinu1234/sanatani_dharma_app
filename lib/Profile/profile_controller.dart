@@ -3,6 +3,7 @@ import 'package:dharma_app/Profile/profile_repository.dart';
 import 'package:dharma_app/Login/LoginView.dart';
 import 'package:dharma_app/core/constants/api_constants.dart';
 import 'package:dharma_app/core/utils/toast_utils.dart';
+import 'package:dharma_app/services/api_service.dart';
 import 'package:dharma_app/services/storage_service.dart';
 import 'package:get/get.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -93,7 +94,9 @@ class ProfileController extends GetxController {
       try {
         final model = await _repository.getProfile();
         if (!model.success) {
-          if (model.message.isNotEmpty && !silent) {
+          if (model.message.isNotEmpty &&
+              !silent &&
+              !ApiService.isAuthFailureHandled) {
             ToastUtils.show(model.message);
           }
           return;
@@ -176,7 +179,8 @@ class ProfileController extends GetxController {
       } catch (_) {}
 
       profile.value = null;
-      await StorageService.clear();
+      await StorageService.clearSession();
+      ApiService.resetAuthFailureGuard();
       Get.offAll(() => LoginView());
     } finally {
       isLoggingOut.value = false;

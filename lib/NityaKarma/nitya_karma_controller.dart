@@ -1,6 +1,7 @@
 import 'package:dharma_app/NityaKarma/nitya_karma_model.dart';
 import 'package:dharma_app/NityaKarma/nitya_karma_repository.dart';
 import 'package:dharma_app/core/utils/toast_utils.dart';
+import 'package:dharma_app/services/api_service.dart';
 import 'package:dharma_app/services/storage_service.dart';
 import 'package:get/get.dart';
 
@@ -58,7 +59,9 @@ class NityaKarmaController extends GetxController {
         date: _formatDate(selectedDate.value),
       );
       if (!model.success) {
-        if (showFailureToast && model.message.isNotEmpty) {
+        if (showFailureToast &&
+            model.message.isNotEmpty &&
+            !ApiService.isAuthFailureHandled) {
           ToastUtils.show(model.message);
         }
         return;
@@ -108,7 +111,7 @@ class NityaKarmaController extends GetxController {
       );
 
       if (!model.success) {
-        if (model.message.isNotEmpty) {
+        if (model.message.isNotEmpty && !ApiService.isAuthFailureHandled) {
           ToastUtils.show(model.message);
         }
         return;
