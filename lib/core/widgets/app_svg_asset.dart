@@ -25,6 +25,15 @@ class AppSvgAsset extends StatelessWidget {
   static final Map<String, String> _svgCache = {};
   static final Map<String, Future<String>> _pendingLoads = {};
 
+  static Future<void> preload(String assetName) async {
+    if (_svgCache.containsKey(assetName)) return;
+    final svg = await _pendingLoads.putIfAbsent(
+      assetName,
+      () => rootBundle.loadString(assetName).then(_inlineSvgStyles),
+    );
+    _svgCache[assetName] = svg;
+  }
+
   static String _inlineSvgStyles(String svg) {
     final styleBlockRegex = RegExp(
       r'<style[^>]*>([\s\S]*?)</style>',

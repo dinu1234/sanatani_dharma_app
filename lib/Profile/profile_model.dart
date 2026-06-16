@@ -42,12 +42,105 @@ class GetProfileResponseModel {
   }
 }
 
-class ProfileResponseData {
-  ProfileResponseData({
-    this.user,
-    this.profileImagePath,
-    this.subscription,
+class SearchPlacesResponseModel {
+  SearchPlacesResponseModel({
+    required this.success,
+    required this.message,
+    this.data,
   });
+
+  final bool success;
+  final String message;
+  final SearchPlacesData? data;
+
+  factory SearchPlacesResponseModel.fromJson(Map<String, dynamic> json) {
+    return SearchPlacesResponseModel(
+      success: json['success'] == true,
+      message: json['message']?.toString() ?? '',
+      data: SearchPlacesData.fromJson(json),
+    );
+  }
+}
+
+class SearchPlacesData {
+  SearchPlacesData({this.query, this.suggestions = const []});
+
+  final String? query;
+  final List<LocationSuggestion> suggestions;
+
+  factory SearchPlacesData.fromJson(Map<String, dynamic> json) {
+    final data = json['data'];
+    final source = data is Map<String, dynamic> ? data : json;
+    final suggestions = data is List
+        ? data
+        : source['suggestions'] ?? source['results'] ?? source['places'];
+    return SearchPlacesData(
+      query: _parseString(source['query'] ?? json['query']),
+      suggestions: suggestions is List
+          ? suggestions
+                .whereType<Map>()
+                .map(
+                  (item) => LocationSuggestion.fromJson(
+                    Map<String, dynamic>.from(item),
+                  ),
+                )
+                .toList()
+          : const [],
+    );
+  }
+}
+
+class LocationSuggestion {
+  LocationSuggestion({
+    this.placeName,
+    this.displayName,
+    this.city,
+    this.state,
+    this.country,
+    this.lat,
+    this.lng,
+    this.timezone,
+  });
+
+  final String? placeName;
+  final String? displayName;
+  final String? city;
+  final String? state;
+  final String? country;
+  final double? lat;
+  final double? lng;
+  final String? timezone;
+
+  String get label => placeName?.trim().isNotEmpty == true
+      ? placeName!
+      : displayName?.trim().isNotEmpty == true
+      ? displayName!
+      : [
+          city,
+          state,
+          country,
+        ].where((value) => value?.trim().isNotEmpty == true).join(', ');
+
+  factory LocationSuggestion.fromJson(Map<String, dynamic> json) {
+    return LocationSuggestion(
+      placeName: _parseString(
+        json['place_name'] ?? json['name'] ?? json['label'] ?? json['title'],
+      ),
+      displayName: _parseString(
+        json['display_name'] ?? json['description'] ?? json['address'],
+      ),
+      city: _parseString(json['city']),
+      state: _parseString(json['state']),
+      country: _parseString(json['country']),
+      lat: _parseDouble(json['lat']),
+      lng: _parseDouble(json['lng']),
+      timezone: _parseString(json['timezone']),
+    );
+  }
+}
+
+class ProfileResponseData {
+  ProfileResponseData({this.user, this.profileImagePath, this.subscription});
 
   final ProfileUser? user;
   final String? profileImagePath;
@@ -118,9 +211,8 @@ class ProfileUser {
   final int? tokenVersion;
 
   factory ProfileUser.fromJson(Map<String, dynamic> json) {
-    int? parseInt(dynamic value) => value is int
-        ? value
-        : int.tryParse(value?.toString() ?? '');
+    int? parseInt(dynamic value) =>
+        value is int ? value : int.tryParse(value?.toString() ?? '');
     double? parseDouble(dynamic value) => value is num
         ? value.toDouble()
         : double.tryParse(value?.toString() ?? '');
@@ -172,9 +264,8 @@ class ProfileSubscription {
   final String? status;
 
   factory ProfileSubscription.fromJson(Map<String, dynamic> json) {
-    int? parseInt(dynamic value) => value is int
-        ? value
-        : int.tryParse(value?.toString() ?? '');
+    int? parseInt(dynamic value) =>
+        value is int ? value : int.tryParse(value?.toString() ?? '');
     double? parseDouble(dynamic value) => value is num
         ? value.toDouble()
         : double.tryParse(value?.toString() ?? '');
@@ -189,6 +280,12 @@ class ProfileSubscription {
       status: _parseString(json['status']),
     );
   }
+}
+
+double? _parseDouble(dynamic value) {
+  return value is num
+      ? value.toDouble()
+      : double.tryParse(value?.toString() ?? '');
 }
 
 String? _parseString(dynamic value) {

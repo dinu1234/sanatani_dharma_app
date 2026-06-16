@@ -4,8 +4,6 @@ import 'package:dharma_app/Profile/profile_model.dart';
 import 'package:dharma_app/core/utils/api_utils.dart';
 import 'package:dharma_app/services/api_service.dart';
 import 'package:get/get.dart';
-import 'package:get/get_connect/http/src/multipart/form_data.dart';
-import 'package:get/get_connect/http/src/multipart/multipart_file.dart';
 
 class ProfileRepository {
   ProfileRepository({ApiService? apiService})
@@ -38,6 +36,9 @@ class ProfileRepository {
     String? birthDate,
     String? birthTime,
     String? birthPlace,
+    double? birthLat,
+    double? birthLng,
+    String? birthTimezone,
     String? profileImagePath,
   }) async {
     final fields = <String, dynamic>{};
@@ -54,9 +55,16 @@ class ProfileRepository {
     addIfNotBlank('birth_date', birthDate);
     addIfNotBlank('birth_time', birthTime);
     addIfNotBlank('birth_place', birthPlace);
+    if (birthLat != null) {
+      fields['birth_lat'] = birthLat.toString();
+    }
+    if (birthLng != null) {
+      fields['birth_lng'] = birthLng.toString();
+    }
+    addIfNotBlank('birth_timezone', birthTimezone);
 
-    dynamic payload = fields;
-    var contentType = 'application/x-www-form-urlencoded';
+    dynamic payload = FormData(fields);
+    const contentType = 'multipart/form-data';
 
     if (profileImagePath != null && profileImagePath.trim().isNotEmpty) {
       final file = File(profileImagePath);
@@ -70,7 +78,6 @@ class ProfileRepository {
                 : 'profile_image.jpg',
           ),
         });
-        contentType = 'multipart/form-data';
       }
     }
 
@@ -87,6 +94,23 @@ class ProfileRepository {
     return UpdateProfileResponseModel(
       success: false,
       message: response.statusText ?? 'Failed to update profile',
+    );
+  }
+
+  Future<SearchPlacesResponseModel> searchPlaces({
+    required String query,
+    int limit = 5,
+  }) async {
+    final response = await _apiService.searchPlaces(query: query, limit: limit);
+    final mapBody = ApiUtils.asMap(response.body);
+
+    if (mapBody != null) {
+      return SearchPlacesResponseModel.fromJson(mapBody);
+    }
+
+    return SearchPlacesResponseModel(
+      success: false,
+      message: response.statusText ?? 'Failed to fetch location suggestions',
     );
   }
 }

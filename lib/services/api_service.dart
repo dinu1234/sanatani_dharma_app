@@ -347,6 +347,19 @@ class ApiService extends GetConnect {
     );
   }
 
+  Future<Response<dynamic>> searchPlaces({
+    required String query,
+    int limit = 5,
+  }) {
+    return postRequest(
+      ApiConstants.searchPlaces,
+      FormData({'q': query, 'limit': limit.clamp(1, 10).toString()}),
+      contentType: 'multipart/form-data',
+      requireAuth: true,
+      showErrorToast: false,
+    );
+  }
+
   Future<Response<dynamic>> listNotifications({int page = 1, int limit = 20}) {
     return postRequest(
       ApiConstants.notifications,

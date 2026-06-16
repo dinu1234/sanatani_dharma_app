@@ -1,4 +1,5 @@
 import 'package:dharma_app/Profile/profile_controller.dart';
+import 'package:dharma_app/Profile/profile_setup_view.dart';
 import 'package:dharma_app/Src/src_controller.dart';
 import 'package:dharma_app/Src/src_model.dart';
 import 'package:dharma_app/core/constants/app_colors.dart';
@@ -83,6 +84,16 @@ class _ProfileViewState extends State<ProfileView> {
                           child: Column(
                             children: [
                               _IdCard(scale: scale, controller: _controller),
+                              SizedBox(height: 18 * scale),
+                              _UpdateProfileCard(
+                                scale: scale,
+                                onTap: () async {
+                                  await Get.to(
+                                    () => const ProfileSetupView(),
+                                  );
+                                  await _refreshProfileData(silent: true);
+                                },
+                              ),
                               SizedBox(height: 18 * scale),
                               _BalanceCard(
                                 scale: scale,
@@ -709,6 +720,75 @@ class _ProfilePlaceholder extends StatelessWidget {
         Icons.person_rounded,
         size: 54 * scale,
         color: AppColors.profileHeader.withValues(alpha: 0.45),
+      ),
+    );
+  }
+}
+
+class _UpdateProfileCard extends StatelessWidget {
+  const _UpdateProfileCard({required this.scale, required this.onTap});
+
+  final double scale;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(22 * scale),
+        child: Ink(
+          width: double.infinity,
+          padding: EdgeInsets.symmetric(
+            horizontal: 16 * scale,
+            vertical: 14 * scale,
+          ),
+          decoration: BoxDecoration(
+            color: AppColors.profileCardBackground,
+            borderRadius: BorderRadius.circular(22 * scale),
+            boxShadow: const [
+              BoxShadow(
+                color: AppColors.profileShadow,
+                blurRadius: 14,
+                offset: Offset(0, 6),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Container(
+                width: 42 * scale,
+                height: 42 * scale,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.homePrimary.withValues(alpha: 0.08),
+                ),
+                child: Icon(
+                  Icons.edit_note_rounded,
+                  color: AppColors.homePrimary,
+                  size: 24 * scale,
+                ),
+              ),
+              SizedBox(width: 12 * scale),
+              Expanded(
+                child: Text(
+                  'Update Profile',
+                  style: TextStyle(
+                    fontSize: 16 * scale,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.homePrimary,
+                  ),
+                ),
+              ),
+              Icon(
+                Icons.chevron_right_rounded,
+                color: AppColors.homePrimary,
+                size: 24 * scale,
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

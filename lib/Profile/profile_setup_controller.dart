@@ -28,6 +28,15 @@ class ProfileSetupController extends GetxController {
   final day = RxnString();
   final month = RxnString();
   final year = RxnString();
+  final currentLocationSuggestions = <LocationSuggestion>[].obs;
+  final birthPlaceSuggestions = <LocationSuggestion>[].obs;
+  final selectedCurrentLocation = Rxn<LocationSuggestion>();
+  final selectedBirthPlace = Rxn<LocationSuggestion>();
+  final isSearchingCurrentLocation = false.obs;
+  final isSearchingBirthPlace = false.obs;
+  final List<Worker> _workers = [];
+  int _currentLocationSearchId = 0;
+  int _birthPlaceSearchId = 0;
 
   bool get isLoading => isFetching.value || isSaving.value;
   String get loadingMessage =>
@@ -51,7 +60,37 @@ class ProfileSetupController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    _workers.addAll([
+      debounce<String>(
+        currentLocation,
+        (value) => _searchLocation(
+          query: value,
+          target: currentLocationSuggestions,
+          loading: isSearchingCurrentLocation,
+          isCurrentLocation: true,
+        ),
+        time: const Duration(milliseconds: 300),
+      ),
+      debounce<String>(
+        birthPlace,
+        (value) => _searchLocation(
+          query: value,
+          target: birthPlaceSuggestions,
+          loading: isSearchingBirthPlace,
+          isCurrentLocation: false,
+        ),
+        time: const Duration(milliseconds: 300),
+      ),
+    ]);
     loadProfile();
+  }
+
+  @override
+  void onClose() {
+    for (final worker in _workers) {
+      worker.dispose();
+    }
+    super.onClose();
   }
 
   Future<void> loadProfile() async {
@@ -86,6 +125,9 @@ class ProfileSetupController extends GetxController {
         birthDate: formattedBirthDate,
         birthTime: birthTime.value,
         birthPlace: birthPlace.value,
+        birthLat: selectedBirthPlace.value?.lat,
+        birthLng: selectedBirthPlace.value?.lng,
+        birthTimezone: selectedBirthPlace.value?.timezone,
       );
 
       if (!model.success) {
@@ -112,8 +154,48 @@ class ProfileSetupController extends GetxController {
   }
 
   void updateFullName(String value) => fullName.value = value;
-  void updateCurrentLocation(String value) => currentLocation.value = value;
-  void updateBirthPlace(String value) => birthPlace.value = value;
+  void updateCurrentLocation(String value) {
+    currentLocation.value = value;
+    if (selectedCurrentLocation.value?.label != value.trim()) {
+      selectedCurrentLocation.value = null;
+    }
+  }
+
+  void updateBirthPlace(String value) {
+    birthPlace.value = value;
+    if (selectedBirthPlace.value?.label != value.trim()) {
+      selectedBirthPlace.value = null;
+    }
+  }
+
+  void selectCurrentLocation(LocationSuggestion suggestion) {
+    selectedCurrentLocation.value = suggestion;
+    currentLocation.value = suggestion.label;
+    currentLocationSuggestions.clear();
+  }
+
+  void selectBirthPlace(LocationSuggestion suggestion) {
+    selectedBirthPlace.value = suggestion;
+    birthPlace.value = suggestion.label;
+    birthPlaceSuggestions.clear();
+  }
+
+  void clearCurrentLocation() {
+    _currentLocationSearchId++;
+    selectedCurrentLocation.value = null;
+    currentLocation.value = '';
+    currentLocationSuggestions.clear();
+    isSearchingCurrentLocation.value = false;
+  }
+
+  void clearBirthPlace() {
+    _birthPlaceSearchId++;
+    selectedBirthPlace.value = null;
+    birthPlace.value = '';
+    birthPlaceSuggestions.clear();
+    isSearchingBirthPlace.value = false;
+  }
+
   void updateBirthTime(String value) => birthTime.value = value;
   void updateGender(String? value) => gender.value = value;
   void updateDay(String? value) => day.value = value;
@@ -149,10 +231,18 @@ class ProfileSetupController extends GetxController {
     if (user == null) return;
 
     fullName.value = user.fullName ?? '';
-    currentLocation.value = user.currentLocation ?? '';
-    birthPlace.value = user.birthPlace ?? '';
+    final existingCurrentLocation = user.currentLocation ?? '';
+    final existingBirthPlace = user.birthPlace ?? '';
+    selectedCurrentLocation.value = existingCurrentLocation.trim().isEmpty
+        ? null
+        : LocationSuggestion(placeName: existingCurrentLocation);
+    selectedBirthPlace.value = existingBirthPlace.trim().isEmpty
+        ? null
+        : LocationSuggestion(placeName: existingBirthPlace);
+    currentLocation.value = existingCurrentLocation;
+    birthPlace.value = existingBirthPlace;
     birthTime.value = user.birthTime ?? '';
-    gender.value = user.gender;
+    gender.value = _normalizeGender(user.gender);
 
     final birthDate = user.birthDate;
     if (birthDate == null || birthDate.isEmpty) return;
@@ -163,6 +253,64 @@ class ProfileSetupController extends GetxController {
     year.value = parts[0];
     day.value = int.tryParse(parts[2])?.toString() ?? parts[2];
     month.value = _monthNameFromValue(parts[1]);
+  }
+
+  Future<void> _searchLocation({
+    required String query,
+    required RxList<LocationSuggestion> target,
+    required RxBool loading,
+    required bool isCurrentLocation,
+  }) async {
+    final trimmed = query.trim();
+    final selected = isCurrentLocation
+        ? selectedCurrentLocation.value
+        : selectedBirthPlace.value;
+
+    if (selected?.label == trimmed || trimmed.length < 2) {
+      if (isCurrentLocation) {
+        _currentLocationSearchId++;
+      } else {
+        _birthPlaceSearchId++;
+      }
+      target.clear();
+      loading.value = false;
+      return;
+    }
+
+    final searchId = isCurrentLocation
+        ? ++_currentLocationSearchId
+        : ++_birthPlaceSearchId;
+    loading.value = true;
+    try {
+      final model = await _repository.searchPlaces(query: trimmed, limit: 5);
+      final isLatest = isCurrentLocation
+          ? searchId == _currentLocationSearchId
+          : searchId == _birthPlaceSearchId;
+      if (!isLatest) return;
+
+      if (model.success) {
+        target.assignAll(model.data?.suggestions ?? const []);
+      } else {
+        target.clear();
+      }
+    } finally {
+      final isLatest = isCurrentLocation
+          ? searchId == _currentLocationSearchId
+          : searchId == _birthPlaceSearchId;
+      if (isLatest) {
+        loading.value = false;
+      }
+    }
+  }
+
+  String? _normalizeGender(String? value) {
+    final normalized = value?.trim().toLowerCase();
+    if (normalized == 'male' ||
+        normalized == 'female' ||
+        normalized == 'other') {
+      return normalized;
+    }
+    return null;
   }
 
   bool _validate() {

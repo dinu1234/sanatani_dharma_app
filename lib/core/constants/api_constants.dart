@@ -9,6 +9,8 @@ class ApiConstants {
   static const String googleLogin = "google_login.php";
   static const String updateProfile = "update_profile.php";
   static const String getProfile = "get_profile.php";
+  static const String searchPlaces = "user/location/search_places.php";
+  static const String adminUploadUsersCsv = "admin/users/upload_users_csv.php";
   static const String updateFirebaseToken = "update_firebase_token.php";
   static const String sponsors = "user/sponsors/list_sponsors.php";
   static const String mantras = "user/mantras/list_mantras.php";

@@ -7,13 +7,15 @@ import 'package:dharma_app/content/content_model.dart';
 import 'package:dharma_app/core/constants/api_constants.dart';
 import 'package:dharma_app/core/constants/app_colors.dart';
 import 'package:dharma_app/core/utils/toast_utils.dart';
-import 'package:dharma_app/core/widgets/app_svg_asset.dart';
 import 'package:dharma_app/japa/japa_controller.dart';
 import 'package:dharma_app/widgets/common_bottom_nav.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:get/get.dart';
 import 'package:vibration/vibration.dart';
+
+const String _dailyJapaSvgAsset = 'assets/images/dailyjapa.svg';
 
 class ChantsView extends StatefulWidget {
   const ChantsView({super.key});
@@ -32,11 +34,13 @@ class _ChantsViewState extends State<ChantsView> with WidgetsBindingObserver {
   bool _allowPop = false;
   String? _activeAudioUrl;
   int? _boundMantraId;
+  bool _didPrecacheDailyJapa = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    unawaited(_audioPlayer.setReleaseMode(ReleaseMode.loop));
     _audioPlayer.onPlayerComplete.listen((_) {
       if (!mounted) return;
       setState(() {
@@ -53,6 +57,16 @@ class _ChantsViewState extends State<ChantsView> with WidgetsBindingObserver {
         }
       });
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_didPrecacheDailyJapa) return;
+    _didPrecacheDailyJapa = true;
+    unawaited(
+      const SvgAssetLoader(_dailyJapaSvgAsset).loadBytes(context),
+    );
   }
 
   Future<void> _incrementCount(
@@ -87,11 +101,12 @@ class _ChantsViewState extends State<ChantsView> with WidgetsBindingObserver {
 
     try {
       if (_isPlayingAudio && _activeAudioUrl == audioUrl) {
-        await _audioPlayer.pause().timeout(const Duration(seconds: 5));
+        await _audioPlayer.stop().timeout(const Duration(seconds: 5));
         if (!mounted) return;
         setState(() {
           _isPlayingAudio = false;
           _isAudioLoading = false;
+          _activeAudioUrl = null;
         });
         return;
       }
@@ -607,8 +622,8 @@ class _JapaCounterMandala extends StatelessWidget {
         child: Stack(
           alignment: Alignment.center,
           children: [
-            AppSvgAsset(
-              assetName: 'assets/images/dailyjapa.svg',
+            SvgPicture.asset(
+              _dailyJapaSvgAsset,
               width: outerSize,
               height: outerSize,
               fit: BoxFit.contain,
