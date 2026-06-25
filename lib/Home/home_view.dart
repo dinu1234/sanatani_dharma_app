@@ -15,6 +15,7 @@ import 'package:dharma_app/Profile/profile_view.dart';
 import 'package:dharma_app/Subscription/premium_feature_gate.dart';
 import 'package:dharma_app/Subscription/subscription_controller.dart';
 import 'package:dharma_app/Subscription/subscription_view.dart';
+import 'package:dharma_app/VirtualPooja/virtual_pooja_view.dart';
 import 'package:dharma_app/content/content_controller.dart';
 import 'package:dharma_app/content/content_model.dart';
 import 'package:dharma_app/core/constants/api_constants.dart';
@@ -267,6 +268,19 @@ class _HomeViewState extends State<HomeView> {
                           title: 'nitya_karma'.tr,
                           assetName: 'assets/images/nityakarma.svg',
                           onTap: () => _openNityaKarma(context),
+                        ),
+                        _FeatureCard(
+                          title: 'Virtual Pooja',
+                          assetName: 'assets/images/Shree.svg',
+                          iconData: Icons.local_fire_department_rounded,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const VirtualPoojaView(),
+                              ),
+                            );
+                          },
                         ),
                       ],
                     ),
@@ -553,11 +567,13 @@ class _FeatureCard extends StatelessWidget {
   const _FeatureCard({
     required this.title,
     required this.assetName,
+    this.iconData,
     this.onTap,
   });
 
   final String title;
   final String assetName;
+  final IconData? iconData;
   final VoidCallback? onTap;
 
   @override
@@ -602,7 +618,13 @@ class _FeatureCard extends StatelessWidget {
                 SizedBox(
                   width: iconWrap,
                   height: iconWrap,
-                  child: AppSvgAsset(assetName: assetName, fit: BoxFit.contain),
+                  child: iconData != null
+                      ? Icon(
+                          iconData,
+                          size: iconWrap * 0.78,
+                          color: const Color(0xFFE06B1C),
+                        )
+                      : AppSvgAsset(assetName: assetName, fit: BoxFit.contain),
                 ),
                 SizedBox(height: 8 * scale),
                 Padding(

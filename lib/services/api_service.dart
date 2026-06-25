@@ -91,6 +91,8 @@ class ApiService extends GetConnect {
     bool includeAuthHeader = true,
     bool showErrorToast = true,
     Duration? timeout,
+    int retryCount = 0,
+    Duration retryDelay = const Duration(milliseconds: 900),
   }) async {
     _logRequest(
       method: 'POST',
@@ -126,89 +128,106 @@ class ApiService extends GetConnect {
       }
     }
 
-    try {
-      final headers = <String, String>{};
-      if (!includeAuthHeader) {
-        headers['X-Skip-Auth'] = 'true';
-      }
+    final maxAttempts = retryCount + 1;
+    for (var attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        final headers = <String, String>{};
+        if (!includeAuthHeader) {
+          headers['X-Skip-Auth'] = 'true';
+        }
 
-      final response = await post(
-        endpoint,
-        body,
-        contentType: contentType,
-        headers: headers,
-      ).timeout(timeout ?? httpClient.timeout);
-      _logResponse(method: 'POST', endpoint: endpoint, response: response);
+        final response = await post(
+          endpoint,
+          body,
+          contentType: contentType,
+          headers: headers,
+        ).timeout(timeout ?? httpClient.timeout);
+        _logResponse(method: 'POST', endpoint: endpoint, response: response);
 
-      if (_isTimeoutResponse(response)) {
+        if (_isTimeoutResponse(response)) {
+          if (attempt < maxAttempts) {
+            await Future.delayed(retryDelay);
+            continue;
+          }
+          if (showErrorToast) {
+            ToastUtils.show("Request timed out. Please try again.");
+          }
+          return Response(
+            statusCode: 408,
+            statusText: "Request timeout",
+            body: response.body,
+          );
+        }
+
+        if (requireAuth &&
+            (response.statusCode == 400 ||
+                response.statusCode == 401 ||
+                response.statusCode == 402)) {
+          _handleAuthFailure(
+            ApiUtils.message(response.body) ??
+                "Session expired. Please login again.",
+            showToast: true,
+          );
+          return response;
+        }
+
+        if (showErrorToast &&
+            response.statusCode != null &&
+            response.statusCode! >= 400 &&
+            response.statusCode != 400 &&
+            response.statusCode != 401 &&
+            response.statusCode != 402) {
+          ToastUtils.show(
+            ApiUtils.message(response.body) ?? "Something went wrong",
+          );
+        }
+
+        return response;
+      } on TimeoutException catch (e, stackTrace) {
+        _logError(
+          method: 'POST',
+          endpoint: endpoint,
+          error: e,
+          stackTrace: stackTrace,
+        );
+        if (attempt < maxAttempts) {
+          await Future.delayed(retryDelay);
+          continue;
+        }
         if (showErrorToast) {
           ToastUtils.show("Request timed out. Please try again.");
         }
-        return Response(
-          statusCode: 408,
-          statusText: "Request timeout",
-          body: response.body,
+        return Response(statusCode: 408, statusText: "Request timeout");
+      } on SocketException catch (e, stackTrace) {
+        _logError(
+          method: 'POST',
+          endpoint: endpoint,
+          error: e,
+          stackTrace: stackTrace,
         );
-      }
-
-      if (requireAuth &&
-          (response.statusCode == 400 ||
-              response.statusCode == 401 ||
-              response.statusCode == 402)) {
-        _handleAuthFailure(
-          ApiUtils.message(response.body) ??
-              "Session expired. Please login again.",
-          showToast: true,
+        if (attempt < maxAttempts) {
+          await Future.delayed(retryDelay);
+          continue;
+        }
+        if (showErrorToast) {
+          ToastUtils.show("No internet connection");
+        }
+        return Response(statusCode: 0, statusText: "No internet connection");
+      } catch (e, stackTrace) {
+        _logError(
+          method: 'POST',
+          endpoint: endpoint,
+          error: e,
+          stackTrace: stackTrace,
         );
-        return response;
+        if (showErrorToast) {
+          ToastUtils.show("Something went wrong");
+        }
+        return Response(statusCode: 500, statusText: e.toString());
       }
-
-      if (showErrorToast &&
-          response.statusCode != null &&
-          response.statusCode! >= 400 &&
-          response.statusCode != 400 &&
-          response.statusCode != 401 &&
-          response.statusCode != 402) {
-        ToastUtils.show(
-          ApiUtils.message(response.body) ?? "Something went wrong",
-        );
-      }
-
-      return response;
-    } on TimeoutException catch (e, stackTrace) {
-      _logError(
-        method: 'POST',
-        endpoint: endpoint,
-        error: e,
-        stackTrace: stackTrace,
-      );
-      if (showErrorToast) {
-        ToastUtils.show("Request timed out. Please try again.");
-      }
-      return Response(statusCode: 408, statusText: "Request timeout");
-    } on SocketException catch (e, stackTrace) {
-      _logError(
-        method: 'POST',
-        endpoint: endpoint,
-        error: e,
-        stackTrace: stackTrace,
-      );
-      if (showErrorToast) {
-        ToastUtils.show("No internet connection");
-      }
-      return Response(statusCode: 0, statusText: "No internet connection");
-    } catch (e, stackTrace) {
-      _logError(
-        method: 'POST',
-        endpoint: endpoint,
-        error: e,
-        stackTrace: stackTrace,
-      );
-      if (showErrorToast) {
-        ToastUtils.show("Something went wrong");
-      }
-      return Response(statusCode: 500, statusText: e.toString());
     }
+
+    return Response(statusCode: 500, statusText: "Something went wrong");
   }
 
   Future<Response<dynamic>> sendOtp({
@@ -401,6 +420,18 @@ class ApiService extends GetConnect {
       contentType: 'application/x-www-form-urlencoded',
       requireAuth: true,
       showErrorToast: false,
+    );
+  }
+
+  Future<Response<dynamic>> listDeities() {
+    return postRequest(
+      ApiConstants.listDeities,
+      <String, dynamic>{},
+      contentType: 'application/x-www-form-urlencoded',
+      requireAuth: true,
+      showErrorToast: false,
+      timeout: const Duration(seconds: 20),
+      retryCount: 1,
     );
   }
 

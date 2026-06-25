@@ -11,6 +11,7 @@ import 'package:dharma_app/Subscription/subscription_controller.dart';
 import 'package:dharma_app/Subscription/subscription_repository.dart';
 import 'package:dharma_app/Src/src_controller.dart';
 import 'package:dharma_app/Src/src_repository.dart';
+import 'package:dharma_app/VirtualPooja/virtual_pooja_repository.dart';
 import 'package:dharma_app/GanaMatch/gana_match_repository.dart';
 import 'package:dharma_app/Panchang/panchang_repository.dart';
 import 'package:dharma_app/content/content_controller.dart';
@@ -68,6 +69,13 @@ class AppBindings {
     if (!Get.isRegistered<LiveDarshanRepository>()) {
       Get.put(
         LiveDarshanRepository(apiService: Get.find<ApiService>()),
+        permanent: true,
+      );
+    }
+
+    if (!Get.isRegistered<VirtualPoojaRepository>()) {
+      Get.put(
+        VirtualPoojaRepository(apiService: Get.find<ApiService>()),
         permanent: true,
       );
     }

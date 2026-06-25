@@ -20,6 +20,7 @@ class ApiConstants {
       "user/notifications/mark_notification_read.php";
   static const String listLiveDarshan =
       "user/live_darshan/list_live_darshan.php";
+  static const String listDeities = "user/deities/list_deities.php";
   static const String listSubscriptionPlans =
       "user/subscriptions/list_plans.php";
   static const String createSubscriptionOrder =
