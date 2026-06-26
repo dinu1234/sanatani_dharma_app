@@ -469,7 +469,11 @@ class _AccessCard extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (_) => const SubscriptionPlansView(),
+                      builder: (_) => SubscriptionPlansView(
+                        featureTitle: 'ask_pandit'.tr,
+                        featureDescription: 'ask_pandit_subscription_required'.tr,
+                        featureIcon: Icons.auto_awesome_rounded,
+                      ),
                     ),
                   );
                 },

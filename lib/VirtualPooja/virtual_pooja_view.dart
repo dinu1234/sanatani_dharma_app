@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:audioplayers/audioplayers.dart';
+import 'package:dharma_app/Subscription/subscription_view.dart';
 import 'package:dharma_app/VirtualPooja/virtual_pooja_controller.dart';
 import 'package:dharma_app/VirtualPooja/virtual_pooja_model.dart';
 import 'package:dharma_app/core/widgets/shree_svg.dart';
@@ -58,14 +59,22 @@ class _VirtualPoojaViewState extends State<VirtualPoojaView> {
               children: [
                 _AppBar(scale: scale),
                 SizedBox(height: 6 * scale),
-                _DeityList(controller: controller, scale: scale),
-                SizedBox(height: 2 * scale),
                 Obx(
-                  () => _StepHeader(
-                    scale: scale,
-                    deityName:
-                        controller.selectedDeity.value?.name ?? 'Ganesha',
-                    navaGrahaActive: controller.isNavaGrahaStarted.value,
+                  () => Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (!controller.isNavaGrahaStarted.value) ...[
+                        _DeityList(controller: controller, scale: scale),
+                        SizedBox(height: 2 * scale),
+                      ],
+                      _StepHeader(
+                        scale: scale,
+                        deityName:
+                            controller.selectedDeity.value?.name ??
+                            'virtual_pooja_deity_fallback'.tr,
+                        navaGrahaActive: controller.isNavaGrahaStarted.value,
+                      ),
+                    ],
                   ),
                 ),
                 SizedBox(height: 6 * scale),
@@ -117,7 +126,7 @@ class _VirtualPoojaViewState extends State<VirtualPoojaView> {
                                     scale: scale,
                                     deityName:
                                         controller.selectedDeity.value?.name ??
-                                        'Deity',
+                                        'virtual_pooja_deity_fallback'.tr,
                                     onContinue: controller.startNavaGraha,
                                   ),
                                 ],
@@ -154,7 +163,7 @@ class _AppBar extends StatelessWidget {
         ),
         Expanded(
           child: Text(
-            'Virtual Pooja',
+            'virtual_pooja'.tr,
             textAlign: TextAlign.center,
             style: TextStyle(
               color: const Color(0xFF8B0B00),
@@ -190,7 +199,7 @@ class _StepHeader extends StatelessWidget {
     return Row(
       children: [
         Text(
-          '1 · $titleName ARCHANA',
+          '1 · ${'virtual_pooja_step_archana'.tr.replaceAll('@name', titleName)}',
           style: TextStyle(
             color: navaGrahaActive
                 ? const Color(0xFF9C766D)
@@ -204,7 +213,7 @@ class _StepHeader extends StatelessWidget {
         Expanded(child: Container(height: 1, color: const Color(0xFFC7A08D))),
         SizedBox(width: 9 * scale),
         Text(
-          '2 · NAVA GRAHA',
+          '2 · ${'virtual_pooja_step_nava_graha'.tr}',
           style: TextStyle(
             color: navaGrahaActive
                 ? const Color(0xFFBC190A)
@@ -266,7 +275,7 @@ class _DeityList extends StatelessWidget {
                       fontWeight: FontWeight.w900,
                     ),
                   ),
-                  child: const Text('Retry'),
+                  child: Text('virtual_pooja_retry'.tr),
                 ),
               ],
             ),
@@ -276,7 +285,7 @@ class _DeityList extends StatelessWidget {
         if (deities.isEmpty) {
           return Center(
             child: Text(
-              'No active deities',
+              'virtual_pooja_no_active_deities'.tr,
               style: TextStyle(
                 color: const Color(0xFF8B0B00),
                 fontSize: 14 * scale,
@@ -301,7 +310,22 @@ class _DeityList extends StatelessWidget {
               selected: selected,
               locked: locked,
               scale: scale,
-              onTap: () => controller.selectDeity(deity),
+              onTap: () {
+                if (locked) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => SubscriptionPlansView(
+                        featureTitle: 'virtual_pooja'.tr,
+                        featureDescription: 'virtual_pooja_access_required'.tr,
+                        featureIcon: Icons.local_fire_department_rounded,
+                      ),
+                    ),
+                  );
+                  return;
+                }
+                controller.selectDeity(deity);
+              },
             );
           },
         );
@@ -475,6 +499,9 @@ class _PetalDrop {
     required this.drift,
     required this.size,
     required this.targetY,
+    required this.targetX,
+    required this.swayPhase,
+    required this.swaySpeed,
   });
 
   final int id;
@@ -484,6 +511,9 @@ class _PetalDrop {
   final double drift;
   final double size;
   final double targetY;
+  final double targetX;
+  final double swayPhase;
+  final double swaySpeed;
 }
 
 class _FallingPetal extends StatefulWidget {
@@ -505,7 +535,7 @@ class _FallingPetalState extends State<_FallingPetal>
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 2350),
+      duration: const Duration(milliseconds: 1850),
     )..forward();
   }
 
@@ -524,22 +554,22 @@ class _FallingPetalState extends State<_FallingPetal>
             animation: _controller,
             builder: (context, child) {
               final raw = _controller.value;
-              final t = Curves.easeInOutCubicEmphasized.transform(raw);
-              final settleT = Curves.easeOut.transform(
-                ((raw - 0.82) / 0.18).clamp(0.0, 1.0),
-              );
-              final y =
-                  (widget.petal.targetY * widget.scale * t) +
-                  (10 * widget.scale * settleT);
+              final t = Curves.easeInOutCubic.transform(raw);
+              final y = widget.petal.targetY * widget.scale * t;
               final sway =
-                  math.sin((raw * math.pi * 1.15) + widget.petal.rotation) *
+                  math.sin(
+                    (raw * math.pi * widget.petal.swaySpeed) +
+                        widget.petal.swayPhase,
+                  ) *
                   widget.petal.drift *
-                  widget.scale;
-              final opacity = raw < 0.9
+                  widget.scale *
+                  (1 - (0.82 * t));
+              final targetX = widget.petal.targetX * widget.scale * t;
+              final opacity = raw < 0.95
                   ? 1.0
-                  : (1 - ((raw - 0.9) / 0.1)).clamp(0.0, 1.0);
-              final rotation = widget.petal.rotation + (280 * t);
-              final scale = 0.96 + (0.1 * math.sin(raw * math.pi));
+                  : (1 - ((raw - 0.95) / 0.05)).clamp(0.0, 1.0);
+              final rotation = widget.petal.rotation + (120 * t);
+              final scale = 1.0;
 
               return Stack(
                 children: [
@@ -549,7 +579,10 @@ class _FallingPetalState extends State<_FallingPetal>
                     child: Opacity(
                       opacity: opacity,
                       child: Transform.translate(
-                        offset: Offset((-16 * widget.scale) + (sway * 0.45), y),
+                        offset: Offset(
+                          (-16 * widget.scale) + targetX + (sway * 0.24),
+                          y,
+                        ),
                         child: Transform.rotate(
                           angle: rotation * math.pi / 180,
                           child: Transform.scale(scale: scale, child: child),
@@ -591,19 +624,30 @@ class _AltarCardState extends State<_AltarCard> {
   ];
   int _nextPetalId = 0;
   int _bellWaveEvent = 0;
+  int _pendingPetalAdds = 0;
+  bool _isProcessingPetalQueue = false;
 
   @override
   void didUpdateWidget(covariant _AltarCard oldWidget) {
     super.didUpdateWidget(oldWidget);
     final missedPetals = widget.petalEvent - oldWidget.petalEvent;
     if (missedPetals > 0) {
-      for (var index = 0; index < missedPetals; index++) {
-        Future.delayed(Duration(milliseconds: 120 * index), () {
-          if (!mounted) return;
-          _addPetal();
-        });
-      }
+      _pendingPetalAdds += missedPetals;
+      _processPetalQueue();
     }
+  }
+
+  Future<void> _processPetalQueue() async {
+    if (_isProcessingPetalQueue) return;
+    _isProcessingPetalQueue = true;
+
+    while (mounted && _pendingPetalAdds > 0) {
+      _pendingPetalAdds -= 1;
+      _addPetal();
+      await Future.delayed(const Duration(milliseconds: 320));
+    }
+
+    _isProcessingPetalQueue = false;
   }
 
   void _addPetal() {
@@ -613,13 +657,16 @@ class _AltarCardState extends State<_AltarCard> {
       left: 0.5,
       rotation: _random.nextDouble() * 360,
       symbol: symbol,
-      drift: 8 + (_random.nextDouble() * 5),
-      size: 30 + (_random.nextDouble() * 4),
-      targetY: 198 + (_random.nextDouble() * 24),
+      drift: 2 + (_random.nextDouble() * 1),
+      size: 24 + (_random.nextDouble() * 3),
+      targetY: 210 + (_random.nextDouble() * 16),
+      targetX: (-14 + (_random.nextDouble() * 28)),
+      swayPhase: _random.nextDouble() * math.pi * 2,
+      swaySpeed: 0.7 + (_random.nextDouble() * 0.8),
     );
     _nextPetalId += 1;
     setState(() => _petals.add(petal));
-    Future.delayed(const Duration(milliseconds: 2900), () {
+    Future.delayed(const Duration(milliseconds: 2200), () {
       if (!mounted) return;
       setState(() => _petals.removeWhere((item) => item.id == petal.id));
     });
@@ -726,7 +773,7 @@ class _AltarCardState extends State<_AltarCard> {
                               ),
                             Positioned.fill(
                               child: _MurtiBellWave(
-                                // key: ValueKey(_bellWaveEvent),
+                                key: ValueKey(_bellWaveEvent),
                                 scale: scale,
                                 event: _bellWaveEvent,
                               ),
@@ -739,16 +786,16 @@ class _AltarCardState extends State<_AltarCard> {
                 ),
               ),
             ),
-            for (final petal in _petals)
-              Positioned.fill(
-                child: _FallingPetal(petal: petal, scale: scale),
-              ),
             if (widget.diyaLit)
               Positioned(
                 left: 0,
                 right: 0,
                 bottom: 12 * scale,
                 child: _CenterSmoke(scale: scale),
+              ),
+            for (final petal in _petals)
+              Positioned.fill(
+                child: _FallingPetal(petal: petal, scale: scale),
               ),
             if (widget.diyaLit) ...[
               Positioned(
@@ -802,21 +849,21 @@ class _CenterSmoke extends StatelessWidget {
         children: [
           _SmokeParticle(
             scale: scale,
-            duration: const Duration(milliseconds: 7200),
+            duration: const Duration(milliseconds: 6200),
             delay: Duration.zero,
-            drift: -6,
+            drift: -5,
           ),
           _SmokeParticle(
             scale: scale,
-            duration: const Duration(milliseconds: 8200),
-            delay: const Duration(milliseconds: 1600),
-            drift: 3,
+            duration: const Duration(milliseconds: 7000),
+            delay: const Duration(milliseconds: 1900),
+            drift: 2,
           ),
           _SmokeParticle(
             scale: scale,
-            duration: const Duration(milliseconds: 9200),
-            delay: const Duration(milliseconds: 3200),
-            drift: 8,
+            duration: const Duration(milliseconds: 7800),
+            delay: const Duration(milliseconds: 3800),
+            drift: 6,
           ),
         ],
       ),
@@ -893,11 +940,11 @@ class _SmokeParticleState extends State<_SmokeParticle>
       builder: (context, child) {
         final raw = _controller.value;
         final t = Curves.easeInOutSine.transform(raw);
-        final opacity = (0.62 * (1 - t)).clamp(0.0, 0.62);
-        final y = -108 * widget.scale * t;
-        final wave = math.sin(raw * math.pi * 2.4) * 4 * widget.scale;
+        final opacity = (0.58 * (1 - t)).clamp(0.0, 0.58);
+        final y = -132 * widget.scale * t;
+        final wave = math.sin(raw * math.pi * 2.1) * 3.2 * widget.scale;
         final x = (widget.drift * widget.scale * t) + wave;
-        final particleScale = 1 + (1.05 * t);
+        final particleScale = 1 + (1.22 * t);
 
         return Transform.translate(
           offset: Offset(x, y),
@@ -914,19 +961,19 @@ class _SmokeParticleState extends State<_SmokeParticle>
       },
       child: ImageFiltered(
         imageFilter: ui.ImageFilter.blur(
-          sigmaX: 4.5 * widget.scale,
-          sigmaY: 6.5 * widget.scale,
+          sigmaX: 3.8 * widget.scale,
+          sigmaY: 5.8 * widget.scale,
         ),
         child: Container(
-          width: 18 * widget.scale,
-          height: 62 * widget.scale,
+          width: 24 * widget.scale,
+          height: 72 * widget.scale,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(999),
             gradient: const RadialGradient(
               center: Alignment.center,
               radius: 0.95,
               colors: [Color(0xD9FFFFFF), Color(0x73FFFFFF), Color(0x00FFFFFF)],
-              stops: [0, 0.48, 1],
+              stops: [0, 0.52, 1],
             ),
           ),
         ),
@@ -1434,7 +1481,7 @@ class _DiyaStep extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Light the Diya',
+          'virtual_pooja_light_diya'.tr,
           style: TextStyle(
             color: const Color(0xFF8B0B00),
             fontSize: 24 * scale,
@@ -1445,7 +1492,7 @@ class _DiyaStep extends StatelessWidget {
         ),
         SizedBox(height: 4 * scale),
         Text(
-          'Deep darshanam punyam',
+          'virtual_pooja_deep_darshanam_punyam'.tr,
           style: TextStyle(
             color: const Color(0xFFD83A19),
             fontSize: 15 * scale,
@@ -1455,7 +1502,7 @@ class _DiyaStep extends StatelessWidget {
         ),
         SizedBox(height: 10 * scale),
         Text(
-          'Press and hold the diya to ignite the sacred flame.',
+          'virtual_pooja_light_diya_desc'.tr,
           style: TextStyle(
             color: const Color(0xFF42140C),
             fontSize: 16 * scale,
@@ -1496,12 +1543,11 @@ class _PetalStep extends StatelessWidget {
     return Obx(() {
       final count = controller.petalCount.value;
       final completed = count >= 6;
-
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Offer Pushpam',
+            'virtual_pooja_offer_pushpam'.tr,
             style: TextStyle(
               color: const Color(0xFF8B0B00),
               fontSize: 24 * scale,
@@ -1512,7 +1558,7 @@ class _PetalStep extends StatelessWidget {
           ),
           SizedBox(height: 4 * scale),
           Text(
-            'Pushpam samarpayami',
+            'virtual_pooja_pushpam_samarpayami'.tr,
             style: TextStyle(
               color: const Color(0xFFD83A19),
               fontSize: 15 * scale,
@@ -1522,7 +1568,7 @@ class _PetalStep extends StatelessWidget {
           ),
           SizedBox(height: 10 * scale),
           Text(
-            'Tap the murti to offer flower petals at the lotus feet.',
+            'virtual_pooja_pushpam_desc'.tr,
             style: TextStyle(
               color: const Color(0xFF42140C),
               fontSize: 16 * scale,
@@ -1540,8 +1586,11 @@ class _PetalStep extends StatelessWidget {
               icon: Icon(Icons.pan_tool_alt_rounded, size: 20 * scale),
               label: Text(
                 completed
-                    ? 'Pushpa Arpan Complete'
-                    : 'Tap the murti to offer petals · $count/6',
+                    ? 'virtual_pooja_pushpa_arpan_complete'.tr
+                    : 'virtual_pooja_tap_murti_petals'.tr.replaceAll(
+                        '@count',
+                        '$count',
+                      ),
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF760400),
@@ -1575,13 +1624,11 @@ class _GhantaStep extends StatelessWidget {
   Widget build(BuildContext context) {
     return Obx(() {
       final rings = controller.ghantaRings.value;
-      final completed = rings >= 3;
-
       return Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Ring the Ghanta',
+            'virtual_pooja_ring_ghanta'.tr,
             style: TextStyle(
               color: const Color(0xFF8B0B00),
               fontSize: 24 * scale,
@@ -1592,7 +1639,7 @@ class _GhantaStep extends StatelessWidget {
           ),
           SizedBox(height: 4 * scale),
           Text(
-            'Ghanta nadam samarpayami',
+            'virtual_pooja_ghanta_nadam_samarpayami'.tr,
             style: TextStyle(
               color: const Color(0xFFD83A19),
               fontSize: 15 * scale,
@@ -1602,7 +1649,7 @@ class _GhantaStep extends StatelessWidget {
           ),
           SizedBox(height: 10 * scale),
           Text(
-            'Pull the bell-rope thrice to invoke the divine presence.',
+            'virtual_pooja_ghanta_desc'.tr,
             style: TextStyle(
               color: const Color(0xFF42140C),
               fontSize: 16 * scale,
@@ -1618,7 +1665,9 @@ class _GhantaStep extends StatelessWidget {
             child: ElevatedButton.icon(
               onPressed: null,
               icon: Icon(Icons.notifications_none_rounded, size: 21 * scale),
-              label: Text('Tap the ghanta to ring · $rings/3'),
+              label: Text(
+                'virtual_pooja_tap_ghanta'.tr.replaceAll('@count', '$rings'),
+              ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF760400),
                 disabledBackgroundColor: const Color(0xFF760400),
@@ -1719,10 +1768,10 @@ class _DiyaButtonState extends State<_DiyaButton>
           final percent = (_holdController.value * 100).clamp(0, 100).round();
           final completed = widget.progress >= 3;
           final label = completed
-              ? 'Diya Prajwalit'
+              ? 'virtual_pooja_diya_prajwalit'.tr
               : _holdController.isAnimating || _holdController.value > 0
-              ? 'Lighting... $percent%'
-              : 'Press & hold to light';
+              ? 'virtual_pooja_lighting'.tr.replaceAll('@percent', '$percent')
+              : 'virtual_pooja_press_hold_light'.tr;
 
           return Container(
             width: double.infinity,
@@ -1808,7 +1857,7 @@ class _ArchanaCompleteCard extends StatelessWidget {
           ),
           SizedBox(height: 8 * scale),
           Text(
-            '$deityName Archana Sampanna',
+            'virtual_pooja_archana_sampanna'.tr.replaceAll('@name', deityName),
             textAlign: TextAlign.center,
             style: TextStyle(
               color: const Color(0xFF8B0B00),
@@ -1819,7 +1868,7 @@ class _ArchanaCompleteCard extends StatelessWidget {
           ),
           SizedBox(height: 4 * scale),
           Text(
-            'Now perform pradakshina of the Nava Graha.',
+            'virtual_pooja_pradakshina_desc'.tr,
             textAlign: TextAlign.center,
             style: TextStyle(
               color: const Color(0xFF42140C),
@@ -1842,7 +1891,7 @@ class _ArchanaCompleteCard extends StatelessWidget {
                 ),
               ),
               child: Text(
-                'Continue to Nava Graha ->',
+                'virtual_pooja_continue_nava_graha'.tr,
                 style: TextStyle(
                   fontSize: 16 * scale,
                   fontWeight: FontWeight.w900,
@@ -1959,7 +2008,7 @@ class _NavaGrahaScreenState extends State<_NavaGrahaScreen>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Nava Graha Pradakshina',
+          'virtual_pooja_nava_graha_pradakshina'.tr,
           style: TextStyle(
             color: const Color(0xFF3A130F),
             fontSize: 26 * scale,
@@ -1969,7 +2018,10 @@ class _NavaGrahaScreenState extends State<_NavaGrahaScreen>
         ),
         SizedBox(height: 6 * scale),
         Text(
-          'Stand still as the nine planets circle you clockwise · ${widget.progress.clamp(0, 9)}/9',
+          'virtual_pooja_nava_graha_desc'.tr.replaceAll(
+            '@count',
+            '${widget.progress.clamp(0, 9)}',
+          ),
           style: TextStyle(
             color: const Color(0xFF1F1511),
             fontSize: 14 * scale,
@@ -2085,10 +2137,10 @@ class _NavaGrahaScreenState extends State<_NavaGrahaScreen>
           ),
           label: Text(
             widget.progress >= 9
-                ? 'Sequence complete'
+                ? 'virtual_pooja_sequence_complete'.tr
                 : _paused
-                ? 'Resume rotation'
-                : 'Pause rotation',
+                ? 'virtual_pooja_resume_rotation'.tr
+                : 'virtual_pooja_pause_rotation'.tr,
             style: TextStyle(
               fontSize: 14 * scale,
               fontWeight: FontWeight.w500,
@@ -2117,7 +2169,7 @@ class _NavaGrahaScreenState extends State<_NavaGrahaScreen>
                 ),
                 icon: Icon(Icons.replay_rounded, size: 20 * scale),
                 label: Text(
-                  'Reset',
+                  'virtual_pooja_reset'.tr,
                   style: TextStyle(
                     fontSize: 16 * scale,
                     fontWeight: FontWeight.w700,
@@ -2139,7 +2191,7 @@ class _NavaGrahaScreenState extends State<_NavaGrahaScreen>
                   ),
                 ),
                 child: Text(
-                  'New pooja',
+                  'virtual_pooja_new_pooja'.tr,
                   style: TextStyle(
                     fontSize: 16 * scale,
                     fontWeight: FontWeight.w800,
@@ -2616,6 +2668,7 @@ class _TempleBellState extends State<_TempleBell>
 
 class _MurtiBellWave extends StatefulWidget {
   const _MurtiBellWave({
+    super.key,
     required this.scale,
     required this.event,
   });

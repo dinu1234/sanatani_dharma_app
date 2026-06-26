@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:dharma_app/Profile/profile_controller.dart';
 import 'package:dharma_app/VirtualPooja/virtual_pooja_model.dart';
 import 'package:dharma_app/VirtualPooja/virtual_pooja_repository.dart';
@@ -31,6 +33,10 @@ class VirtualPoojaController extends GetxController {
   final petalEvent = 0.obs;
   final isNavaGrahaStarted = false.obs;
   final navaGrahaProgress = 1.obs;
+  Timer? _petalTapCooldown;
+  Timer? _ghantaTapCooldown;
+  bool _isPetalTapLocked = false;
+  bool _isGhantaTapLocked = false;
 
   @override
   void onInit() {
@@ -74,7 +80,7 @@ class VirtualPoojaController extends GetxController {
 
   void selectDeity(VirtualPoojaDeity deity) {
     if (isDeityLocked(deity)) {
-      ToastUtils.show('Active subscription is required to access this deity.');
+      ToastUtils.show('virtual_pooja_access_required'.tr);
       return;
     }
 
@@ -102,6 +108,14 @@ class VirtualPoojaController extends GetxController {
   void ringGhanta() {
     if (petalCount.value < 6) return;
     if (ghantaRings.value >= 3) return;
+    if (_isGhantaTapLocked) return;
+
+    _isGhantaTapLocked = true;
+    _ghantaTapCooldown?.cancel();
+    _ghantaTapCooldown = Timer(const Duration(milliseconds: 420), () {
+      _isGhantaTapLocked = false;
+    });
+
     ghantaRings.value += 1;
     activeOffering.value = 'Ghanta Nadam';
   }
@@ -122,6 +136,14 @@ class VirtualPoojaController extends GetxController {
 
   void offerPetal() {
     if (diyaProgress.value < 3 || petalCount.value >= 6) return;
+    if (_isPetalTapLocked) return;
+
+    _isPetalTapLocked = true;
+    _petalTapCooldown?.cancel();
+    _petalTapCooldown = Timer(const Duration(milliseconds: 260), () {
+      _isPetalTapLocked = false;
+    });
+
     petalCount.value += 1;
     petalEvent.value += 1;
     activeOffering.value = 'Pushpa Arpan';
@@ -155,5 +177,12 @@ class VirtualPoojaController extends GetxController {
     if (navaGrahaProgress.value < 1) {
       navaGrahaProgress.value = 1;
     }
+  }
+
+  @override
+  void onClose() {
+    _petalTapCooldown?.cancel();
+    _ghantaTapCooldown?.cancel();
+    super.onClose();
   }
 }

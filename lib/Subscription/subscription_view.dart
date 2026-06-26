@@ -9,10 +9,16 @@ import 'package:get/get.dart';
 class SubscriptionPlansView extends StatefulWidget {
   const SubscriptionPlansView({
     this.successDestinationBuilder,
+    this.featureTitle,
+    this.featureDescription,
+    this.featureIcon = Icons.live_tv_rounded,
     super.key,
   });
 
   final Widget Function()? successDestinationBuilder;
+  final String? featureTitle;
+  final String? featureDescription;
+  final IconData featureIcon;
 
   @override
   State<SubscriptionPlansView> createState() => _SubscriptionPlansViewState();
@@ -75,7 +81,12 @@ class _SubscriptionPlansViewState extends State<SubscriptionPlansView> {
                     physics: const AlwaysScrollableScrollPhysics(),
                     slivers: [
                       SliverToBoxAdapter(
-                        child: _SubscriptionHeader(scale: scale),
+                        child: _SubscriptionHeader(
+                          scale: scale,
+                          featureTitle: widget.featureTitle,
+                          featureDescription: widget.featureDescription,
+                          featureIcon: widget.featureIcon,
+                        ),
                       ),
                       if (_controller.isLoading.value &&
                           _controller.plans.isEmpty)
@@ -150,12 +161,24 @@ class _SubscriptionPlansViewState extends State<SubscriptionPlansView> {
 }
 
 class _SubscriptionHeader extends StatelessWidget {
-  const _SubscriptionHeader({required this.scale});
+  const _SubscriptionHeader({
+    required this.scale,
+    this.featureTitle,
+    this.featureDescription,
+    this.featureIcon = Icons.live_tv_rounded,
+  });
 
   final double scale;
+  final String? featureTitle;
+  final String? featureDescription;
+  final IconData featureIcon;
 
   @override
   Widget build(BuildContext context) {
+    final title = featureTitle ?? 'unlock_live_darshan'.tr;
+    final description =
+        featureDescription ?? 'live_darshan_after_subscription'.tr;
+
     return Container(
       padding: EdgeInsets.fromLTRB(
         18 * scale,
@@ -234,7 +257,7 @@ class _SubscriptionHeader extends StatelessWidget {
                     color: AppColors.homePrimary.withOpacity(0.12),
                   ),
                   child: Icon(
-                    Icons.live_tv_rounded,
+                    featureIcon,
                     color: AppColors.homePrimary,
                     size: 28 * scale,
                   ),
@@ -245,7 +268,7 @@ class _SubscriptionHeader extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'unlock_live_darshan'.tr,
+                        title,
                         style: TextStyle(
                           fontSize: 18 * scale,
                           fontWeight: FontWeight.w800,
@@ -254,7 +277,7 @@ class _SubscriptionHeader extends StatelessWidget {
                       ),
                       SizedBox(height: 4 * scale),
                       Text(
-                        'live_darshan_after_subscription'.tr,
+                        description,
                         style: TextStyle(
                           fontSize: 12.5 * scale,
                           height: 1.35,

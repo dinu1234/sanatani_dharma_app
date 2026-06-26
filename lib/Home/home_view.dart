@@ -12,6 +12,7 @@ import 'package:dharma_app/Panchang/panchang_view.dart';
 import 'package:dharma_app/Profile/profile_controller.dart';
 import 'package:dharma_app/Profile/profile_setup_view.dart';
 import 'package:dharma_app/Profile/profile_view.dart';
+import 'package:dharma_app/SpiritualMedia/spiritual_media_view.dart';
 import 'package:dharma_app/Subscription/premium_feature_gate.dart';
 import 'package:dharma_app/Subscription/subscription_controller.dart';
 import 'package:dharma_app/Subscription/subscription_view.dart';
@@ -88,6 +89,9 @@ class _HomeViewState extends State<HomeView> {
     await PremiumFeatureGate.open(
       context: context,
       featureBuilder: () => const LiveDarshanView(),
+      featureTitle: 'unlock_live_darshan'.tr,
+      featureDescription: 'live_darshan_after_subscription'.tr,
+      featureIcon: Icons.live_tv_rounded,
     );
   }
 
@@ -115,7 +119,13 @@ class _HomeViewState extends State<HomeView> {
       if (!context.mounted) return;
       Navigator.push(
         context,
-        MaterialPageRoute(builder: (_) => const SubscriptionPlansView()),
+        MaterialPageRoute(
+          builder: (_) => SubscriptionPlansView(
+            featureTitle: 'ask_pandit'.tr,
+            featureDescription: 'ask_pandit_subscription_required'.tr,
+            featureIcon: Icons.auto_awesome_rounded,
+          ),
+        ),
       );
       return;
     }
@@ -270,7 +280,7 @@ class _HomeViewState extends State<HomeView> {
                           onTap: () => _openNityaKarma(context),
                         ),
                         _FeatureCard(
-                          title: 'Virtual Pooja',
+                          title: 'virtual_pooja'.tr,
                           assetName: 'assets/images/Shree.svg',
                           iconData: Icons.local_fire_department_rounded,
                           onTap: () {
@@ -278,6 +288,19 @@ class _HomeViewState extends State<HomeView> {
                               context,
                               MaterialPageRoute(
                                 builder: (_) => const VirtualPoojaView(),
+                              ),
+                            );
+                          },
+                        ),
+                        _FeatureCard(
+                          title: 'spiritual_media'.tr,
+                          assetName: 'assets/images/darshan.svg',
+                          iconData: Icons.collections_rounded,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const SpiritualMediaView(),
                               ),
                             );
                           },

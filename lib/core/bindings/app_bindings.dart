@@ -7,6 +7,8 @@ import 'package:dharma_app/Notifications/notifications_controller.dart';
 import 'package:dharma_app/Notifications/notifications_repository.dart';
 import 'package:dharma_app/Profile/profile_controller.dart';
 import 'package:dharma_app/Profile/profile_repository.dart';
+import 'package:dharma_app/SpiritualMedia/spiritual_media_controller.dart';
+import 'package:dharma_app/SpiritualMedia/spiritual_media_repository.dart';
 import 'package:dharma_app/Subscription/subscription_controller.dart';
 import 'package:dharma_app/Subscription/subscription_repository.dart';
 import 'package:dharma_app/Src/src_controller.dart';
@@ -83,6 +85,13 @@ class AppBindings {
     if (!Get.isRegistered<SubscriptionRepository>()) {
       Get.put(
         SubscriptionRepository(apiService: Get.find<ApiService>()),
+        permanent: true,
+      );
+    }
+
+    if (!Get.isRegistered<SpiritualMediaRepository>()) {
+      Get.put(
+        SpiritualMediaRepository(apiService: Get.find<ApiService>()),
         permanent: true,
       );
     }
@@ -169,6 +178,15 @@ class AppBindings {
     if (!Get.isRegistered<SubscriptionController>()) {
       Get.put(
         SubscriptionController(repository: Get.find<SubscriptionRepository>()),
+        permanent: true,
+      );
+    }
+
+    if (!Get.isRegistered<SpiritualMediaController>()) {
+      Get.put(
+        SpiritualMediaController(
+          repository: Get.find<SpiritualMediaRepository>(),
+        ),
         permanent: true,
       );
     }

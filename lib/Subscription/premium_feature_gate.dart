@@ -9,6 +9,9 @@ class PremiumFeatureGate {
   static Future<void> open({
     required BuildContext context,
     required Widget Function() featureBuilder,
+    String? featureTitle,
+    String? featureDescription,
+    IconData featureIcon = Icons.live_tv_rounded,
   }) async {
     final profileController = Get.isRegistered<ProfileController>()
         ? Get.find<ProfileController>()
@@ -24,6 +27,9 @@ class PremiumFeatureGate {
             ? featureBuilder()
             : SubscriptionPlansView(
                 successDestinationBuilder: featureBuilder,
+                featureTitle: featureTitle,
+                featureDescription: featureDescription,
+                featureIcon: featureIcon,
               ),
       ),
     );

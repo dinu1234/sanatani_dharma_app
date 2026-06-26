@@ -435,6 +435,48 @@ class ApiService extends GetConnect {
     );
   }
 
+  Future<Response<dynamic>> listSpiritualMedia({
+    int page = 1,
+    int limit = 20,
+    String? search,
+    String? mediaType,
+  }) {
+    final body = <String, dynamic>{
+      'page': page < 1 ? 1 : page,
+      'limit': limit.clamp(1, 100),
+    };
+    if (search != null && search.trim().isNotEmpty) {
+      body['search'] = search.trim();
+    }
+    if (mediaType != null && mediaType.trim().isNotEmpty) {
+      body['media_type'] = mediaType.trim().toLowerCase();
+    }
+
+    return postRequest(
+      ApiConstants.listSpiritualMedia,
+      body,
+      contentType: 'application/x-www-form-urlencoded',
+      requireAuth: true,
+      showErrorToast: false,
+      timeout: const Duration(seconds: 20),
+      retryCount: 1,
+    );
+  }
+
+  Future<Response<dynamic>> getSpiritualMediaDetail({
+    required int mediaId,
+  }) {
+    return postRequest(
+      ApiConstants.getSpiritualMediaDetail,
+      {'media_id': mediaId},
+      contentType: 'application/x-www-form-urlencoded',
+      requireAuth: true,
+      showErrorToast: false,
+      timeout: const Duration(seconds: 20),
+      retryCount: 1,
+    );
+  }
+
   Future<Response<dynamic>> listSubscriptionPlans() {
     return postRequest(
       ApiConstants.listSubscriptionPlans,
